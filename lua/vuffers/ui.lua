@@ -1,5 +1,3 @@
-local buffers = require("vuffers.buffers")
-
 local M = {}
 local split
 
@@ -29,7 +27,7 @@ local function init(opts)
     buf_options = {
       swapfile = false,
       buftype = "nofile",
-      modifiable = false,
+      -- modifiable = false,
       filetype = "vuffer",
       bufhidden = "hide",
     },
@@ -58,6 +56,13 @@ function M.close()
   local s = get_split()
 
   s:hide()
+end
+
+---@return number
+function M.get_split_buf_num()
+  local s = get_split()
+
+  return s.bufnr
 end
 
 return M
