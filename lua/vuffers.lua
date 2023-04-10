@@ -8,7 +8,7 @@ function M.setup(opts) end
 function M.open()
   ui.open()
 
-  local lines = bufs.get_all_buffers()
+  local lines = bufs.get_all_buffer_names()
   local bufnr = ui.get_split_buf_num()
 
   render.render_new(bufnr, lines)
