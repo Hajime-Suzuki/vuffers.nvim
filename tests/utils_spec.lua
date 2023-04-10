@@ -11,8 +11,25 @@ describe("utils", function()
     it("returns correct filenames when the filenames of the input has duplicate", function()
       local res = utils.get_file_names({ "hi.ts", "b/user.ts", "a/test.ts", "a/user.ts" })
 
-      assert.equal(#res, 4)
-      assert.are.same(res, { "hi.ts", "b/user.ts", "test.ts", "a/user.ts" })
+      assert.are.same({ "hi.ts", "b/user.ts", "test.ts", "a/user.ts" }, res)
+    end)
+
+    it("returns correct filenames when the filenames of the input has duplicate", function()
+      local res = utils.get_file_names({ "b/user.ts", "user.ts" })
+
+      assert.are.same({ "b/user.ts", "user.ts" }, res)
+    end)
+
+    it("returns correct filenames when the filenames of the input has duplicate", function()
+      local res = utils.get_file_names({ "user.ts", "b/user.ts" })
+
+      assert.are.same({ "user.ts", "b/user.ts" }, res)
+    end)
+
+    it("returns correct filenames when the filenames of the input has multiple duplicate", function()
+      local res = utils.get_file_names({ "a/user.ts", "b/user.ts", "x/a/test.ts" })
+
+      assert.are.same({ "a/user.ts", "b/user.ts", "x/a/test.ts" }, res)
     end)
   end)
 end)
