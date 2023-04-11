@@ -1,23 +1,6 @@
+local list = require("utils.list")
 local plenary = require("plenary")
 local M = {}
-
-local function slice_array(arr, start_index, end_index)
-  local sliced_arr = {}
-  for i = start_index, end_index do
-    table.insert(sliced_arr, arr[i])
-  end
-  return sliced_arr
-end
-
-local function index_of(arr, target_item)
-  for i = 1, #arr do
-    if arr[i] == target_item then
-      return i
-    end
-  end
-
-  error()
-end
 
 local function split_path(path)
   local components = {}
@@ -76,7 +59,7 @@ function M.get_file_names(file_paths)
       table.insert(file_names, current_file_name)
 
       -- then update the previously added file name
-      local seen_file_name_index = index_of(file_names, file_name)
+      local seen_file_name_index = list.unsafe_find_index(file_names, file_name)
       file_names[seen_file_name_index] = seen_file_name
 
       -- currently skip updating the "seen" table

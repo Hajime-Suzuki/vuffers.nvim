@@ -1,4 +1,4 @@
-local utils = require("vuffers.utils")
+local utils = require("vuffers.buffer-utils")
 describe("utils", function()
   describe("get_file_names", function()
     it("returns correct filenames when the filenames of the input is unique", function()
@@ -30,6 +30,12 @@ describe("utils", function()
       local res = utils.get_file_names({ "a/user.ts", "b/user.ts", "x/a/test.ts" })
 
       assert.are.same({ "a/user.ts", "b/user.ts", "x/a/test.ts" }, res)
+    end)
+
+    it("returns correct filenames when the filenames of the input has multiple duplicate", function()
+      local res = utils.get_file_names({ "a/b.ts", "x/a/b.ts", "m/n/b.ts", "c/b.ts" })
+
+      assert.are.same({ "a/b.ts", "x/a/b.ts", "n/b.ts", "c/b.ts" }, res)
     end)
   end)
 end)
