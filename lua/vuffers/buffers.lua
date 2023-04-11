@@ -1,4 +1,4 @@
-local utils = require("vuffers.utils")
+local utils = require("vuffers.buffer-utils")
 
 local M = {}
 
