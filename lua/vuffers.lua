@@ -1,17 +1,21 @@
+local ui = require("vuffers.ui")
+local bufs = require("vuffers.buffers")
+local render = require("vuffers.render")
 local M = {}
 
 function M.setup(opts) end
 
 function M.open()
-  local Split = require("nui.split")
+  ui.open()
 
-  local split = Split({
-    relative = "editor",
-    position = "left",
-    size = "20%",
-  })
+  local lines = bufs.get_all_buffer_names()
+  local bufnr = ui.get_split_buf_num()
 
-  split:mount()
+  render.render_new(bufnr, lines)
+end
+
+function M.close()
+  ui.close()
 end
 
 return M
