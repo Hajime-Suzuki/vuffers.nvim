@@ -11,7 +11,7 @@ function M.get_file_names(buffers)
   local input = list.map(buffers, function(buffer, i)
     return {
       current_filename = "",
-      remaining = buffer.name,
+      remaining = buffer.path,
       buf = buffer.buf,
       index = i,
       path = buffer.path,

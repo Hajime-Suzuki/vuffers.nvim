@@ -23,6 +23,19 @@ function M.find(arr, predicate)
   return nil
 end
 
+--- @generic TItem: any
+--- @param arr TItem[]
+--- @param predicate fun(item: any, index: number): boolean
+--- @return integer | nil
+function M.find_index(arr, predicate)
+  for i, v in pairs(arr) do
+    if predicate(v, i) then
+      return i
+    end
+  end
+  return nil
+end
+
 function M.slice_array(arr, start_index, end_index)
   local sliced_arr = {}
   for i = start_index, end_index do

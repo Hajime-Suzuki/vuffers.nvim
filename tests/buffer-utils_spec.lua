@@ -4,10 +4,10 @@ describe("utils", function()
   describe("get_file_names", function()
     it("returns correct filenames when the filenames of the input is unique", function()
       local res = utils.get_file_names({
-        { name = "a/hi.ts", buf = 1 },
-        { name = "b/user.ts", buf = 2 },
-        { name = "a/test.ts", buf = 3 },
-        { name = "test.json", buf = 4 },
+        { path = "a/hi.ts", buf = 1 },
+        { path = "b/user.ts", buf = 2 },
+        { path = "a/test.ts", buf = 3 },
+        { path = "test.json", buf = 4 },
       })
 
       res = list.map(res, function(item)
@@ -19,10 +19,10 @@ describe("utils", function()
 
     it("returns correct filenames when the filenames of the input has duplicate. case 1", function()
       local res = utils.get_file_names({
-        { name = "hi.ts", buf = 1 },
-        { name = "b/user.ts", buf = 2 },
-        { name = "a/test.ts", buf = 3 },
-        { name = "a/user.ts", buf = 4 },
+        { path = "hi.ts", buf = 1 },
+        { path = "b/user.ts", buf = 2 },
+        { path = "a/test.ts", buf = 3 },
+        { path = "a/user.ts", buf = 4 },
       })
 
       res = list.map(res, function(item)
@@ -34,8 +34,8 @@ describe("utils", function()
 
     it("returns correct filenames when the filenames of the input has duplicate. case 2", function()
       local res = utils.get_file_names({
-        { name = "b/user.ts", buf = 1 },
-        { name = "user.ts", buf = 2 },
+        { path = "b/user.ts", buf = 1 },
+        { path = "user.ts", buf = 2 },
       })
 
       res = list.map(res, function(item)
@@ -47,8 +47,8 @@ describe("utils", function()
 
     it("returns correct filenames when the filenames of the input has duplicate. case 3", function()
       local res = utils.get_file_names({
-        { name = "user.ts", buf = 1 },
-        { name = "b/user.ts", buf = 2 },
+        { path = "user.ts", buf = 1 },
+        { path = "b/user.ts", buf = 2 },
       })
 
       res = list.map(res, function(item)
@@ -60,9 +60,9 @@ describe("utils", function()
 
     it("returns correct filenames when the filenames of the input has multiple duplicate. case 4", function()
       local res = utils.get_file_names({
-        { name = "a/user.ts", buf = 1 },
-        { name = "b/user.ts", buf = 2 },
-        { name = "x/a/test.ts", buf = 3 },
+        { path = "a/user.ts", buf = 1 },
+        { path = "b/user.ts", buf = 2 },
+        { path = "x/a/test.ts", buf = 3 },
       })
 
       res = list.map(res, function(item)
@@ -74,10 +74,10 @@ describe("utils", function()
 
     it("returns correct filenames when the filenames of the input has multiple duplicate. case 5", function()
       local res = utils.get_file_names({
-        { name = "a/b.ts", buf = 1 },
-        { name = "x/a/b.ts", buf = 2 },
-        { name = "m/n/b.ts", buf = 3 },
-        { name = "c/b.ts", buf = 4 },
+        { path = "a/b.ts", buf = 1 },
+        { path = "x/a/b.ts", buf = 2 },
+        { path = "m/n/b.ts", buf = 3 },
+        { path = "c/b.ts", buf = 4 },
       })
 
       res = list.map(res, function(item)

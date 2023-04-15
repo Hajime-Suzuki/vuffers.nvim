@@ -4,7 +4,7 @@ local constants = require("vuffers.constants")
 local M = {}
 local split
 
-local function init(opts)
+function M.init(opts)
   local Split = require("nui.split")
 
   split = Split({
@@ -45,7 +45,7 @@ local function get_split()
   if split then
     return split
   end
-  init()
+  M.init()
   return split
 end
 

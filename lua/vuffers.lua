@@ -3,6 +3,7 @@ local bufs = require("vuffers.buffers")
 local render = require("vuffers.render")
 local auto_commands = require("vuffers.auto-commands")
 local events = require("vuffers.events")
+local actions = require("vuffers.actions")
 
 local M = {}
 
@@ -11,12 +12,10 @@ function M.setup(opts)
 end
 
 function M.open()
+  bufs.reload_all_buffers()
+
   ui.open()
-
-  local lines = bufs.get_all_buffer_names()
-  local bufnr = ui.get_split_buf_num()
-
-  render.render_new(bufnr, lines)
+  actions.render_buffers()
 
   events.publish(events.VuffersWindowOpened)
 end
