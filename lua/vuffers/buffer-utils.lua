@@ -2,8 +2,8 @@ local list = require("utils.list")
 
 local M = {}
 
---- @param buffers {name: string, buf: number, index: number}[]
---- @return {name: string, buf: number, index: number}[]
+--- @param buffers {name: string, buf: number, index: number, path: string}[]
+--- @return {name: string, buf: number, index: number, path: string}[]
 function M.get_file_names(buffers)
   local output = {}
 
@@ -14,6 +14,7 @@ function M.get_file_names(buffers)
       remaining = buffer.name,
       buf = buffer.buf,
       index = i,
+      path = buffer.path,
     }
   end)
 
@@ -40,6 +41,7 @@ function M.get_file_names(buffers)
           index = item.index,
           name = filename,
           buf = item.buf,
+          path = item.path,
         }
 
         table.insert(output, filename_with_index)
@@ -56,6 +58,7 @@ function M.get_file_names(buffers)
             index = item.index,
             name = filename,
             buf = item.buf,
+            path = item.path,
           })
         else
           table.insert(next_items, {
@@ -63,6 +66,7 @@ function M.get_file_names(buffers)
             remaining = parent,
             index = item.index,
             buf = item.buf,
+            path = item.path,
           })
         end
       end
