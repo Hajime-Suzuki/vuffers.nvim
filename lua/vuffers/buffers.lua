@@ -18,16 +18,6 @@ local _buffers = {}
 
 local function get_formatted_buffers()
   return utils.get_file_names(_buffers)
-
-  -- return list.map(buffers_with_unique_names, function(buffer)
-  --   return {
-  --     buf = buffer.buf,
-  --     name = buffer.name,
-  --     index = buffer.index,
-  --     path = buffer.path,
-  --     -- active = buffer.buf == get_current_bufnr(),
-  --   }
-  -- end)
 end
 
 ---@param buffer {buf: number, event: string, file: string, group: number, id: number, match: string}

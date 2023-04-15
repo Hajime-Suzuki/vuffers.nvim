@@ -17,8 +17,6 @@ function M.render_buffers()
     return
   end
 
-  print("active_line", active_line)
-
   render.set_highlight(split_bufnr, active_line - 1)
 end
 

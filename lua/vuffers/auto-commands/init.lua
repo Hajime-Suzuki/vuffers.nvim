@@ -1,6 +1,3 @@
-local highlight = require("vuffers.auto-commands.highlight")
-local event_handlers = require("vuffers.auto-commands.custom_events")
-local events = require("vuffers.events")
 local buffers = require("vuffers.auto-commands.buffers")
 local constants = require("vuffers.constants")
 
@@ -41,11 +38,11 @@ function M.setup()
     end,
   })
 
-  vim.api.nvim_create_autocmd("User", {
-    pattern = events.VuffersWindowOpened,
-    group = constants.AUTO_CMD_GROUP,
-    callback = event_handlers.on_custom_events,
-  })
+  -- vim.api.nvim_create_autocmd("User", {
+  --   pattern = events.VuffersWindowOpened,
+  --   group = constants.AUTO_CMD_GROUP,
+  --   callback = event_handlers.on_custom_events,
+  -- })
 end
 
 return M
