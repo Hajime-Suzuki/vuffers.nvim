@@ -1,6 +1,7 @@
 local highlight = require("vuffers.auto-commands.highlight")
-local event_handlers = require("vuffers.auto-commands.events")
+local event_handlers = require("vuffers.auto-commands.custom_events")
 local events = require("vuffers.events")
+local buffers = require("vuffers.auto-commands.buffers")
 local constants = require("vuffers.constants")
 
 local M = {}
@@ -14,6 +15,7 @@ function M.setup()
       if vim.bo.filetype == constants.FILE_TYPE then
         return
       end
+      buffers.on_buf_enter(buffer)
       highlight.on_buf_enter(buffer)
     end,
   })
@@ -21,7 +23,7 @@ function M.setup()
   vim.api.nvim_create_autocmd("User", {
     pattern = events.VuffersWindowOpened,
     group = constants.AUTO_CMD_GROUP,
-    callback = event_handlers.on_events,
+    callback = event_handlers.on_custom_events,
   })
 end
 

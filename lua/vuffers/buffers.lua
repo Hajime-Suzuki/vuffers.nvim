@@ -2,6 +2,16 @@ local utils = require("vuffers.buffer-utils")
 local list = require("utils.list")
 
 local M = {}
+---@type number | nil
+local current = nil
+
+function M.set_current_bufnr(bufnr)
+  current = bufnr
+end
+
+function M._get_current_bufnr()
+  return current
+end
 
 function M.get_all_buffers()
   ---@type {buf: number, name: string, index: number}[]
@@ -50,11 +60,10 @@ end
 
 function M.get_current_buffer()
   local buffers = M.get_all_buffers()
-
-  local filename = vim.api.nvim_buf_get_name(0)
+  local bufnr = M._get_current_bufnr()
 
   return list.find(buffers, function(buf)
-    return buf.path == filename
+    return buf.buf == bufnr
   end)
 end
 

@@ -3,7 +3,6 @@ local bufs = require("vuffers.buffers")
 local render = require("vuffers.render")
 local auto_commands = require("vuffers.auto-commands")
 local events = require("vuffers.events")
-local highlight = require("vuffers.highlight")
 
 local M = {}
 
@@ -12,18 +11,14 @@ function M.setup(opts)
 end
 
 function M.open()
+  ui.open()
+
   local lines = bufs.get_all_buffer_names()
   local bufnr = ui.get_split_buf_num()
-  local current_buffer = bufs.get_current_buffer()
-
-  ui.open()
 
   render.render_new(bufnr, lines)
 
-  -- TODO: use event to handle highlight
-  if current_buffer ~= nil then
-    highlight.highlight_selected_buffer(current_buffer.buf)
-  end
+  events.publish(events.VuffersWindowOpened)
 end
 
 function M.close()
