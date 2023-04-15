@@ -16,7 +16,6 @@ function M.setup()
         return
       end
       buffers.on_buf_enter(buffer)
-      highlight.on_buf_enter(buffer)
     end,
   })
 

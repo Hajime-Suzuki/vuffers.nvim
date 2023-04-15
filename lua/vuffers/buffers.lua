@@ -9,15 +9,25 @@ function M.set_current_bufnr(bufnr)
   current = bufnr
 end
 
-local function get_current_bufnr()
+function M.get_current_bufnr()
   return current
 end
 
----@type {buf: number, name: string, index: number, path: string}[]
+---@type {buf: number, name: string, index: number, path: string }[]
 local _buffers = {}
 
-local function get_unique_names()
+local function get_formatted_buffers()
   return utils.get_file_names(_buffers)
+
+  -- return list.map(buffers_with_unique_names, function(buffer)
+  --   return {
+  --     buf = buffer.buf,
+  --     name = buffer.name,
+  --     index = buffer.index,
+  --     path = buffer.path,
+  --     -- active = buffer.buf == get_current_bufnr(),
+  --   }
+  -- end)
 end
 
 ---@param buffer {buf: number, event: string, file: string, group: number, id: number, match: string}
@@ -37,7 +47,7 @@ function M.add_buffer(buffer)
     path = buffer.file,
   })
 
-  _buffers = get_unique_names()
+  _buffers = get_formatted_buffers()
 end
 
 ---@param bufnr number
@@ -50,7 +60,7 @@ function M.remove_buffer(bufnr)
     table.remove(_buffers, index)
   end
 
-  _buffers = get_unique_names()
+  _buffers = get_formatted_buffers()
 end
 
 local function reset_buffers()
@@ -70,7 +80,7 @@ function M.reload_all_buffers()
     end
   end
 
-  _buffers = get_unique_names()
+  _buffers = get_formatted_buffers()
 end
 
 function M.get_all_buffers()
@@ -105,7 +115,7 @@ end
 
 function M.get_current_buffer()
   local buffers = M.get_all_buffers()
-  local bufnr = get_current_bufnr()
+  local bufnr = M.get_current_bufnr()
 
   return list.find(buffers, function(buf)
     return buf.buf == bufnr
