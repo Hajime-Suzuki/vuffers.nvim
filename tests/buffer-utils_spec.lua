@@ -1,39 +1,88 @@
 local utils = require("vuffers.buffer-utils")
+local list = require("utils.list")
 describe("utils", function()
   describe("get_file_names", function()
     it("returns correct filenames when the filenames of the input is unique", function()
-      local res = utils.get_file_names({ "a/hi.ts", "b/user.ts", "a/test.ts", "test.json" })
+      local res = utils.get_file_names({
+        { name = "a/hi.ts", buf = 1 },
+        { name = "b/user.ts", buf = 2 },
+        { name = "a/test.ts", buf = 3 },
+        { name = "test.json", buf = 4 },
+      })
 
-      assert.equal(#res, 4)
+      res = list.map(res, function(item)
+        return item.name
+      end)
+
       assert.are.same(res, { "hi.ts", "user.ts", "test.ts", "test.json" })
     end)
 
     it("returns correct filenames when the filenames of the input has duplicate. case 1", function()
-      local res = utils.get_file_names({ "hi.ts", "b/user.ts", "a/test.ts", "a/user.ts" })
+      local res = utils.get_file_names({
+        { name = "hi.ts", buf = 1 },
+        { name = "b/user.ts", buf = 2 },
+        { name = "a/test.ts", buf = 3 },
+        { name = "a/user.ts", buf = 4 },
+      })
+
+      res = list.map(res, function(item)
+        return item.name
+      end)
 
       assert.are.same({ "hi.ts", "b/user.ts", "test.ts", "a/user.ts" }, res)
     end)
 
     it("returns correct filenames when the filenames of the input has duplicate. case 2", function()
-      local res = utils.get_file_names({ "b/user.ts", "user.ts" })
+      local res = utils.get_file_names({
+        { name = "b/user.ts", buf = 1 },
+        { name = "user.ts", buf = 2 },
+      })
+
+      res = list.map(res, function(item)
+        return item.name
+      end)
 
       assert.are.same({ "b/user.ts", "user.ts" }, res)
     end)
 
     it("returns correct filenames when the filenames of the input has duplicate. case 3", function()
-      local res = utils.get_file_names({ "user.ts", "b/user.ts" })
+      local res = utils.get_file_names({
+        { name = "user.ts", buf = 1 },
+        { name = "b/user.ts", buf = 2 },
+      })
+
+      res = list.map(res, function(item)
+        return item.name
+      end)
 
       assert.are.same({ "user.ts", "b/user.ts" }, res)
     end)
 
     it("returns correct filenames when the filenames of the input has multiple duplicate. case 4", function()
-      local res = utils.get_file_names({ "a/user.ts", "b/user.ts", "x/a/test.ts" })
+      local res = utils.get_file_names({
+        { name = "a/user.ts", buf = 1 },
+        { name = "b/user.ts", buf = 2 },
+        { name = "x/a/test.ts", buf = 3 },
+      })
+
+      res = list.map(res, function(item)
+        return item.name
+      end)
 
       assert.are.same({ "a/user.ts", "b/user.ts", "test.ts" }, res)
     end)
 
     it("returns correct filenames when the filenames of the input has multiple duplicate. case 5", function()
-      local res = utils.get_file_names({ "a/b.ts", "x/a/b.ts", "m/n/b.ts", "c/b.ts" })
+      local res = utils.get_file_names({
+        { name = "a/b.ts", buf = 1 },
+        { name = "x/a/b.ts", buf = 2 },
+        { name = "m/n/b.ts", buf = 3 },
+        { name = "c/b.ts", buf = 4 },
+      })
+
+      res = list.map(res, function(item)
+        return item.name
+      end)
 
       assert.are.same({ "a/b.ts", "x/a/b.ts", "n/b.ts", "c/b.ts" }, res)
     end)

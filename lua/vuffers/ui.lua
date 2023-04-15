@@ -1,3 +1,6 @@
+local events = require("vuffers.events")
+local constants = require("vuffers.constants")
+
 local M = {}
 local split
 
@@ -28,7 +31,7 @@ local function init(opts)
       swapfile = false,
       buftype = "nofile",
       -- modifiable = false,
-      filetype = "vuffer",
+      filetype = constants.FILE_TYPE,
       bufhidden = "hide",
     },
   })

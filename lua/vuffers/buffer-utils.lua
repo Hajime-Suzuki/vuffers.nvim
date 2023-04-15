@@ -2,17 +2,19 @@ local list = require("utils.list")
 
 local M = {}
 
----@param file_paths string[]
----@return string[]
-function M.get_file_names(file_paths)
+--- @param buffers {name: string, buf: number, index: number, path: string}[]
+--- @return {name: string, buf: number, index: number, path: string}[]
+function M.get_file_names(buffers)
   local output = {}
 
   -- preparing the input. adding extra data
-  local input = list.map(file_paths, function(path, i)
+  local input = list.map(buffers, function(buffer, i)
     return {
       current_filename = "",
-      remaining = path,
+      remaining = buffer.name,
+      buf = buffer.buf,
       index = i,
+      path = buffer.path,
     }
   end)
 
@@ -37,7 +39,9 @@ function M.get_file_names(file_paths)
 
         local filename_with_index = {
           index = item.index,
-          filename = filename,
+          name = filename,
+          buf = item.buf,
+          path = item.path,
         }
 
         table.insert(output, filename_with_index)
@@ -52,13 +56,17 @@ function M.get_file_names(file_paths)
           local filename = string.gsub(item.remaining .. "/" .. item.current_filename, "/$", "")
           table.insert(output, {
             index = item.index,
-            filename = filename,
+            name = filename,
+            buf = item.buf,
+            path = item.path,
           })
         else
           table.insert(next_items, {
             current_filename = grouped_name .. "/" .. item.current_filename,
             remaining = parent,
             index = item.index,
+            buf = item.buf,
+            path = item.path,
           })
         end
       end
@@ -77,9 +85,7 @@ function M.get_file_names(file_paths)
     return a.index < b.index
   end)
 
-  return list.map(output, function(item)
-    return item.filename
-  end)
+  return output
 end
 
 return M

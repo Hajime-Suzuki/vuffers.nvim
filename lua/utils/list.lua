@@ -10,6 +10,19 @@ function M.unsafe_find_index(arr, target_item)
   error("item not found in the list")
 end
 
+--- @generic TItem: any
+--- @param arr TItem[]
+--- @param predicate fun(item: any, index: number): boolean
+--- @return TItem | nil
+function M.find(arr, predicate)
+  for i, v in pairs(arr) do
+    if predicate(v, i) then
+      return v
+    end
+  end
+  return nil
+end
+
 function M.slice_array(arr, start_index, end_index)
   local sliced_arr = {}
   for i = start_index, end_index do
