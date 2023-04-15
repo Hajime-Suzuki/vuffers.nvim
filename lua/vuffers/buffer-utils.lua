@@ -2,7 +2,8 @@ local list = require("utils.list")
 
 local M = {}
 
--- buffers is a list of buffer which has 2 properties: name (string) and buf (number)
+--- @param buffers {name: string, buf: number, index: number}[]
+--- @return {name: string, buf: number, index: number}[]
 function M.get_file_names(buffers)
   local output = {}
 

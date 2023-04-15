@@ -1,9 +1,12 @@
 local ui = require("vuffers.ui")
 local bufs = require("vuffers.buffers")
 local render = require("vuffers.render")
+local auto_commands = require("vuffers.auto-commands")
 local M = {}
 
-function M.setup(opts) end
+function M.setup(opts)
+  auto_commands.setup()
+end
 
 function M.open()
   ui.open()
