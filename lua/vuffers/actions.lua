@@ -1,7 +1,6 @@
 local ui = require("vuffers.ui")
 local bufs = require("vuffers.buffers")
 local render = require("vuffers.render")
-local list = require("utils.list")
 
 local M = {}
 

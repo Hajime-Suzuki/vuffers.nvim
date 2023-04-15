@@ -26,7 +26,6 @@ function M.setup()
       if vim.bo.filetype == constants.FILE_TYPE or buffer.file == "" then
         return
       end
-      print("bufadd", buffer.file)
       buffers.on_buf_add(buffer)
     end,
   })
@@ -38,8 +37,6 @@ function M.setup()
       if vim.bo.filetype == constants.FILE_TYPE or buffer.file == "" then
         return
       end
-      print("bufdelete", buffer.file)
-
       buffers.on_buf_delete(buffer)
     end,
   })
