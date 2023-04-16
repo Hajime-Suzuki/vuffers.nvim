@@ -29,7 +29,7 @@ function M.init(opts)
     buf_options = {
       swapfile = false,
       buftype = "nofile",
-      -- modifiable = false,
+      modifiable = true,
       filetype = constants.FILE_TYPE,
       bufhidden = "hide",
     },

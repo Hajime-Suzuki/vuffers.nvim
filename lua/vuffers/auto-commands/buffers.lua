@@ -1,5 +1,4 @@
 local buffers = require("vuffers.buffers")
-local ui = require("vuffers.ui")
 
 local M = {}
 
