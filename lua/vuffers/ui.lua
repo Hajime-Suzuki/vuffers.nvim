@@ -1,78 +1,61 @@
-local constants = require("vuffers.constants")
+local list = require("utils.list")
+local window = require("vuffers.window")
+local bufs = require("vuffers.buffers")
 
 local M = {}
-local split
 
-function M.init(opts)
-  local Split = require("nui.split")
+local ns_id = vim.api.nvim_create_namespace("my_namespace") -- namespace id
 
-  split = Split({
-    relative = "editor",
-    position = "left",
-    size = "20%",
-    win_options = {
-      relativenumber = false,
-      number = false,
-      list = false,
-      winfixwidth = true,
-      winfixheight = true,
-      foldenable = false,
-      spell = false,
-      signcolumn = "yes",
-      foldmethod = "manual",
-      foldcolumn = "0",
-      cursorcolumn = false,
-      colorcolumn = "0",
-      winhighlight = "Normal:VerticalBuffers",
-    },
+---@param bufnr integer
+---@param lines string[]
+local function _render_lines(bufnr, lines)
+  local ok = pcall(function()
+    vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
+  end)
 
-    buf_options = {
-      swapfile = false,
-      buftype = "nofile",
-      -- modifiable = false,
-      filetype = constants.FILE_TYPE,
-      bufhidden = "hide",
-    },
-  })
-
-  split:mount()
-
-  split:hide()
-end
-
-local function get_split()
-  if split then
-    return split
+  if not ok then
+    print("Error: Could not set lines in buffer " .. bufnr)
   end
-  M.init()
-  return split
 end
 
-local is_open = false
+---@param bufnr integer
+---@param line_number integer
+local function _set_highlight(bufnr, line_number)
+  local ok = pcall(function()
+    vim.api.nvim_buf_clear_namespace(bufnr, ns_id, 0, -1)
+    vim.api.nvim_buf_add_highlight(bufnr, ns_id, "VuffersSelectedBuffer", line_number, 0, -1)
+  end)
 
-function M.open()
-  local s = get_split()
-
-  s:show()
-  is_open = true
+  if not ok then
+    print("Error: Could not set highlight in buffer " .. bufnr)
+  end
 end
 
-function M.close()
-  local s = get_split()
+function M.highlight_active_buffer()
+  local split_bufnr = window.get_split_buf_num()
+  local current_buffer = bufs.get_current_buffer()
+  local active_line = current_buffer and current_buffer.index
 
-  s:hide()
-  is_open = false
+  if active_line == nil then
+    return
+  end
+
+  _set_highlight(split_bufnr, active_line - 1)
 end
 
-function M.is_hidden()
-  return not is_open
-end
+function M.render_buffers()
+  if window.is_hidden() then
+    return
+  end
 
----@return number
-function M.get_split_buf_num()
-  local s = get_split()
+  local buffers = bufs.get_all_buffers()
+  local split_bufnr = window.get_split_buf_num()
 
-  return s.bufnr
+  local lines = list.map(buffers, function(buffer)
+    return buffer.name .. "(" .. buffer.buf .. ")"
+  end)
+
+  _render_lines(split_bufnr, lines)
 end
 
 return M
