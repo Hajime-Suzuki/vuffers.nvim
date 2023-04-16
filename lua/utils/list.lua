@@ -23,6 +23,19 @@ function M.find(arr, predicate)
   return nil
 end
 
+--- @generic TItem: any
+--- @param arr TItem[]
+--- @param predicate fun(item: any, index: number): boolean
+--- @return integer | nil
+function M.find_index(arr, predicate)
+  for i, v in pairs(arr) do
+    if predicate(v, i) then
+      return i
+    end
+  end
+  return nil
+end
+
 function M.slice_array(arr, start_index, end_index)
   local sliced_arr = {}
   for i = start_index, end_index do
@@ -31,8 +44,8 @@ function M.slice_array(arr, start_index, end_index)
   return sliced_arr
 end
 
---- @generic TItem: any
---- @generic TGroupId: any
+--- @generic TItem
+--- @generic TGroupId
 --- @param arr TItem[]
 --- @param f fun(item: TItem, index: number): TGroupId
 --- @return table<TGroupId, TItem[]>
@@ -50,8 +63,8 @@ function M.group_by(arr, f)
   return grouped
 end
 
---- @generic A: any
---- @generic B: any
+--- @generic A
+--- @generic B
 --- @param arr A[]
 --- @param f fun(item: A, index: number): B
 --- @return B[]

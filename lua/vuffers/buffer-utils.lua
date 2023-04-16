@@ -11,13 +11,14 @@ function M.get_file_names(buffers)
   local input = list.map(buffers, function(buffer, i)
     return {
       current_filename = "",
-      remaining = buffer.name,
+      remaining = buffer.path,
       buf = buffer.buf,
       index = i,
       path = buffer.path,
     }
   end)
 
+  --- @param ls {current_filename: string, remaining: string, buf: number, index: number, path: string}[]
   local function loop(ls)
     local grouped_by_filename = list.group_by(ls, function(item)
       return string.match(item.remaining, ".+/(.+)$") or item.remaining

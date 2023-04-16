@@ -1,27 +1,29 @@
 local ui = require("vuffers.ui")
 local bufs = require("vuffers.buffers")
-local render = require("vuffers.render")
 local auto_commands = require("vuffers.auto-commands")
-local events = require("vuffers.events")
+local actions = require("vuffers.actions")
 
 local M = {}
 
 function M.setup(opts)
-  auto_commands.setup()
+  -- auto_commands.setup()
 end
 
 function M.open()
+  auto_commands.create_auto_group()
+
+  bufs.reload_all_buffers()
+
   ui.open()
-
-  local lines = bufs.get_all_buffer_names()
-  local bufnr = ui.get_split_buf_num()
-
-  render.render_new(bufnr, lines)
-
-  events.publish(events.VuffersWindowOpened)
+  actions.render_buffers()
 end
 
 function M.close()
+  if ui.is_hidden() then
+    return
+  end
+
+  auto_commands.remove_auto_group()
   ui.close()
 end
 

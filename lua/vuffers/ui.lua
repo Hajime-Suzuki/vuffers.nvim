@@ -1,10 +1,9 @@
-local events = require("vuffers.events")
 local constants = require("vuffers.constants")
 
 local M = {}
 local split
 
-local function init(opts)
+function M.init(opts)
   local Split = require("nui.split")
 
   split = Split({
@@ -45,20 +44,28 @@ local function get_split()
   if split then
     return split
   end
-  init()
+  M.init()
   return split
 end
+
+local is_open = false
 
 function M.open()
   local s = get_split()
 
   s:show()
+  is_open = true
 end
 
 function M.close()
   local s = get_split()
 
   s:hide()
+  is_open = false
+end
+
+function M.is_hidden()
+  return not is_open
 end
 
 ---@return number
