@@ -2,38 +2,15 @@ local utils = require("vuffers.buffer-utils")
 local list = require("utils.list")
 local config = require("vuffers.config")
 local constants = require("vuffers.constants")
+local events = require("vuffers.events")
 
 local M = {}
 ---@type number | nil
 local current = nil
 
----@param buffer {buf: number, event: string, file: string, group: number, id: number, match: string}
----@param file_type string
-function M.set_current_bufnr(buffer, file_type)
-  if _is_invalid_file(buffer.file, file_type) then
-    return
-  end
-  current = buffer.buf
-end
-
-function M.get_current_bufnr()
-  return current
-end
-
----@type {buf: number, name: string, index: number, path: string }[]
-local _buf_list = {}
-
-local function reset_buffers()
-  _buf_list = {}
-end
-
-local function _get_formatted_buffers()
-  return utils.get_file_names(_buf_list)
-end
-
 ---@param filename string
 ---@param file_type? string
-function _is_invalid_file(filename, file_type)
+local function _is_invalid_file(filename, file_type)
   if filename == "" or filename == "/" or filename == " " then
     return true
   end
@@ -59,6 +36,36 @@ function _is_invalid_file(filename, file_type)
       end
     end
   end
+end
+
+---@param buffer {buf: number, event: string, file: string, group: number, id: number, match: string}
+---@param file_type string
+function M.set_current_bufnr(buffer, file_type)
+  if _is_invalid_file(buffer.file, file_type) then
+    return
+  end
+
+  if buffer.buf == current then
+    return
+  end
+
+  current = buffer.buf
+  events.publish(events.names.ActiveFileChanged)
+end
+
+function M.get_current_bufnr()
+  return current
+end
+
+---@type {buf: number, name: string, index: number, path: string }[]
+local _buf_list = {}
+
+local function reset_buffers()
+  _buf_list = {}
+end
+
+local function _get_formatted_buffers()
+  return utils.get_file_names(_buf_list)
 end
 
 ---@param buf_or_filename integer | string
@@ -87,6 +94,8 @@ function M.add_buffer(buffer, file_type)
   })
 
   _buf_list = _get_formatted_buffers()
+
+  events.publish(events.names.BufferListChanged)
 end
 
 ---@param bufnr number
@@ -101,6 +110,8 @@ function M.remove_buffer(bufnr)
 
   table.remove(_buf_list, index)
   _buf_list = _get_formatted_buffers()
+
+  events.publish(events.names.BufferListChanged)
 end
 
 function M.reload_all_buffers()
@@ -118,6 +129,9 @@ function M.reload_all_buffers()
   end
 
   _buf_list = _get_formatted_buffers()
+
+  events.publish(events.names.BufferListChanged)
+  events.publish(events.names.ActiveFileChanged)
 end
 
 function M.get_all_buffers()

@@ -1,5 +1,7 @@
 local autocmd_buffers = require("vuffers.auto-commands.buffers")
 local constants = require("vuffers.constants")
+local events = require("vuffers.events")
+local ui = require("vuffers.ui")
 
 local M = {}
 
@@ -29,11 +31,22 @@ function M.create_auto_group()
     end,
   })
 
-  -- vim.api.nvim_create_autocmd("User", {
-  --   pattern = events.VuffersWindowOpened,
-  --   group = constants.AUTO_CMD_GROUP,
-  --   callback = event_handlers.on_custom_events,
-  -- })
+  vim.api.nvim_create_autocmd("User", {
+    pattern = events.names.BufferListChanged,
+    group = constants.AUTO_CMD_GROUP,
+    callback = function()
+      ui.render_buffers()
+      -- ui.highlight_active_buffer()
+    end,
+  })
+
+  vim.api.nvim_create_autocmd("User", {
+    pattern = events.names.ActiveFileChanged,
+    group = constants.AUTO_CMD_GROUP,
+    callback = function()
+      ui.highlight_active_buffer()
+    end,
+  })
 end
 
 function M.remove_auto_group()
