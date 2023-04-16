@@ -39,20 +39,40 @@ function M.init(opts)
 
   split:hide()
 
+  -- print("window is initiated" .. split.bufnr)
   return split
 end
 
 local function get_split()
+  if not M.is_valid() then
+    return M.init()
+  end
+
   if split then
     return split
   end
+
+  print("this should not happen...")
   return M.init()
+end
+
+function M.is_valid()
+  if not (split and split.bufnr) then
+    return false
+  end
+
+  if not vim.api.nvim_buf_is_valid(split.bufnr) then
+    print("split has invalid buffer")
+    return false
+  end
+
+  return true
 end
 
 local is_open = false
 
 function M.open()
-  local s = M.init()
+  local s = get_split()
   s:show()
   is_open = true
 end

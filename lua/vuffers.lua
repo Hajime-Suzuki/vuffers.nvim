@@ -23,13 +23,18 @@ function M.open()
     return
   end
 
+  local is_valid = ui.is_valid()
+
   auto_commands.create_auto_group()
 
   bufs.reload_all_buffers()
 
   ui.open()
   actions.render_buffers()
-  key_bindings.init(ui.get_split_buf_num())
+
+  if not is_valid then
+    key_bindings.init(ui.get_split_buf_num())
+  end
 end
 
 function M.close()
