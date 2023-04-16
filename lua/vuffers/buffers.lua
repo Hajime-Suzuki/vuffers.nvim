@@ -150,6 +150,13 @@ function M.get_buffer_by_name(name)
   end)
 end
 
+---@param index integer
+function M.get_buffer_by_index(index)
+  local buffers = M.get_all_buffers()
+
+  return buffers[index]
+end
+
 function M.get_current_buffer()
   local buffers = M.get_all_buffers()
   local bufnr = M.get_current_bufnr()

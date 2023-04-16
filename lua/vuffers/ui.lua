@@ -38,21 +38,21 @@ function M.init(opts)
   split:mount()
 
   split:hide()
+
+  return split
 end
 
 local function get_split()
   if split then
     return split
   end
-  M.init()
-  return split
+  return M.init()
 end
 
 local is_open = false
 
 function M.open()
-  local s = get_split()
-
+  local s = M.init()
   s:show()
   is_open = true
 end

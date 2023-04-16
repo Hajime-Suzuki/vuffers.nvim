@@ -37,7 +37,9 @@ function M.create_auto_group()
 end
 
 function M.remove_auto_group()
-  vim.api.nvim_del_augroup_by_name(constants.AUTO_CMD_GROUP)
+  pcall(function()
+    vim.api.nvim_del_augroup_by_name(constants.AUTO_CMD_GROUP)
+  end)
 end
 
 return M

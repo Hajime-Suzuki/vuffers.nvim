@@ -2,6 +2,7 @@ local ui = require("vuffers.ui")
 local bufs = require("vuffers.buffers")
 local auto_commands = require("vuffers.auto-commands")
 local actions = require("vuffers.actions")
+local key_bindings = require("vuffers.key-bindings")
 
 local M = {}
 
@@ -9,13 +10,26 @@ function M.setup(opts)
   -- auto_commands.setup()
 end
 
+function M.toggle()
+  if ui.is_hidden() then
+    M.open()
+  else
+    M.close()
+  end
+end
+
 function M.open()
+  if not ui.is_hidden() then
+    return
+  end
+
   auto_commands.create_auto_group()
 
   bufs.reload_all_buffers()
 
   ui.open()
   actions.render_buffers()
+  key_bindings.init(ui.get_split_buf_num())
 end
 
 function M.close()
