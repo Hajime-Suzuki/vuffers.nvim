@@ -27,11 +27,8 @@ function M.open()
 
   auto_commands.create_auto_group()
 
-  bufs.reload_all_buffers()
-
   window.open()
-  ui.render_buffers()
-  ui.highlight_active_buffer()
+  bufs.reload_all_buffers()
 
   if not is_valid then
     key_bindings.init(window.get_split_buf_num())
