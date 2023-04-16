@@ -5,6 +5,10 @@ local render = require("vuffers.render")
 local M = {}
 
 function M.render_buffers()
+  if ui.is_hidden() then
+    return
+  end
+
   local buffers = bufs.get_all_buffers()
   local split_bufnr = ui.get_split_buf_num()
   local current_buffer = bufs.get_current_buffer()

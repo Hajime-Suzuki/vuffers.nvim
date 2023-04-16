@@ -18,6 +18,7 @@ function M.get_file_names(buffers)
     }
   end)
 
+  --- @param ls {current_filename: string, remaining: string, buf: number, index: number, path: string}[]
   local function loop(ls)
     local grouped_by_filename = list.group_by(ls, function(item)
       return string.match(item.remaining, ".+/(.+)$") or item.remaining

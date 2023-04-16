@@ -6,10 +6,12 @@ local actions = require("vuffers.actions")
 local M = {}
 
 function M.setup(opts)
-  auto_commands.setup()
+  -- auto_commands.setup()
 end
 
 function M.open()
+  auto_commands.create_auto_group()
+
   bufs.reload_all_buffers()
 
   ui.open()
@@ -17,6 +19,11 @@ function M.open()
 end
 
 function M.close()
+  if ui.is_hidden() then
+    return
+  end
+
+  auto_commands.remove_auto_group()
   ui.close()
 end
 
