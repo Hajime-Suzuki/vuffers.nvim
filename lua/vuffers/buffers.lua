@@ -53,6 +53,10 @@ function M.set_current_bufnr(buffer, file_type)
   events.publish(events.names.ActiveFileChanged)
 end
 
+local function reset_active_buffer()
+  current = nil
+end
+
 function M.get_current_bufnr()
   return current
 end
