@@ -34,13 +34,13 @@ function M.init(bufnr)
 
       buffers.remove_buffer({ bufnr = buf.buf })
       config.get_handlers().on_delete_buffer(buf.buf)
-      buffers.set_current_bufnr({ buf = next_buf.buf, file = next_buf.path })
+      -- buffers.set_current_bufnr({ buf = next_buf.buf, file = next_buf.path })
       return
     end
 
     buffers.remove_buffer({ bufnr = buf.buf })
     config.get_handlers().on_delete_buffer(buf.buf)
-    buffers.set_current_bufnr({ buf = active.buf, file = active.path })
+    -- buffers.set_current_bufnr({ buf = active.buf, file = active.path })
   end, { noremap = true, silent = true, nowait = true, buffer = bufnr })
 end
 

@@ -43,4 +43,8 @@ function M.close()
   window.close()
 end
 
+function M.debug_buffers()
+  bufs.debug_buffers()
+end
+
 return M

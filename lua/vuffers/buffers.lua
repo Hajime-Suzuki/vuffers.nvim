@@ -102,8 +102,14 @@ function M.add_buffer(buffer, file_type)
   events.publish(events.names.BufferListChanged)
 end
 
+function M.debug_buffers()
+  print("current", current)
+  print("buffers", vim.inspect(_buf_list))
+end
+
 ---@param args {bufnr?: number, index?: integer}
 function M.remove_buffer(args)
+  print("remove buffer", args.bufnr, args.index)
   if not args.bufnr and not args.index then
     return
   end
@@ -113,28 +119,29 @@ function M.remove_buffer(args)
   end)
 
   if not target_index then
+    print("not found buffer to remove")
     return
   end
 
-  -- if target_index ~= M.get_current_bufnr() then
-  --   print("different buffer")
-  --   table.remove(_buf_list, target_index)
-  --   events.publish(events.names.BufferListChanged)
-  --   return
-  -- end
+  if target_index ~= M.get_current_bufnr() then
+    print("different buffer")
+    table.remove(_buf_list, target_index)
+    _buf_list = _get_formatted_buffers()
+    events.publish(events.names.BufferListChanged)
+    return
+  end
   --
-  -- ---@type {buf: number, name: string, index: number, path: string } | nil
-  -- local next_active_buffer = _buf_list[target_index + 1] or _buf_list[target_index - 1]
-  --
-  -- if next_active_buffer then
-  --   M.set_current_bufnr({ buf = next_active_buffer.buf, file = next_active_buffer.path })
-  -- else
-  --   print("can not delete last buffer")
-  --   return
-  -- end
+  ---@type {buf: number, name: string, index: number, path: string } | nil
+  local next_active_buffer = _buf_list[target_index + 1] or _buf_list[target_index - 1]
+
+  if next_active_buffer then
+    M.set_current_bufnr({ buf = next_active_buffer.buf, file = next_active_buffer.path })
+  else
+    print("can not delete last buffer")
+    return
+  end
 
   table.remove(_buf_list, target_index)
-  _buf_list = _get_formatted_buffers()
   events.publish(events.names.BufferListChanged)
 end
 
@@ -200,6 +207,15 @@ function M.get_current_buffer()
   local bufnr = M.get_current_bufnr()
 
   return list.find(buffers, function(buf)
+    return buf.buf == bufnr
+  end)
+end
+
+function M.get_current_buffer_index()
+  local buffers = M.get_all_buffers()
+  local bufnr = M.get_current_bufnr()
+
+  return list.find_index(buffers, function(buf)
     return buf.buf == bufnr
   end)
 end
