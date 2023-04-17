@@ -33,7 +33,7 @@ end
 
 function M.highlight_active_buffer()
   local split_bufnr = window.get_split_buf_num()
-  local active_line = bufs.get_current_buffer_index()
+  local active_line = bufs.get_active_buffer_index()
 
   if active_line == nil then
     return

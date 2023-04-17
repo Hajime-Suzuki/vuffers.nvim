@@ -3,10 +3,26 @@ local list = require("utils.list")
 local config = require("vuffers.config")
 local constants = require("vuffers.constants")
 local events = require("vuffers.events")
+--------------types >>----------------
+
+---@class Buffer
+---@field buf number
+---@field name string
+---@field path string: full path of
+
+---@class NvimBuffer
+---@field buf number
+---@field file string
+---@field event string
+---@field group number
+---@field id number
+---@field match string
+
+--------------<<types ----------------
 
 local M = {}
 ---@type number | nil
-local current = nil
+local active_bufnr = nil
 
 ---@param filename string
 ---@param file_type? string
@@ -38,41 +54,20 @@ local function _is_invalid_file(filename, file_type)
   end
 end
 
----@param buffer {buf: number, file: string }
+---@param buffer Buffer
 ---@param file_type? string
-function M.set_current_bufnr(buffer, file_type)
-  if _is_invalid_file(buffer.file, file_type) then
+function M.set_active_bufnr(buffer, file_type)
+  if _is_invalid_file(buffer.path, file_type) then
     return
   end
 
-  -- if buffer.buf == current then
-  --   return
-  -- end
-
-  current = buffer.buf
+  active_bufnr = buffer.buf
   events.publish(events.names.ActiveFileChanged)
 end
 
-local function reset_active_buffer()
-  current = nil
+function _get_active_bufnr()
+  return active_bufnr
 end
-
-function M.get_current_bufnr()
-  return current
-end
-
----@class Buffer
----@field buf number
----@field name string
----@field path string: full path of
-
----@class NvimBuffer
----@field buf number
----@field file string
----@field event string
----@field group number
----@field id number
----@field match string
 
 ---@type Buffer[]
 local _buf_list = {}
@@ -94,7 +89,7 @@ local function _is_in_buf_list(buf_or_filename)
   end) ~= nil
 end
 
----@param buffer {buf: number, event: string, file: string, group: number, id: number, match: string}
+---@param buffer NvimBuffer
 ---@param file_type string
 function M.add_buffer(buffer, file_type)
   local should_ignore = _is_invalid_file(buffer.file, file_type) or _is_in_buf_list(buffer.file)
@@ -114,11 +109,6 @@ function M.add_buffer(buffer, file_type)
   events.publish(events.names.BufferListChanged)
 end
 
-function M.debug_buffers()
-  print("current", current)
-  print("buffers", vim.inspect(_buf_list))
-end
-
 ---@param args {bufnr?: number, index?: integer}
 function M.remove_buffer(args)
   print("remove buffer", args.bufnr, args.index)
@@ -135,7 +125,7 @@ function M.remove_buffer(args)
     return
   end
 
-  if target_index ~= M.get_current_bufnr() then
+  if target_index ~= _get_active_bufnr() then
     print("different buffer")
     table.remove(_buf_list, target_index)
     _buf_list = _get_formatted_buffers()
@@ -143,11 +133,11 @@ function M.remove_buffer(args)
     return
   end
   --
-  ---@type {buf: number, name: string, index: number, path: string } | nil
+  ---@type Buffer | nil
   local next_active_buffer = _buf_list[target_index + 1] or _buf_list[target_index - 1]
 
   if next_active_buffer then
-    M.set_current_bufnr({ buf = next_active_buffer.buf, file = next_active_buffer.path })
+    M.set_active_bufnr(next_active_buffer)
   else
     print("can not delete last buffer")
     return
@@ -181,32 +171,6 @@ function M.get_all_buffers()
   return _buf_list
 end
 
-function M.get_all_buffer_names()
-  local buffers = M.get_all_buffers()
-
-  return list.map(buffers, function(buf)
-    return buf.name
-  end)
-end
-
----@param bufnr number
-function M.get_buffer_by_id(bufnr)
-  local buffers = M.get_all_buffers()
-
-  return list.find(buffers, function(buf)
-    return buf.buf == bufnr
-  end)
-end
-
----@param name string
-function M.get_buffer_by_name(name)
-  local buffers = M.get_all_buffers()
-
-  return list.find(buffers, function(buf)
-    return buf.path == name
-  end)
-end
-
 ---@param index integer
 function M.get_buffer_by_index(index)
   local buffers = M.get_all_buffers()
@@ -214,22 +178,27 @@ function M.get_buffer_by_index(index)
   return buffers[index]
 end
 
-function M.get_current_buffer()
+function M.get_active_buffer()
   local buffers = M.get_all_buffers()
-  local bufnr = M.get_current_bufnr()
+  local bufnr = _get_active_bufnr()
 
   return list.find(buffers, function(buf)
     return buf.buf == bufnr
   end)
 end
 
-function M.get_current_buffer_index()
+function M.get_active_buffer_index()
   local buffers = M.get_all_buffers()
-  local bufnr = M.get_current_bufnr()
+  local bufnr = _get_active_bufnr()
 
   return list.find_index(buffers, function(buf)
     return buf.buf == bufnr
   end)
+end
+
+function M.debug_buffers()
+  print("active", active_bufnr)
+  print("buffers", vim.inspect(_buf_list))
 end
 
 return M

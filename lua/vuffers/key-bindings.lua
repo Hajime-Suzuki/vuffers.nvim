@@ -16,7 +16,7 @@ function M.init(bufnr)
     local pos = vim.api.nvim_win_get_cursor(0)
     local row = pos[1]
     local buf = buffers.get_buffer_by_index(row)
-    local active = buffers.get_current_buffer()
+    local active = buffers.get_active_buffer()
     local next_buf = buffers.get_buffer_by_index(row + 1) or buffers.get_buffer_by_index(row - 1)
 
     if not active then
@@ -34,13 +34,11 @@ function M.init(bufnr)
 
       buffers.remove_buffer({ bufnr = buf.buf })
       config.get_handlers().on_delete_buffer(buf.buf)
-      -- buffers.set_current_bufnr({ buf = next_buf.buf, file = next_buf.path })
       return
     end
 
     buffers.remove_buffer({ bufnr = buf.buf })
     config.get_handlers().on_delete_buffer(buf.buf)
-    -- buffers.set_current_bufnr({ buf = active.buf, file = active.path })
   end, { noremap = true, silent = true, nowait = true, buffer = bufnr })
 end
 
