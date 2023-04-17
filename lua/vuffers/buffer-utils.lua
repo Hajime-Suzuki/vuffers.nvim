@@ -2,8 +2,8 @@ local list = require("utils.list")
 
 local M = {}
 
---- @param buffers {name: string, buf: number, index: number, path: string}[]
---- @return {name: string, buf: number, index: number, path: string}[]
+--- @param buffers Buffer[]
+--- @return Buffer[]
 function M.get_file_names(buffers)
   local output = {}
 
@@ -86,7 +86,13 @@ function M.get_file_names(buffers)
     return a.index < b.index
   end)
 
-  return output
+  return list.map(output, function(item)
+    return {
+      buf = item.buf,
+      name = item.name,
+      path = item.path,
+    }
+  end)
 end
 
 return M

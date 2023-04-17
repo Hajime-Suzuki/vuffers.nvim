@@ -61,7 +61,20 @@ function M.get_current_bufnr()
   return current
 end
 
----@type {buf: number, name: string, index: number, path: string }[]
+---@class Buffer
+---@field buf number
+---@field name string
+---@field path string: full path of
+
+---@class NvimBuffer
+---@field buf number
+---@field file string
+---@field event string
+---@field group number
+---@field id number
+---@field match string
+
+---@type Buffer[]
 local _buf_list = {}
 
 local function reset_buffers()
@@ -93,7 +106,6 @@ function M.add_buffer(buffer, file_type)
   table.insert(_buf_list, {
     buf = buffer.buf,
     name = buffer.file,
-    index = #buffer + 1,
     path = buffer.file,
   })
 
@@ -114,8 +126,8 @@ function M.remove_buffer(args)
     return
   end
 
-  local target_index = list.find_index(_buf_list, function(buf)
-    return buf.buf == args.bufnr or buf.index == args.index
+  local target_index = args.index or list.find_index(_buf_list, function(buf)
+    return buf.buf == args.bufnr
   end)
 
   if not target_index then
