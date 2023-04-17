@@ -10,7 +10,7 @@ local events = require("vuffers.events")
 ---@field name string
 ---@field path string: full path of
 
----@class NvimBuffer
+---@class NativeBuffer
 ---@field buf number
 ---@field file string
 ---@field event string
@@ -54,7 +54,7 @@ local function _is_invalid_file(filename, file_type)
   end
 end
 
----@param buffer Buffer
+---@param buffer {path: string, buf: integer}
 ---@param file_type? string
 function M.set_active_bufnr(buffer, file_type)
   if _is_invalid_file(buffer.path, file_type) then
@@ -89,7 +89,7 @@ local function _is_in_buf_list(buf_or_filename)
   end) ~= nil
 end
 
----@param buffer NvimBuffer
+---@param buffer NativeBuffer
 ---@param file_type string
 function M.add_buffer(buffer, file_type)
   local should_ignore = _is_invalid_file(buffer.file, file_type) or _is_in_buf_list(buffer.file)
