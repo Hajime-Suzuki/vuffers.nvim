@@ -16,10 +16,23 @@ local handlers = {
   end,
 }
 
+---@class DebugConfig
+---@field enabled boolean
+---@field log_level 'debug' | 'info' | 'warn' | 'error'
+local debug_config = {
+  enabled = true,
+  log_level = "debug",
+}
+
 ---@class Config
+---@field debug DebugConfig
 ---@field exclude Exclude
 ---@field handlers Handlers
 local config = {
+  debug = {
+    enabled = true,
+    log_level = "debug",
+  },
   exclude = exclude,
   handlers = handlers,
 }
