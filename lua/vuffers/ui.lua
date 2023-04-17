@@ -52,7 +52,7 @@ function M.render_buffers()
   local split_bufnr = window.get_split_buf_num()
 
   local lines = list.map(buffers, function(buffer)
-    return buffer.name .. "(" .. buffer.buf .. ")"
+    return buffer.name
   end)
 
   _render_lines(split_bufnr, lines)

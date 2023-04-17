@@ -36,7 +36,7 @@ function M.create_auto_group()
     group = constants.AUTO_CMD_GROUP,
     callback = function()
       ui.render_buffers()
-      -- ui.highlight_active_buffer()
+      ui.highlight_active_buffer()
     end,
   })
 

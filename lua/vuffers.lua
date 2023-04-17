@@ -1,7 +1,6 @@
 local window = require("vuffers.window")
 local bufs = require("vuffers.buffers")
 local auto_commands = require("vuffers.auto-commands")
-local ui = require("vuffers.ui")
 local key_bindings = require("vuffers.key-bindings")
 
 local M = {}

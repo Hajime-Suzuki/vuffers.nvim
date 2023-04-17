@@ -38,16 +38,16 @@ local function _is_invalid_file(filename, file_type)
   end
 end
 
----@param buffer {buf: number, event: string, file: string, group: number, id: number, match: string}
----@param file_type string
+---@param buffer {buf: number, file: string }
+---@param file_type? string
 function M.set_current_bufnr(buffer, file_type)
   if _is_invalid_file(buffer.file, file_type) then
     return
   end
 
-  if buffer.buf == current then
-    return
-  end
+  -- if buffer.buf == current then
+  --   return
+  -- end
 
   current = buffer.buf
   events.publish(events.names.ActiveFileChanged)
@@ -102,19 +102,39 @@ function M.add_buffer(buffer, file_type)
   events.publish(events.names.BufferListChanged)
 end
 
----@param bufnr number
-function M.remove_buffer(bufnr)
-  local index = list.find_index(_buf_list, function(buf)
-    return buf.buf == bufnr
-  end)
-
-  if not index then
+---@param args {bufnr?: number, index?: integer}
+function M.remove_buffer(args)
+  if not args.bufnr and not args.index then
     return
   end
 
-  table.remove(_buf_list, index)
-  _buf_list = _get_formatted_buffers()
+  local target_index = list.find_index(_buf_list, function(buf)
+    return buf.buf == args.bufnr or buf.index == args.index
+  end)
 
+  if not target_index then
+    return
+  end
+
+  -- if target_index ~= M.get_current_bufnr() then
+  --   print("different buffer")
+  --   table.remove(_buf_list, target_index)
+  --   events.publish(events.names.BufferListChanged)
+  --   return
+  -- end
+  --
+  -- ---@type {buf: number, name: string, index: number, path: string } | nil
+  -- local next_active_buffer = _buf_list[target_index + 1] or _buf_list[target_index - 1]
+  --
+  -- if next_active_buffer then
+  --   M.set_current_bufnr({ buf = next_active_buffer.buf, file = next_active_buffer.path })
+  -- else
+  --   print("can not delete last buffer")
+  --   return
+  -- end
+
+  table.remove(_buf_list, target_index)
+  _buf_list = _get_formatted_buffers()
   events.publish(events.names.BufferListChanged)
 end
 
@@ -146,7 +166,7 @@ function M.get_all_buffer_names()
   local buffers = M.get_all_buffers()
 
   return list.map(buffers, function(buf)
-    return buf.name .. " (#" .. buf.buf .. ")"
+    return buf.name
   end)
 end
 
