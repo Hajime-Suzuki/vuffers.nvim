@@ -56,6 +56,10 @@ local function get_split()
   return M.init()
 end
 
+function M.get_window_id()
+  return vim.fn.bufwinid(M.get_split_buf_num())
+end
+
 function M.is_valid()
   if not (split and split.bufnr) then
     return false

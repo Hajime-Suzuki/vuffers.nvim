@@ -1,6 +1,7 @@
 local logger = require("utils.logger")
 local buffers = require("vuffers.buffers")
 local config = require("vuffers.config")
+local window = require("vuffers.window")
 
 local M = {}
 
@@ -61,6 +62,8 @@ function M.go_to_buffer_by_index(_index)
     return
   end
 
+  local window_id = window.get_window_id()
+  vim.api.nvim_win_set_cursor(window_id, { index, 0 })
   vim.api.nvim_command(":b " .. target.buf)
 end
 
@@ -78,15 +81,17 @@ function M.next_or_prev_buffer(args)
 
   local num_of_buffers = buffers.get_num_of_buffers()
   local target_index = active_index + count
-  local i = target_index < 1 and 1 or (target_index > num_of_buffers and num_of_buffers or target_index)
+  target_index = target_index < 1 and 1 or (target_index > num_of_buffers and num_of_buffers or target_index)
 
-  local target = buffers.get_buffer_by_index(i)
+  local target = buffers.get_buffer_by_index(target_index)
 
   if not target then
     logger.warn("ui:go_to_buffer_by_count: active buffer not found")
     return
   end
 
+  local window_id = window.get_window_id()
+  vim.api.nvim_win_set_cursor(window_id, { target_index, 0 })
   vim.api.nvim_command(":b " .. target.buf)
 end
 
