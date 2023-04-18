@@ -4,6 +4,7 @@ local auto_commands = require("vuffers.auto-commands")
 local key_bindings = require("vuffers.key-bindings")
 local logger = require("utils.logger")
 local config = require("vuffers.config")
+local ui_actions = require("vuffers.ui-actions")
 
 local M = {}
 
@@ -57,6 +58,10 @@ end
 
 function M.debug_buffers()
   bufs.debug_buffers()
+end
+
+function M.go_to_buffer(count)
+  return ui_actions.go_to_buffer(count)
 end
 
 return M

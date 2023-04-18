@@ -1,3 +1,4 @@
+local logger = require("utils.logger")
 local buffers = require("vuffers.buffers")
 local config = require("vuffers.config")
 
@@ -39,6 +40,25 @@ function M.delete_buffer()
 
   buffers.remove_buffer({ bufnr = buf.buf })
   config.get_handlers().on_delete_buffer(buf.buf)
+end
+
+---@param count integer
+function M.go_to_buffer(count)
+  local active = buffers.get_active_buffer_index()
+  if not active then
+    logger.warn("ui:go_to_next_buffer: active buffer not found")
+    return
+  end
+
+  local target = buffers.get_buffer_by_index(active + count)
+
+  -- TODO: cycle list?
+  if not target then
+    logger.warn("ui:go_to_next_buffer: active buffer not found")
+    return
+  end
+
+  vim.api.nvim_command(":b " .. target.buf)
 end
 
 return M
