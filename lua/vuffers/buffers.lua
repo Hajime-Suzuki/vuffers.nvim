@@ -163,6 +163,29 @@ function M.remove_buffer(args)
   events.publish(events.names.BufferListChanged)
 end
 
+function M.sort_buffers()
+  local sort = config.get_sort()
+
+  if sort.type == constants.SORT_TYPE.NONE then
+    M.reload_all_buffers()
+  elseif sort.type == constants.SORT_TYPE.FILENAME then
+    table.sort(_buf_list, function(a, b)
+      local n1 = a.name:match(".+/(.+)$") or a.name
+      local n2 = b.name:match(".+/(.+)$") or b.name
+      if sort.direction == constants.SORT_DIRECTION.ASC then
+        return n1 < n2
+      else
+        return n1 > n2
+      end
+    end)
+  else
+    logger.warn("sort_buffers: unknown sort type", sort)
+  end
+
+  logger.info("sort_buffers: buffers are sorted", sort)
+  events.publish(events.names.BufferListChanged)
+end
+
 function M.reload_all_buffers()
   reset_buffers()
 

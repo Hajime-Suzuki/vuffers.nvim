@@ -57,7 +57,7 @@ end
 
 ---@param sort {type: SortType, direction: SortDirection}
 M.set_sort = function(sort)
-  config.sort = vim.tbl_deep_extend("keep", config.sort, sort)
+  config.sort = vim.tbl_deep_extend("force", config.sort, sort)
 end
 
 ---@param user_config Config
