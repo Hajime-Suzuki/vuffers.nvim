@@ -3,11 +3,13 @@ local bufs = require("vuffers.buffers")
 local auto_commands = require("vuffers.auto-commands")
 local key_bindings = require("vuffers.key-bindings")
 local logger = require("utils.logger")
+local config = require("vuffers.config")
 
 local M = {}
 
 function M.setup(opts)
-  -- auto_commands.setup()
+  config.setup(opts)
+  logger.setup()
 end
 
 function M.toggle()
