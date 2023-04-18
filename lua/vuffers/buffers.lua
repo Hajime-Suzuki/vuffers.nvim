@@ -1,3 +1,4 @@
+local logger = require("utils.logger")
 local utils = require("vuffers.buffer-utils")
 local list = require("utils.list")
 local config = require("vuffers.config")
@@ -65,7 +66,7 @@ function M.set_active_bufnr(buffer, file_type)
   events.publish(events.names.ActiveFileChanged)
 end
 
-function _get_active_bufnr()
+local function _get_active_bufnr()
   return active_bufnr
 end
 
@@ -94,6 +95,8 @@ end
 function M.add_buffer(buffer, file_type)
   local should_ignore = _is_invalid_file(buffer.file, file_type) or _is_in_buf_list(buffer.file)
 
+  logger.debug("add_buffer: buffer will be added", { file = buffer.file, file_type = file_type })
+
   if should_ignore then
     return
   end
@@ -106,29 +109,34 @@ function M.add_buffer(buffer, file_type)
 
   _buf_list = _get_formatted_buffers()
 
+  logger.debug("add_buffer: buffer is added", { file = buffer.file, file_type = file_type })
+
   events.publish(events.names.BufferListChanged)
 end
 
 ---@param args {bufnr?: number, index?: integer}
 function M.remove_buffer(args)
-  print("remove buffer", args.bufnr, args.index)
   if not args.bufnr and not args.index then
     return
   end
+
+  logger.debug("remove_buffer: buffer will be removed", args)
 
   local target_index = args.index or list.find_index(_buf_list, function(buf)
     return buf.buf == args.bufnr
   end)
 
   if not target_index then
-    print("not found buffer to remove")
+    -- TODO: debounce. buffer is deleted by UI action, first the buffer list is updated, then actual buffer is deleted by :bufwipeout, which triggers thsi function again
+    logger.warn("remove_buffer: buffer not found", args)
     return
   end
 
   if target_index ~= _get_active_bufnr() then
-    print("different buffer")
     table.remove(_buf_list, target_index)
     _buf_list = _get_formatted_buffers()
+    logger.debug("remove_buffer: buffer is removed", args)
+
     events.publish(events.names.BufferListChanged)
     return
   end
@@ -137,13 +145,17 @@ function M.remove_buffer(args)
   local next_active_buffer = _buf_list[target_index + 1] or _buf_list[target_index - 1]
 
   if next_active_buffer then
+    logger.warn("remove_buffer: found new active buffer " .. next_active_buffer.name, arg)
+
     M.set_active_bufnr(next_active_buffer)
   else
-    print("can not delete last buffer")
+    logger.warn("remove_buffer: can not delete the last buffer", args)
     return
   end
 
   table.remove(_buf_list, target_index)
+  logger.debug("remove_buffer: buffer is removed", args)
+
   events.publish(events.names.BufferListChanged)
 end
 
