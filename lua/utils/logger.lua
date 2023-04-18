@@ -1,10 +1,10 @@
 local config = require("vuffers.config")
 
 ---@class Logger
----@field debug fun(message: string, event: table): nil
----@field info fun(message: string, event: table): nil
----@field warn fun(message: string, event: table): nil
----@field error fun(message: string, event: table): nil
+---@field debug fun(message: string, event?: table): nil
+---@field info fun(message: string, event?: table): nil
+---@field warn fun(message: string, event?: table): nil
+---@field error fun(message: string, event?: table): nil
 
 ---@type Logger | nil
 local logger
@@ -19,14 +19,17 @@ if config.get_config().debug.enabled then
       vuffers = {
         pipelines = {
           {
-            log.level[log_level:upper()],
-            { log.processors.Timestamper("%H:%M:%S") },
-            log.formatters.FormatColorizer(
+            level = log.level[log_level:upper()],
+            processors = {
+              log.processors.StackWriter({ "line", "file" }, { max_parents = 2, stack_level = 2 }),
+              log.processors.Timestamper("%H:%M:%S"),
+            },
+            formatter = log.formatters.FormatColorizer(
               "%s [%s] %s: %-30s",
               { "timestamp", "level", "logger_name", "msg" },
               { level = log.formatters.FormatColorizer.color_level() }
             ),
-            log.sinks.Console(),
+            sink = log.sinks.Console(),
           },
         },
       },
@@ -41,7 +44,7 @@ end
 local M = {}
 
 ---@param message string
----@param event table
+---@param event? table
 function M.debug(message, event)
   if not logger then
     return
@@ -51,7 +54,7 @@ function M.debug(message, event)
 end
 
 ---@param message string
----@param event table
+---@param event? table
 function M.info(message, event)
   if not logger then
     return
@@ -61,7 +64,7 @@ function M.info(message, event)
 end
 
 ---@param message string
----@param event table
+---@param event? table
 function M.warn(message, event)
   if not logger then
     return
@@ -71,7 +74,7 @@ function M.warn(message, event)
 end
 
 ---@param message string
----@param event table
+---@param event? table
 function M.error(message, event)
   if not logger then
     return

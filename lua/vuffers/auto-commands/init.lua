@@ -1,3 +1,4 @@
+local logger = require("utils.logger")
 local autocmd_buffers = require("vuffers.auto-commands.buffers")
 local constants = require("vuffers.constants")
 local events = require("vuffers.events")
@@ -35,8 +36,9 @@ function M.create_auto_group()
     pattern = events.names.BufferListChanged,
     group = constants.AUTO_CMD_GROUP,
     callback = function()
+      logger.debug(events.names.BufferListChanged)
       ui.render_buffers()
-      -- ui.highlight_active_buffer()
+      ui.highlight_active_buffer()
     end,
   })
 
@@ -44,6 +46,7 @@ function M.create_auto_group()
     pattern = events.names.ActiveFileChanged,
     group = constants.AUTO_CMD_GROUP,
     callback = function()
+      logger.debug(events.names.ActiveFileChanged)
       ui.highlight_active_buffer()
     end,
   })

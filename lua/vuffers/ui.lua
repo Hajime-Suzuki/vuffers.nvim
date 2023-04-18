@@ -33,8 +33,7 @@ end
 
 function M.highlight_active_buffer()
   local split_bufnr = window.get_split_buf_num()
-  local current_buffer = bufs.get_current_buffer()
-  local active_line = current_buffer and current_buffer.index
+  local active_line = bufs.get_active_buffer_index()
 
   if active_line == nil then
     return
@@ -52,7 +51,7 @@ function M.render_buffers()
   local split_bufnr = window.get_split_buf_num()
 
   local lines = list.map(buffers, function(buffer)
-    return buffer.name .. "(" .. buffer.buf .. ")"
+    return buffer.name
   end)
 
   _render_lines(split_bufnr, lines)
