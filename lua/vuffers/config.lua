@@ -24,9 +24,9 @@ local default_debug_config = {
   log_level = "debug",
 }
 
----@class Sort
----@field type 'none' | 'filename'
----@field direction 'asc' | 'desc'
+---@class SortOrder
+---@field type SortType
+---@field direction SortDirection
 local default_sort = {
   type = "none",
   direction = "asc",
@@ -36,7 +36,7 @@ local default_sort = {
 ---@field debug DebugConfig
 ---@field exclude Exclude
 ---@field handlers Handlers
----@field sort Sort
+---@field sort SortOrder
 local config = {}
 
 M.get_config = function()
@@ -55,7 +55,7 @@ M.get_sort = function()
   return config.sort
 end
 
----@param sort {type: Sort['direction'], direction: Sort['direction']}
+---@param sort {type: SortType, direction: SortDirection}
 M.set_sort = function(sort)
   config.sort = vim.tbl_deep_extend("keep", config.sort, sort)
 end

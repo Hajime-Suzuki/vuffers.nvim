@@ -50,6 +50,14 @@ function M.create_auto_group()
       ui.highlight_active_buffer()
     end,
   })
+
+  vim.api.nvim_create_autocmd("User", {
+    pattern = events.names.SortChanged,
+    group = constants.AUTO_CMD_GROUP,
+    callback = function()
+      logger.debug(events.names.SortChanged)
+    end,
+  })
 end
 
 function M.remove_auto_group()
