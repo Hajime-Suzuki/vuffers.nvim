@@ -90,6 +90,10 @@ local function _is_in_buf_list(buf_or_filename)
   end) ~= nil
 end
 
+function M.get_num_of_buffers()
+  return #_buf_list
+end
+
 ---@param buffer NativeBuffer
 ---@param file_type string
 function M.add_buffer(buffer, file_type)

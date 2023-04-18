@@ -12,7 +12,7 @@ function M.init(opts)
     size = "20%",
     win_options = {
       relativenumber = false,
-      number = false,
+      number = true,
       list = false,
       winfixwidth = true,
       winfixheight = true,
@@ -54,6 +54,10 @@ local function get_split()
 
   print("this should not happen...")
   return M.init()
+end
+
+function M.get_window_id()
+  return vim.fn.bufwinid(M.get_split_buf_num())
 end
 
 function M.is_valid()

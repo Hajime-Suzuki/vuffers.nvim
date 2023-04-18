@@ -1,5 +1,7 @@
+local logger = require("utils.logger")
 local buffers = require("vuffers.buffers")
 local config = require("vuffers.config")
+local window = require("vuffers.window")
 
 local M = {}
 
@@ -39,6 +41,58 @@ function M.delete_buffer()
 
   buffers.remove_buffer({ bufnr = buf.buf })
   config.get_handlers().on_delete_buffer(buf.buf)
+end
+
+---@param _index? integer
+function M.go_to_buffer_by_index(_index)
+  local num_of_buffers = buffers.get_num_of_buffers()
+
+  local index = (_index or vim.v.count)
+
+  if index == 0 then
+    return
+  end
+
+  index = (1 <= index and index <= num_of_buffers) and index or (index < 1 and 1 or num_of_buffers)
+
+  local target = buffers.get_buffer_by_index(index)
+
+  if not target then
+    logger.warn("ui:go_to_buffer_by_index: target buffer not found")
+    return
+  end
+
+  local window_id = window.get_window_id()
+  vim.api.nvim_win_set_cursor(window_id, { index, 0 })
+  vim.api.nvim_command(":b " .. target.buf)
+end
+
+---@param args {direction: 'next' | 'prev', count?: integer}
+function M.next_or_prev_buffer(args)
+  local count = args.count or vim.v.count
+  count = count == 0 and 1 or count
+  count = args.direction == "next" and count or -count
+
+  local active_index = buffers.get_active_buffer_index()
+  if not active_index then
+    logger.warn("ui:go_to_buffer_by_count: active buffer not found")
+    return
+  end
+
+  local num_of_buffers = buffers.get_num_of_buffers()
+  local target_index = active_index + count
+  target_index = target_index < 1 and 1 or (target_index > num_of_buffers and num_of_buffers or target_index)
+
+  local target = buffers.get_buffer_by_index(target_index)
+
+  if not target then
+    logger.warn("ui:go_to_buffer_by_count: active buffer not found")
+    return
+  end
+
+  local window_id = window.get_window_id()
+  vim.api.nvim_win_set_cursor(window_id, { target_index, 0 })
+  vim.api.nvim_command(":b " .. target.buf)
 end
 
 return M
