@@ -60,8 +60,14 @@ function M.debug_buffers()
   bufs.debug_buffers()
 end
 
-function M.go_to_buffer(count)
-  return ui_actions.go_to_buffer(count)
+---@param line_number? integer
+function M.go_to_buffer_by_line(line_number)
+  return ui_actions.go_to_buffer_by_index(line_number)
+end
+
+---@param args {direction: 'next' | 'prev', count?: integer}
+function M.go_to_buffer_by_count(args)
+  return ui_actions.next_or_prev_buffer(args)
 end
 
 return M

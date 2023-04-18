@@ -12,7 +12,7 @@ function M.init(opts)
     size = "20%",
     win_options = {
       relativenumber = false,
-      number = false,
+      number = true,
       list = false,
       winfixwidth = true,
       winfixheight = true,
