@@ -82,10 +82,6 @@ function M.get_file_names(buffers)
 
   loop(input)
 
-  table.sort(output, function(a, b)
-    return a.index < b.index
-  end)
-
   return list.map(output, function(item)
     return {
       buf = item.buf,

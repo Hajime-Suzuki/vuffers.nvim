@@ -56,7 +56,7 @@ function M.create_auto_group()
     group = constants.AUTO_CMD_GROUP,
     callback = function()
       logger.debug(events.names.SortChanged)
-      buffers.sort_buffers()
+      buffers.change_sort()
     end,
   })
 end

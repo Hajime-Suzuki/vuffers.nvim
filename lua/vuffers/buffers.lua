@@ -77,6 +77,30 @@ local function reset_buffers()
   _buf_list = {}
 end
 
+local function _sort_buffers()
+  local sort = config.get_sort()
+
+  if sort.type == constants.SORT_TYPE.NONE then
+    table.sort(_buf_list, function(a, b)
+      return a.buf < b.buf
+    end)
+  elseif sort.type == constants.SORT_TYPE.FILENAME then
+    table.sort(_buf_list, function(a, b)
+      local n1 = a.name:match(".+/(.+)$") or a.name
+      local n2 = b.name:match(".+/(.+)$") or b.name
+      if sort.direction == constants.SORT_DIRECTION.ASC then
+        return n1 < n2
+      else
+        return n1 > n2
+      end
+    end)
+  else
+    logger.warn("sort_buffers: unknown sort type", sort)
+  end
+
+  logger.info("sort_buffers: buffers are sorted", sort)
+end
+
 local function _get_formatted_buffers()
   return utils.get_file_names(_buf_list)
 end
@@ -112,6 +136,7 @@ function M.add_buffer(buffer, file_type)
   })
 
   _buf_list = _get_formatted_buffers()
+  _sort_buffers()
 
   logger.debug("add_buffer: buffer is added", { file = buffer.file, file_type = file_type })
 
@@ -139,6 +164,8 @@ function M.remove_buffer(args)
   if target_index ~= _get_active_bufnr() then
     table.remove(_buf_list, target_index)
     _buf_list = _get_formatted_buffers()
+    _sort_buffers()
+
     logger.debug("remove_buffer: buffer is removed", args)
 
     events.publish(events.names.BufferListChanged)
@@ -163,26 +190,8 @@ function M.remove_buffer(args)
   events.publish(events.names.BufferListChanged)
 end
 
-function M.sort_buffers()
-  local sort = config.get_sort()
-
-  if sort.type == constants.SORT_TYPE.NONE then
-    M.reload_all_buffers()
-  elseif sort.type == constants.SORT_TYPE.FILENAME then
-    table.sort(_buf_list, function(a, b)
-      local n1 = a.name:match(".+/(.+)$") or a.name
-      local n2 = b.name:match(".+/(.+)$") or b.name
-      if sort.direction == constants.SORT_DIRECTION.ASC then
-        return n1 < n2
-      else
-        return n1 > n2
-      end
-    end)
-  else
-    logger.warn("sort_buffers: unknown sort type", sort)
-  end
-
-  logger.info("sort_buffers: buffers are sorted", sort)
+function M.change_sort()
+  _sort_buffers()
   events.publish(events.names.BufferListChanged)
 end
 
@@ -201,6 +210,7 @@ function M.reload_all_buffers()
   end
 
   _buf_list = _get_formatted_buffers()
+  _sort_buffers()
 
   events.publish(events.names.BufferListChanged)
   events.publish(events.names.ActiveFileChanged)
