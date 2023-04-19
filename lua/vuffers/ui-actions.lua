@@ -62,8 +62,11 @@ function M.go_to_buffer_by_index(_index)
     return
   end
 
-  local window_id = window.get_window_id()
-  vim.api.nvim_win_set_cursor(window_id, { index, 0 })
+  if not window.is_hidden() then
+    local window_id = window.get_window_id()
+    vim.api.nvim_win_set_cursor(window_id, { index, 0 })
+  end
+
   vim.api.nvim_command(":b " .. target.buf)
 end
 
@@ -90,8 +93,11 @@ function M.next_or_prev_buffer(args)
     return
   end
 
-  local window_id = window.get_window_id()
-  vim.api.nvim_win_set_cursor(window_id, { target_index, 0 })
+  if not window.is_hidden() then
+    local window_id = window.get_window_id()
+    vim.api.nvim_win_set_cursor(window_id, { target_index, 0 })
+  end
+
   vim.api.nvim_command(":b " .. target.buf)
 end
 
