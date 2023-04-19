@@ -1,8 +1,8 @@
 local logger = require("utils.logger")
-local autocmd_buffers = require("vuffers.auto-commands.buffers")
 local constants = require("vuffers.constants")
 local events = require("vuffers.events")
 local ui = require("vuffers.ui")
+local buffers = require("vuffers.buffers")
 
 local M = {}
 
@@ -12,7 +12,7 @@ function M.create_auto_group()
     pattern = "*",
     group = constants.AUTO_CMD_GROUP,
     callback = function(buffer)
-      autocmd_buffers.on_buf_enter(buffer, vim.bo.filetype)
+      buffers.set_active_bufnr({ path = buffer.file, buf = buffer.buf }, vim.bo.filetype)
     end,
   })
 
@@ -20,7 +20,7 @@ function M.create_auto_group()
     pattern = "*",
     group = constants.AUTO_CMD_GROUP,
     callback = function(buffer)
-      autocmd_buffers.on_buf_add(buffer, vim.bo.filetype)
+      buffers.add_buffer(buffer, vim.bo.filetype)
     end,
   })
 
@@ -28,7 +28,7 @@ function M.create_auto_group()
     pattern = "*",
     group = constants.AUTO_CMD_GROUP,
     callback = function(buffer)
-      autocmd_buffers.on_buf_delete(buffer)
+      buffers.remove_buffer({ bufnr = buffer.buf })
     end,
   })
 
@@ -48,6 +48,15 @@ function M.create_auto_group()
     callback = function()
       logger.debug(events.names.ActiveFileChanged)
       ui.highlight_active_buffer()
+    end,
+  })
+
+  vim.api.nvim_create_autocmd("User", {
+    pattern = events.names.SortChanged,
+    group = constants.AUTO_CMD_GROUP,
+    callback = function()
+      logger.debug(events.names.SortChanged)
+      buffers.sort_buffers()
     end,
   })
 end

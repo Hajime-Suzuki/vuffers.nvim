@@ -5,6 +5,7 @@ local key_bindings = require("vuffers.key-bindings")
 local logger = require("utils.logger")
 local config = require("vuffers.config")
 local ui_actions = require("vuffers.ui-actions")
+local events = require("vuffers.events")
 
 local M = {}
 
@@ -68,6 +69,13 @@ end
 ---@param args {direction: 'next' | 'prev', count?: integer}
 function M.go_to_buffer_by_count(args)
   return ui_actions.next_or_prev_buffer(args)
+end
+
+---@param sort {type: SortType, direction: SortDirection}
+function M.change_sort(sort)
+  config.set_sort(sort)
+  logger.info("set_sort: sort order has been updated", sort)
+  events.publish(events.names.SortChanged)
 end
 
 return M
