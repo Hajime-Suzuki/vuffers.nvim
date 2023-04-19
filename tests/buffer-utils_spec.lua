@@ -10,6 +10,10 @@ describe("utils", function()
         { path = "test.json", buf = 4 },
       })
 
+      table.sort(res, function(a, b)
+        return a.buf < b.buf
+      end)
+
       res = list.map(res, function(item)
         return item.name
       end)
@@ -25,6 +29,10 @@ describe("utils", function()
         { path = "a/user.ts", buf = 4 },
       })
 
+      table.sort(res, function(a, b)
+        return a.buf < b.buf
+      end)
+
       res = list.map(res, function(item)
         return item.name
       end)
@@ -38,6 +46,10 @@ describe("utils", function()
         { path = "user.ts", buf = 2 },
       })
 
+      table.sort(res, function(a, b)
+        return a.buf < b.buf
+      end)
+
       res = list.map(res, function(item)
         return item.name
       end)
@@ -50,6 +62,10 @@ describe("utils", function()
         { path = "user.ts", buf = 1 },
         { path = "b/user.ts", buf = 2 },
       })
+
+      table.sort(res, function(a, b)
+        return a.buf < b.buf
+      end)
 
       res = list.map(res, function(item)
         return item.name
@@ -65,6 +81,10 @@ describe("utils", function()
         { path = "x/a/test.ts", buf = 3 },
       })
 
+      table.sort(res, function(a, b)
+        return a.buf < b.buf
+      end)
+
       res = list.map(res, function(item)
         return item.name
       end)
@@ -79,6 +99,10 @@ describe("utils", function()
         { path = "m/n/b.ts", buf = 3 },
         { path = "c/b.ts", buf = 4 },
       })
+
+      table.sort(res, function(a, b)
+        return a.buf < b.buf
+      end)
 
       res = list.map(res, function(item)
         return item.name
