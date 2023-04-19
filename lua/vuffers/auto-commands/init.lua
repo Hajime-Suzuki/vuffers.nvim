@@ -1,5 +1,4 @@
 local logger = require("utils.logger")
-local autocmd_buffers = require("vuffers.auto-commands.buffers")
 local constants = require("vuffers.constants")
 local events = require("vuffers.events")
 local ui = require("vuffers.ui")
