@@ -52,7 +52,7 @@ function M.close()
 
   logger.debug("M.close: start")
 
-  auto_commands.remove_auto_group()
+  -- auto_commands.remove_auto_group()
   window.close()
   logger.debug("M.close: end")
 end
