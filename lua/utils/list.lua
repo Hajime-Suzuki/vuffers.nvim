@@ -79,32 +79,4 @@ function M.map(arr, f)
   return grouped
 end
 
---- @generic A
---- @generic B
---- @param arr A[]
---- @param predicate fun(item: A): string | number
---- @return A[]
-M.sort_by = function(arr, predicate)
-  local t = {}
-  local empty = true
-  local previous
-  for _, v in ipairs(arr) do
-    if empty then
-      table.insert(t, v)
-      previous = predicate(v)
-      empty = false
-    else
-      local r = predicate(v)
-      if previous < r then
-        table.insert(t, v)
-        previous = r
-      else
-        table.insert(t, #t, v)
-      end
-    end
-  end
-
-  return t
-end
-
 return M
