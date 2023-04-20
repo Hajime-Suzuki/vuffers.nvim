@@ -1,6 +1,40 @@
 local list = require("utils.list")
 local window = require("vuffers.window")
 local bufs = require("vuffers.buffers")
+local is_devicon_ok, devicon = pcall(require, "nvim-web-devicons")
+local logger = require("utils.logger")
+
+if not is_devicon_ok then
+  print("devicon not found")
+end
+
+---@param filename string
+---@return string, string
+local function _get_icon(filename)
+  if not is_devicon_ok or not devicon.has_loaded() then
+    return "", ""
+  end
+
+  local extension = string.match(filename, "%.(%w+)$")
+
+  local icon, color = devicon.get_icon_color(filename, extension)
+  return icon, color
+end
+
+---@param buffers Buffer[]
+local function _generate_line(buffers)
+  -- local max_length = 0
+  -- for _, buffer in pairs(buffers) do
+  --   max_length = math.max(max_length, #buffer.name)
+  -- end
+
+  return list.map(buffers, function(buffer)
+    local icon, color = _get_icon(buffer.name)
+    -- local padded_name = string.rep(" ", max_length - #buffer.name) .. buffer.name .. " "
+
+    return icon .. " " .. buffer.name
+  end)
+end
 
 local M = {}
 
@@ -49,11 +83,7 @@ function M.render_buffers()
 
   local buffers = bufs.get_all_buffers()
   local split_bufnr = window.get_split_buf_num()
-
-  local lines = list.map(buffers, function(buffer)
-    return buffer.name
-  end)
-
+  local lines = _generate_line(buffers)
   _render_lines(split_bufnr, lines)
 end
 
