@@ -32,7 +32,7 @@ local function _generate_line(buffers)
     local icon, color = _get_icon(buffer.name)
     -- local padded_name = string.rep(" ", max_length - #buffer.name) .. buffer.name .. " "
 
-    return icon .. " " .. buffer.name
+    return icon .. " " .. string.gsub(buffer.name, "%.%w+$", "")
   end)
 end
 
