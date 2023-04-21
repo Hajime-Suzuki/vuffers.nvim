@@ -5,12 +5,15 @@ local is_devicon_ok, devicon = pcall(require, "nvim-web-devicons")
 local logger = require("utils.logger")
 local constants = require("vuffers.constants")
 
+local ICON_START_COL = 1
+local ICON_END_COL = 3
+
 if not is_devicon_ok then
   print("devicon not found")
 end
 
 ---@param filename string
----@return string, string
+---@return string, string -- icon, highlight name
 local function _get_icon(filename)
   if not is_devicon_ok or not devicon.has_loaded() then
     return "", ""
@@ -18,63 +21,66 @@ local function _get_icon(filename)
 
   local extension = string.match(filename, "%.(%w+)$")
 
-  local icon, color = devicon.get_icon_color(filename, extension)
-  return icon, color
+  local icon, color = devicon.get_icon(filename, extension)
+  return icon or " ", color or ""
 end
 
----@param buffers Buffer[]
-local function _generate_line(buffers)
-  -- local max_length = 0
-  -- for _, buffer in pairs(buffers) do
-  --   max_length = math.max(max_length, #buffer.name)
-  -- end
+---@class Line
+---@field text string
+---@field icon string
+---@field icon_highlight string
 
-  return list.map(buffers, function(buffer)
-    local icon, color = _get_icon(buffer.name)
-    -- local padded_name = string.rep(" ", max_length - #buffer.name) .. buffer.name .. " "
+---@param buffer Buffer
+---@return Line
+local function _generate_line(buffer)
+  local icon, color = _get_icon(buffer.name)
 
-    return icon .. " " .. string.gsub(buffer.name, "%.%w+$", "")
-  end)
+  local filename = icon .. " " .. string.gsub(buffer.name, "%.%w+$", "")
+  return { text = filename, icon = icon, icon_highlight = color }
 end
 
 local M = {}
 
-local ns_id = vim.api.nvim_create_namespace("VuffersActiveFileNamespace") -- namespace id
+local active_buffer_ns = vim.api.nvim_create_namespace("VuffersActiveFileNamespace") -- namespace id
+local icon_ns = vim.api.nvim_create_namespace("VufferIconNamespace") -- namespace id
 
----@param bufnr integer
----@param lines string[]
-local function _render_lines(bufnr, lines)
+---@param window_bufnr integer
+local function _render_line(window_bufnr, lines)
   local ok = pcall(function()
-    vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
+    vim.api.nvim_buf_set_lines(window_bufnr, 0, -1, false, lines)
   end)
 
   if not ok then
-    print("Error: Could not set lines in buffer " .. bufnr)
+    print("Error: Could not set lines in buffer " .. window_bufnr)
   end
 end
 
----@param bufnr integer
+---@param window_bufnr integer
 ---@param line_number integer
-local function _set_highlight(bufnr, line_number)
+---@param buffer Buffer
+local function _set_highlight(window_bufnr, line_number, buffer)
+  local _, icon_highlight = _get_icon(buffer.name)
   local ok = pcall(function()
-    vim.api.nvim_buf_clear_namespace(bufnr, ns_id, 0, -1)
-    vim.api.nvim_buf_add_highlight(bufnr, ns_id, constants.HIGHLIGHTS.ACTIVE, line_number, 0, -1)
+    -- vim.api.nvim_buf_clear_namespace(window_bufnr, active_buffer_ns, 0, -1)
+    -- vim.api.nvim_buf_add_highlight(window_bufnr, active_buffer_ns, constants.HIGHLIGHTS.ACTIVE, line_number, 0, -1)
+    vim.api.nvim_buf_add_highlight(window_bufnr, icon_ns, icon_highlight, line_number, ICON_START_COL, ICON_END_COL)
   end)
 
   if not ok then
-    print("Error: Could not set highlight in buffer " .. bufnr)
+    print("Error: Could not set highlight in buffer " .. window_bufnr)
   end
 end
 
 function M.highlight_active_buffer()
-  local split_bufnr = window.get_split_buf_num()
-  local active_line = bufs.get_active_buffer_index()
-
-  if active_line == nil then
-    return
-  end
-
-  _set_highlight(split_bufnr, active_line - 1)
+  -- local split_bufnr = window.get_split_buf_num()
+  -- local active_line = bufs.get_active_buffer_index()
+  -- local active_buffer = bufs.get_active_buffer()
+  --
+  -- if active_line == nil or active_buffer == nil then
+  --   return
+  -- end
+  --
+  -- _set_highlight(split_bufnr, active_line - 1, active_buffer)
 end
 
 function M.render_buffers()
@@ -84,8 +90,26 @@ function M.render_buffers()
 
   local buffers = bufs.get_all_buffers()
   local split_bufnr = window.get_split_buf_num()
-  local lines = _generate_line(buffers)
-  _render_lines(split_bufnr, lines)
+
+  local lines = list.map(buffers, function(buffer)
+    return _generate_line(buffer)
+  end)
+
+  _render_line(
+    split_bufnr,
+    list.map(lines, function(line)
+      return line.text
+    end)
+  )
+
+  for i, line in ipairs(lines) do
+    if line.icon ~= "" then
+      logger.debug(
+        "Adding highlight for line " .. i .. " with icon " .. line.icon .. " and color " .. line.icon_highlight
+      )
+      _set_highlight(split_bufnr, i - 1, buffers[i])
+    end
+  end
 
   logger.debug("Rendered buffers")
 end
