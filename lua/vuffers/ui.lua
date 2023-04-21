@@ -3,6 +3,7 @@ local window = require("vuffers.window")
 local bufs = require("vuffers.buffers")
 local is_devicon_ok, devicon = pcall(require, "nvim-web-devicons")
 local logger = require("utils.logger")
+local constants = require("vuffers.constants")
 
 if not is_devicon_ok then
   print("devicon not found")
@@ -38,7 +39,7 @@ end
 
 local M = {}
 
-local ns_id = vim.api.nvim_create_namespace("my_namespace") -- namespace id
+local ns_id = vim.api.nvim_create_namespace("VuffersActiveFileNamespace") -- namespace id
 
 ---@param bufnr integer
 ---@param lines string[]
@@ -57,7 +58,7 @@ end
 local function _set_highlight(bufnr, line_number)
   local ok = pcall(function()
     vim.api.nvim_buf_clear_namespace(bufnr, ns_id, 0, -1)
-    vim.api.nvim_buf_add_highlight(bufnr, ns_id, "VuffersSelectedBuffer", line_number, 0, -1)
+    vim.api.nvim_buf_add_highlight(bufnr, ns_id, constants.HIGHLIGHTS.ACTIVE, line_number, 0, -1)
   end)
 
   if not ok then
@@ -85,6 +86,8 @@ function M.render_buffers()
   local split_bufnr = window.get_split_buf_num()
   local lines = _generate_line(buffers)
   _render_lines(split_bufnr, lines)
+
+  logger.debug("Rendered buffers")
 end
 
 return M
