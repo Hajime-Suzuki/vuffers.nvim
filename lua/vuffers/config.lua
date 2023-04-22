@@ -34,8 +34,10 @@ local default_sort = {
 
 ---@class View
 ---@field modified_icon string
+---@field window {width: number }
 local default_view = {
   modified_icon = "󰛿",
+  window = { width = 35 },
 }
 
 ---@class Config
@@ -69,6 +71,11 @@ end
 ---@param sort {type: SortType, direction: SortDirection}
 M.set_sort = function(sort)
   config.sort = vim.tbl_deep_extend("force", config.sort, sort)
+end
+
+---@param width number
+M.set_window_width = function(width)
+  config.view.window.width = width
 end
 
 ---@param user_config Config
