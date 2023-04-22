@@ -32,11 +32,18 @@ local default_sort = {
   direction = "asc",
 }
 
+---@class View
+---@field modified_icon string
+local default_view = {
+  modified_icon = "󰛿",
+}
+
 ---@class Config
 ---@field debug DebugConfig
 ---@field exclude Exclude
 ---@field handlers Handlers
 ---@field sort SortOrder
+---@field view View
 local config = {}
 
 M.get_config = function()
@@ -55,6 +62,10 @@ M.get_sort = function()
   return config.sort
 end
 
+M.get_view_config = function()
+  return config.view
+end
+
 ---@param sort {type: SortType, direction: SortDirection}
 M.set_sort = function(sort)
   config.sort = vim.tbl_deep_extend("force", config.sort, sort)
@@ -63,12 +74,17 @@ end
 ---@param user_config Config
 function M.setup(user_config)
   local debug_config = vim.tbl_deep_extend("force", default_debug_config, user_config.debug or {})
+  local view_config = vim.tbl_deep_extend("force", default_view, user_config.view or {})
+  local exclude_config = vim.tbl_deep_extend("force", default_exclude, user_config.view or {})
+  local handlers_config = vim.tbl_deep_extend("force", default_handlers, user_config.view or {})
+  local sort_config = vim.tbl_deep_extend("force", default_sort, user_config.view or {})
 
   config = {
     debug = debug_config,
-    exclude = default_exclude,
-    handlers = default_handlers,
-    sort = default_sort,
+    exclude = exclude_config,
+    handlers = handlers_config,
+    sort = sort_config,
+    view = view_config,
   }
 end
 

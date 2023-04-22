@@ -4,6 +4,7 @@ local bufs = require("vuffers.buffers")
 local is_devicon_ok, devicon = pcall(require, "nvim-web-devicons")
 local logger = require("utils.logger")
 local constants = require("vuffers.constants")
+local config = require("vuffers.config")
 
 local ICON_START_COL = 1
 local ICON_END_COL = 3
@@ -91,9 +92,10 @@ local function _highlight_active_buffer(window_bufnr, line_number)
   end
 end
 
-function _set_modified_icon(window_bufnr, line_number)
+local function _set_modified_icon(window_bufnr, line_number)
+  local modified_icon = config.get_view_config().modified_icon
   vim.api.nvim_buf_set_extmark(window_bufnr, icon_ns, line_number, -1, {
-    virt_text = { { " ", constants.HIGHLIGHTS.MODIFIED } },
+    virt_text = { { " " .. modified_icon, constants.HIGHLIGHTS.MODIFIED } },
     virt_text_pos = "overlay",
   })
 end
