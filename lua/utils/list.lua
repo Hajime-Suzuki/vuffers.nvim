@@ -14,6 +14,20 @@ end
 --- @param arr TItem[]
 --- @param predicate fun(item: any, index: number): boolean
 --- @return TItem | nil
+function M.filter(arr, predicate)
+  local filtered = {}
+  for i, v in ipairs(arr) do
+    if predicate(v, i) then
+      table.insert(filtered, v)
+    end
+  end
+  return #filtered and filtered or nil
+end
+
+--- @generic TItem: any
+--- @param arr TItem[]
+--- @param predicate fun(item: any, index: number): boolean
+--- @return TItem | nil
 function M.find(arr, predicate)
   for i, v in pairs(arr) do
     if predicate(v, i) then

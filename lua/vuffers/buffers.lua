@@ -27,7 +27,7 @@ local active_bufnr = nil
 
 ---@param filename string
 ---@param file_type? string
-function _is_invalid_file(filename, file_type)
+local function _is_invalid_file(filename, file_type)
   if filename == "" or filename == "/" or filename == " " then
     return true
   end
@@ -199,16 +199,22 @@ function M.reload_all_buffers()
   reset_buffers()
 
   local bufs = vim.api.nvim_list_bufs()
-
-  for i, buf in ipairs(bufs) do
+  bufs = list.map(bufs, function(buf, i)
     local name = vim.api.nvim_buf_get_name(buf)
-    local file_type = vim.api.nvim_buf_get_option(buf, "filetype")
+    local filetype = vim.api.nvim_buf_get_option(buf, "filetype")
+    return { buf = buf, name = name, index = i, path = name, filetype = filetype }
+  end)
+  ---@diagnostic disable-next-line: cast-local-type
+  bufs = list.filter(bufs, function(buf)
+    return not _is_invalid_file(buf.name, buf.filetype) and (vim.fn.buflisted(buf.buf) == 1)
+  end)
 
-    if not _is_invalid_file(name, file_type) then
-      table.insert(_buf_list, { buf = buf, name = name, index = i, path = name })
-    end
+  if bufs == nil then
+    logger.warn("reload_all_buffers: no buffers found")
+    return
   end
 
+  _buf_list = bufs
   _buf_list = _get_formatted_buffers()
   _sort_buffers()
 
