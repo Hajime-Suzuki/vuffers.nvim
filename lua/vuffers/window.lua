@@ -1,4 +1,5 @@
 local constants = require("vuffers.constants")
+local config = require("vuffers.config")
 
 local M = {}
 local split
@@ -6,10 +7,11 @@ local split
 function M.init(opts)
   local Split = require("nui.split")
 
+  local view_config = config.get_view_config()
   split = Split({
     relative = "editor",
     position = "left",
-    size = "20%",
+    size = view_config.window.width,
     win_options = {
       relativenumber = false,
       number = true,
@@ -21,8 +23,8 @@ function M.init(opts)
       signcolumn = "yes",
       foldmethod = "manual",
       foldcolumn = "0",
-      cursorcolumn = true,
-      cursorline = true,
+      cursorcolumn = false,
+      cursorline = false,
       colorcolumn = "0",
       winhighlight = "Normal:VerticalBuffers",
     },
@@ -98,6 +100,30 @@ function M.get_bufnr()
   local s = get_split()
 
   return s.bufnr
+end
+
+---@param width string | number
+--width: string such as "+10" or "-10", or number
+function M.resize(width)
+  if not is_open then
+    return
+  end
+
+  local window_config = config.get_view_config().window
+
+  local new_width
+  if type(width) == "string" then
+    local w = vim.trim(width)
+    if w:match("^[+-]") then
+      new_width = window_config.width + tonumber(w)
+    end
+  else
+    new_width = width
+  end
+
+  local s = get_split()
+  s:update_layout({ size = { width = new_width } })
+  config.set_window_width(new_width)
 end
 
 return M

@@ -78,4 +78,10 @@ function M.change_sort(sort)
   events.publish(events.names.SortChanged)
 end
 
+---@param width number | string
+--width: string such as "+10" or "-10", or number
+function M.resize(width)
+  window.resize(width)
+end
+
 return M
