@@ -58,29 +58,47 @@ end
 ---@param window_bufnr integer
 ---@param line_number integer
 ---@param buffer Buffer
-local function _set_highlight(window_bufnr, line_number, buffer)
+local function highlight_file_icon(window_bufnr, line_number, buffer)
   local _, icon_highlight = _get_icon(buffer.name)
   local ok = pcall(function()
-    -- vim.api.nvim_buf_clear_namespace(window_bufnr, active_buffer_ns, 0, -1)
-    -- vim.api.nvim_buf_add_highlight(window_bufnr, active_buffer_ns, constants.HIGHLIGHTS.ACTIVE, line_number, 0, -1)
     vim.api.nvim_buf_add_highlight(window_bufnr, icon_ns, icon_highlight, line_number, ICON_START_COL, ICON_END_COL)
   end)
 
   if not ok then
-    print("Error: Could not set highlight in buffer " .. window_bufnr)
+    logger.error("Error: Could not set highlight for file icon " .. window_bufnr)
+  end
+end
+
+---@param window_bufnr integer
+---@param line_number integer
+local function _highlight_active_buffer(window_bufnr, line_number)
+  local ok = pcall(function()
+    vim.api.nvim_buf_clear_namespace(window_bufnr, active_buffer_ns, 0, -1)
+    vim.api.nvim_buf_add_highlight(
+      window_bufnr,
+      active_buffer_ns,
+      constants.HIGHLIGHTS.ACTIVE,
+      line_number,
+      ICON_END_COL,
+      -1
+    )
+  end)
+
+  if not ok then
+    logger.error("Error: Could not set highlight for active buffer " .. window_bufnr)
   end
 end
 
 function M.highlight_active_buffer()
-  -- local split_bufnr = window.get_split_buf_num()
-  -- local active_line = bufs.get_active_buffer_index()
-  -- local active_buffer = bufs.get_active_buffer()
-  --
-  -- if active_line == nil or active_buffer == nil then
-  --   return
-  -- end
-  --
-  -- _set_highlight(split_bufnr, active_line - 1, active_buffer)
+  local split_bufnr = window.get_split_buf_num()
+  local active_line = bufs.get_active_buffer_index()
+  local active_buffer = bufs.get_active_buffer()
+
+  if active_line == nil or active_buffer == nil then
+    return
+  end
+
+  _highlight_active_buffer(split_bufnr, active_line - 1)
 end
 
 function M.render_buffers()
@@ -107,7 +125,7 @@ function M.render_buffers()
       logger.debug(
         "Adding highlight for line " .. i .. " with icon " .. line.icon .. " and color " .. line.icon_highlight
       )
-      _set_highlight(split_bufnr, i - 1, buffers[i])
+      highlight_file_icon(split_bufnr, i - 1, buffers[i])
     end
   end
 
