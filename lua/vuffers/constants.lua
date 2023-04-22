@@ -18,6 +18,7 @@ M.SORT_DIRECTION = {
 M.HIGHLIGHTS = {
   ACTIVE = "VuffersSelectedBuffer",
   WINDOW_BG = "VerticalBuffersBackground",
+  MODIFIED = "VuffersModifiedBuffer",
 }
 
 return M

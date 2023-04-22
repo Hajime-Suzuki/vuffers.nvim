@@ -15,7 +15,7 @@ function M.setup()
   if config.get_config().debug.enabled then
     local ok, log = pcall(require, "structlog")
 
-    local log_level = config.get_config().debug.log_level
+    local log_level = config.get_config().debug.level
 
     if ok then
       log.configure({
@@ -24,7 +24,7 @@ function M.setup()
             {
               level = log.level[log_level:upper()],
               processors = {
-                log.processors.StackWriter({ "line", "file" }, { max_parents = 2, stack_level = 2 }),
+                -- log.processors.StackWriter({ "line", "file" }, { max_parents = 2, stack_level = 2 }),
                 log.processors.Timestamper("%H:%M:%S"),
               },
               formatter = log.formatters.FormatColorizer(
