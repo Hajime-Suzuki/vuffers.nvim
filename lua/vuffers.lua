@@ -39,7 +39,7 @@ function M.open()
   if not is_valid then
     logger.warn("window is not valid while creating key binding")
 
-    key_bindings.init(window.get_split_buf_num())
+    key_bindings.init(window.get_bufnr())
   end
 
   logger.debug("M.open: end")

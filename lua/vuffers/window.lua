@@ -58,7 +58,7 @@ local function get_split()
 end
 
 function M.get_window_id()
-  return vim.fn.bufwinid(M.get_split_buf_num())
+  return vim.fn.bufwinid(M.get_bufnr())
 end
 
 function M.is_valid()
@@ -94,7 +94,7 @@ function M.is_hidden()
 end
 
 ---@return number
-function M.get_split_buf_num()
+function M.get_bufnr()
   local s = get_split()
 
   return s.bufnr
