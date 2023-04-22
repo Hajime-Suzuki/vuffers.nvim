@@ -34,10 +34,10 @@ local default_sort = {
 
 ---@class View
 ---@field modified_icon string
----@field window {width: number }
+---@field window {width: number, focus_on_open: boolean }
 local default_view = {
   modified_icon = "󰛿",
-  window = { width = 35 },
+  window = { width = 35, focus_on_open = false },
 }
 
 ---@class Config

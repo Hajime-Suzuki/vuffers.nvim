@@ -12,6 +12,7 @@ function M.init(opts)
     relative = "editor",
     position = "left",
     size = view_config.window.width,
+    enter = view_config.window.focus_on_open,
     win_options = {
       relativenumber = false,
       number = true,
@@ -44,6 +45,11 @@ function M.init(opts)
 
   -- print("window is initiated" .. split.bufnr)
   return split
+end
+
+function M.force_init()
+  split = nil
+  return M.init()
 end
 
 local function get_split()
