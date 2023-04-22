@@ -123,11 +123,11 @@ end
 function M.add_buffer(buffer, file_type)
   local should_ignore = M.is_invalid_file(buffer.file, file_type) or _is_in_buf_list(buffer.file)
 
-  logger.debug("add_buffer: buffer will be added", { file = buffer.file, file_type = file_type })
-
   if should_ignore then
     return
   end
+
+  logger.debug("add_buffer: buffer will be added", { file = buffer.file, file_type = file_type })
 
   table.insert(_buf_list, {
     buf = buffer.buf,
@@ -149,8 +149,6 @@ function M.remove_buffer(args)
     return
   end
 
-  logger.debug("remove_buffer: buffer will be removed", args)
-
   local target_index = args.index or list.find_index(_buf_list, function(buf)
     return buf.buf == args.bufnr
   end)
@@ -160,6 +158,8 @@ function M.remove_buffer(args)
     logger.warn("remove_buffer: buffer not found", args)
     return
   end
+
+  logger.debug("remove_buffer: buffer will be removed", args)
 
   if target_index ~= _get_active_bufnr() then
     table.remove(_buf_list, target_index)
@@ -227,13 +227,31 @@ function M.get_buffer_by_index(index)
   return buffers[index]
 end
 
-function M.get_active_buffer()
+---@param bufnr integer
+---@return Buffer | nil, integer | nil -- buffer, index
+function M.get_buffer_by_bufnr(bufnr)
   local buffers = M.get_all_buffers()
-  local bufnr = _get_active_bufnr()
 
-  return list.find(buffers, function(buf)
+  local index = list.find_index(buffers, function(buf)
     return buf.buf == bufnr
   end)
+
+  if not index then
+    return
+  end
+
+  return buffers[index], index
+end
+
+function M.get_active_buffer()
+  local bufnr = _get_active_bufnr()
+
+  if not bufnr then
+    return nil
+  end
+
+  local buffer = M.get_buffer_by_bufnr(bufnr)
+  return buffer
 end
 
 function M.get_active_buffer_index()

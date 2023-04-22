@@ -36,7 +36,15 @@ function M.create_auto_group()
     pattern = "*",
     group = constants.AUTO_CMD_GROUP,
     callback = function(buffer)
-      ui.add_modified_icon(buffer)
+      ui.update_modified_icon(buffer)
+    end,
+  })
+
+  vim.api.nvim_create_autocmd("BufWritePost", {
+    pattern = "*",
+    group = constants.AUTO_CMD_GROUP,
+    callback = function(buffer)
+      ui.update_modified_icon(buffer)
     end,
   })
 

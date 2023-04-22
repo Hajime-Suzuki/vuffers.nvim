@@ -92,12 +92,31 @@ local function _highlight_active_buffer(window_bufnr, line_number)
   end
 end
 
-local function _set_modified_icon(window_bufnr, line_number)
+local _ext = {}
+
+---@param window_bufnr integer
+---@param line_number integer
+---@param bufnr integer
+local function _set_modified_icon(window_bufnr, line_number, bufnr)
   local modified_icon = config.get_view_config().modified_icon
-  vim.api.nvim_buf_set_extmark(window_bufnr, icon_ns, line_number, -1, {
-    virt_text = { { " " .. modified_icon, constants.HIGHLIGHTS.MODIFIED } },
-    virt_text_pos = "overlay",
+  local ext_id = vim.api.nvim_buf_set_extmark(window_bufnr, icon_ns, line_number, -1, {
+    virt_text = { { modified_icon, constants.HIGHLIGHTS.MODIFIED } },
+    virt_text_pos = "eol",
   })
+
+  _ext[bufnr] = ext_id
+end
+
+---@param window_bufnr integer
+---@param bufnr integer
+local function _delete_modified_icon(window_bufnr, bufnr)
+  local ext_id = _ext[bufnr]
+  if not ext_id then
+    return
+  end
+
+  vim.api.nvim_buf_del_extmark(window_bufnr, icon_ns, ext_id)
+  _ext[bufnr] = nil
 end
 
 function M.highlight_active_buffer()
@@ -113,22 +132,24 @@ function M.highlight_active_buffer()
 end
 
 ---@param buffer NativeBuffer
-function M.add_modified_icon(buffer)
-  M.render_buffers()
-  -- logger.info("buffer", buffer)
-  --
-  -- local split_bufnr = window.get_split_buf_num()
-  -- local active_line = bufs.get_active_buffer_index()
-  -- local active_buffer = bufs.get_active_buffer()
-  --
-  -- if active_line == nil or active_buffer == nil then
-  --   return
-  -- end
-  --
-  -- vim.api.nvim_buf_set_extmark(split_bufnr, icon_ns, active_line - 1, string.len(active_buffer.name) - 1, {
-  --   virt_text = { { "M", constants.HIGHLIGHTS.MODIFIED } },
-  --   virt_text_pos = "overlay",
-  -- })
+function M.update_modified_icon(buffer)
+  local new_modified = vim.bo[buffer.buf].modified
+  logger.debug("mod", { new_modified = new_modified, file = buffer.file })
+
+  local window_nr = window.get_split_buf_num()
+  local target, index = bufs.get_buffer_by_bufnr(buffer.buf)
+
+  if target == nil then
+    return
+  end
+
+  if new_modified then
+    _set_modified_icon(window_nr, index - 1, buffer.buf)
+    return
+  elseif _ext[buffer.buf] then
+    _delete_modified_icon(window_nr, buffer.buf)
+    return
+  end
 end
 
 function M.render_buffers()
@@ -151,8 +172,11 @@ function M.render_buffers()
   )
 
   for i, line in ipairs(lines) do
+    local buf_nr = buffers[i].buf
     if line.modified_icon ~= "" then
-      _set_modified_icon(split_bufnr, i - 1)
+      _set_modified_icon(split_bufnr, i - 1, buf_nr)
+    elseif _ext[buf_nr] then
+      _delete_modified_icon(split_bufnr, buf_nr)
     end
 
     if line.icon ~= "" then

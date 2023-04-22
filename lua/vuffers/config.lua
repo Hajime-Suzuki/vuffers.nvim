@@ -18,10 +18,10 @@ local default_handlers = {
 
 ---@class DebugConfig
 ---@field enabled boolean
----@field log_level 'debug' | 'info' | 'warn' | 'error'
+---@field level 'debug' | 'info' | 'warn' | 'error'
 local default_debug_config = {
   enabled = true,
-  log_level = "debug",
+  level = "debug",
 }
 
 ---@class SortOrder

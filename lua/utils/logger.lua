@@ -15,7 +15,7 @@ function M.setup()
   if config.get_config().debug.enabled then
     local ok, log = pcall(require, "structlog")
 
-    local log_level = config.get_config().debug.log_level
+    local log_level = config.get_config().debug.level
 
     if ok then
       log.configure({
