@@ -15,4 +15,9 @@ M.SORT_DIRECTION = {
   DESC = "desc",
 }
 
+M.HIGHLIGHTS = {
+  ACTIVE = "VuffersSelectedBuffer",
+  WINDOW_BG = "VerticalBuffersBackground",
+}
+
 return M
