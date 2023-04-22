@@ -32,6 +32,14 @@ function M.create_auto_group()
     end,
   })
 
+  vim.api.nvim_create_autocmd({ "BufModifiedSet" }, {
+    pattern = "*",
+    group = constants.AUTO_CMD_GROUP,
+    callback = function(buffer)
+      ui.add_modified_icon(buffer)
+    end,
+  })
+
   vim.api.nvim_create_autocmd("User", {
     pattern = events.names.BufferListChanged,
     group = constants.AUTO_CMD_GROUP,

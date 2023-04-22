@@ -27,7 +27,7 @@ local active_bufnr = nil
 
 ---@param filename string
 ---@param file_type? string
-local function _is_invalid_file(filename, file_type)
+function M.is_invalid_file(filename, file_type)
   if filename == "" or filename == "/" or filename == " " then
     return true
   end
@@ -58,7 +58,7 @@ end
 ---@param buffer {path: string, buf: integer}
 ---@param file_type? string
 function M.set_active_bufnr(buffer, file_type)
-  if _is_invalid_file(buffer.path, file_type) then
+  if M.is_invalid_file(buffer.path, file_type) then
     return
   end
 
@@ -121,7 +121,7 @@ end
 ---@param buffer NativeBuffer
 ---@param file_type string
 function M.add_buffer(buffer, file_type)
-  local should_ignore = _is_invalid_file(buffer.file, file_type) or _is_in_buf_list(buffer.file)
+  local should_ignore = M.is_invalid_file(buffer.file, file_type) or _is_in_buf_list(buffer.file)
 
   logger.debug("add_buffer: buffer will be added", { file = buffer.file, file_type = file_type })
 
@@ -204,7 +204,7 @@ function M.reload_all_buffers()
     local name = vim.api.nvim_buf_get_name(buf)
     local file_type = vim.api.nvim_buf_get_option(buf, "filetype")
 
-    if not _is_invalid_file(name, file_type) then
+    if not M.is_invalid_file(name, file_type) then
       table.insert(_buf_list, { buf = buf, name = name, index = i, path = name })
     end
   end

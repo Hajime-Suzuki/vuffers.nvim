@@ -24,7 +24,7 @@ function M.setup()
             {
               level = log.level[log_level:upper()],
               processors = {
-                log.processors.StackWriter({ "line", "file" }, { max_parents = 2, stack_level = 2 }),
+                -- log.processors.StackWriter({ "line", "file" }, { max_parents = 2, stack_level = 2 }),
                 log.processors.Timestamper("%H:%M:%S"),
               },
               formatter = log.formatters.FormatColorizer(

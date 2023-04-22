@@ -28,6 +28,7 @@ end
 ---@class Line
 ---@field text string
 ---@field icon string
+---@field modified_icon string
 ---@field icon_highlight string
 
 ---@param buffer Buffer
@@ -36,7 +37,8 @@ local function _generate_line(buffer)
   local icon, color = _get_icon(buffer.name)
 
   local filename = icon .. " " .. string.gsub(buffer.name, "%.%w+$", "")
-  return { text = filename, icon = icon, icon_highlight = color }
+  local modified_icon = vim.bo[buffer.buf].modified and "M" or ""
+  return { text = filename, icon = icon, icon_highlight = color, modified_icon = modified_icon }
 end
 
 local M = {}
@@ -89,6 +91,13 @@ local function _highlight_active_buffer(window_bufnr, line_number)
   end
 end
 
+function _set_modified_icon(window_bufnr, line_number)
+  vim.api.nvim_buf_set_extmark(window_bufnr, icon_ns, line_number, -1, {
+    virt_text = { { " ", constants.HIGHLIGHTS.MODIFIED } },
+    virt_text_pos = "overlay",
+  })
+end
+
 function M.highlight_active_buffer()
   local split_bufnr = window.get_split_buf_num()
   local active_line = bufs.get_active_buffer_index()
@@ -99,6 +108,25 @@ function M.highlight_active_buffer()
   end
 
   _highlight_active_buffer(split_bufnr, active_line - 1)
+end
+
+---@param buffer NativeBuffer
+function M.add_modified_icon(buffer)
+  M.render_buffers()
+  -- logger.info("buffer", buffer)
+  --
+  -- local split_bufnr = window.get_split_buf_num()
+  -- local active_line = bufs.get_active_buffer_index()
+  -- local active_buffer = bufs.get_active_buffer()
+  --
+  -- if active_line == nil or active_buffer == nil then
+  --   return
+  -- end
+  --
+  -- vim.api.nvim_buf_set_extmark(split_bufnr, icon_ns, active_line - 1, string.len(active_buffer.name) - 1, {
+  --   virt_text = { { "M", constants.HIGHLIGHTS.MODIFIED } },
+  --   virt_text_pos = "overlay",
+  -- })
 end
 
 function M.render_buffers()
@@ -121,10 +149,11 @@ function M.render_buffers()
   )
 
   for i, line in ipairs(lines) do
+    if line.modified_icon ~= "" then
+      _set_modified_icon(split_bufnr, i - 1)
+    end
+
     if line.icon ~= "" then
-      logger.debug(
-        "Adding highlight for line " .. i .. " with icon " .. line.icon .. " and color " .. line.icon_highlight
-      )
       highlight_file_icon(split_bufnr, i - 1, buffers[i])
     end
   end
