@@ -1,3 +1,4 @@
+local logger = require("utils.logger")
 local constants = require("vuffers.constants")
 local config = require("vuffers.config")
 
@@ -71,6 +72,7 @@ end
 
 function M.is_valid()
   if not (split and split.bufnr) then
+    -- TODO: check why split is nil right after init
     return false
   end
 

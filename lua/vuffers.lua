@@ -30,16 +30,9 @@ function M.open()
 
   logger.debug("M.open: start")
 
-  local is_valid = window.is_valid()
-
   window.open()
   bufs.reload_all_buffers()
-
-  if not is_valid then
-    logger.warn("window is not valid while creating key binding")
-
-    key_bindings.init(window.get_bufnr())
-  end
+  key_bindings.init(window.get_bufnr())
 
   logger.debug("M.open: end")
 end
