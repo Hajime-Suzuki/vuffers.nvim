@@ -4,6 +4,8 @@ local list = require("utils.list")
 local config = require("vuffers.config")
 local constants = require("vuffers.constants")
 local events = require("vuffers.events")
+local validations = require("vuffers.validations")
+
 --------------types >>----------------
 
 ---@class Buffer
@@ -25,43 +27,8 @@ local M = {}
 ---@type number | nil
 local active_bufnr = nil
 
----@param filename string
----@param file_type? string
-local function _is_invalid_file(filename, file_type)
-  if filename == "" or filename == "/" or filename == " " then
-    return true
-  end
-
-  local file_names_to_ignore = config.get_exclude().file_names
-
-  for _, pattern in pairs(file_names_to_ignore) do
-    if filename:match(pattern) then
-      return true
-    end
-  end
-
-  if file_type then
-    if file_type == constants.FILE_TYPE then
-      return true
-    end
-
-    local file_types_to_ignore = config.get_exclude().file_types
-
-    for _, ft in pairs(file_types_to_ignore) do
-      if file_type == ft then
-        return true
-      end
-    end
-  end
-end
-
 ---@param buffer {path: string, buf: integer}
----@param file_type? string
-function M.set_active_bufnr(buffer, file_type)
-  if _is_invalid_file(buffer.path, file_type) then
-    return
-  end
-
+function M.set_active_bufnr(buffer)
   active_bufnr = buffer.buf
   events.publish(events.names.ActiveFileChanged)
 end
@@ -119,15 +86,14 @@ function M.get_num_of_buffers()
 end
 
 ---@param buffer NativeBuffer
----@param file_type string
-function M.add_buffer(buffer, file_type)
-  local should_ignore = _is_invalid_file(buffer.file, file_type) or _is_in_buf_list(buffer.file)
+function M.add_buffer(buffer)
+  local should_ignore = _is_in_buf_list(buffer.file)
 
   if should_ignore then
     return
   end
 
-  logger.debug("add_buffer: buffer will be added", { file = buffer.file, file_type = file_type })
+  logger.debug("add_buffer: buffer will be added", { file = buffer.file })
 
   table.insert(_buf_list, {
     buf = buffer.buf,
@@ -138,7 +104,7 @@ function M.add_buffer(buffer, file_type)
   _buf_list = _get_formatted_buffers()
   _sort_buffers()
 
-  logger.debug("add_buffer: buffer is added", { file = buffer.file, file_type = file_type })
+  logger.debug("add_buffer: buffer is added", { file = buffer.file })
 
   events.publish(events.names.BufferListChanged)
 end
@@ -205,9 +171,7 @@ function M.reload_all_buffers()
     return { buf = buf, name = name, index = i, path = name, filetype = filetype }
   end)
   ---@diagnostic disable-next-line: cast-local-type
-  bufs = list.filter(bufs, function(buf)
-    return not _is_invalid_file(buf.name, buf.filetype) and (vim.fn.buflisted(buf.buf) == 1)
-  end)
+  bufs = list.filter(bufs, validations.is_valid_buf)
 
   if bufs == nil then
     logger.warn("reload_all_buffers: no buffers found")

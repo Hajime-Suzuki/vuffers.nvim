@@ -1,3 +1,4 @@
+local logger = require("utils.logger")
 local constants = require("vuffers.constants")
 local config = require("vuffers.config")
 
@@ -34,7 +35,7 @@ function M.init(opts)
       swapfile = false,
       buftype = "nofile",
       modifiable = true,
-      filetype = constants.FILE_TYPE,
+      filetype = constants.VUFFERS_FILE_TYPE,
       bufhidden = "hide",
     },
   })
@@ -71,6 +72,7 @@ end
 
 function M.is_valid()
   if not (split and split.bufnr) then
+    -- TODO: check why split is nil right after init
     return false
   end
 
