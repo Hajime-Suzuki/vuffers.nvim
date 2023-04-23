@@ -12,6 +12,11 @@ function M.is_valid_buf(buffer)
     return false
   end
 
+  if vim.fn.buflisted(buffer.buf) == 0 then
+    logger.debug("Buffer is not listed", buffer) -- happens when switching tabs
+    return false
+  end
+
   local filename = buffer.file or buffer.name
   local filetype = vim.bo[buffer.buf].filetype
 

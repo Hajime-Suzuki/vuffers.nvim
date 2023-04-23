@@ -12,8 +12,10 @@ end
 
 function M.destroy(bufnr)
   logger.debug("delete key bindings")
-  vim.keymap.del("n", "<CR>", { buffer = bufnr })
-  vim.keymap.del("n", "d", { buffer = bufnr })
+  pcall(function()
+    vim.keymap.del("n", "<CR>", { buffer = bufnr })
+    vim.keymap.del("n", "d", { buffer = bufnr })
+  end)
 end
 
 return M
