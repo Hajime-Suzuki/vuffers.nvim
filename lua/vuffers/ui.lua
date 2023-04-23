@@ -99,6 +99,10 @@ local _ext = {}
 ---@param line_number integer
 ---@param bufnr integer
 local function _set_modified_icon(window_bufnr, line_number, bufnr)
+  if _ext[bufnr] then
+    return
+  end
+
   local modified_icon = config.get_view_config().modified_icon
   local ext_id = vim.api.nvim_buf_set_extmark(window_bufnr, icon_ns, line_number, -1, {
     virt_text = { { modified_icon, constants.HIGHLIGHTS.MODIFIED } },
