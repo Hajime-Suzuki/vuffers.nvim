@@ -5,6 +5,7 @@ local is_devicon_ok, devicon = pcall(require, "nvim-web-devicons")
 local logger = require("utils.logger")
 local constants = require("vuffers.constants")
 local config = require("vuffers.config")
+local validation = require("vuffers.validation")
 
 local M = {}
 
@@ -124,7 +125,7 @@ function M.highlight_active_buffer()
   local active_line = bufs.get_active_buffer_index()
   local active_buffer = bufs.get_active_buffer()
 
-  if active_line == nil or active_buffer == nil then
+  if active_line == nil or active_buffer == nil or not validation.is_valid_buf(active_buffer) then
     return
   end
 
@@ -133,6 +134,10 @@ end
 
 ---@param buffer NativeBuffer
 function M.update_modified_icon(buffer)
+  if not validation.is_valid_buf(buffer) then
+    return
+  end
+
   local new_modified = vim.bo[buffer.buf].modified
 
   local window_nr = window.get_bufnr()
@@ -157,9 +162,15 @@ function M.render_buffers()
   end
 
   local buffers = bufs.get_all_buffers()
+  local valid_buffers = list.filter(buffers, validation.is_valid_buf)
+
+  if not valid_buffers then
+    return
+  end
+
   local window_bufnr = window.get_bufnr()
 
-  local lines = list.map(buffers, function(buffer)
+  local lines = list.map(valid_buffers, function(buffer)
     return _generate_line(buffer)
   end)
 
@@ -171,7 +182,7 @@ function M.render_buffers()
   )
 
   for i, line in ipairs(lines) do
-    local buf_nr = buffers[i].buf
+    local buf_nr = valid_buffers[i].buf
     if line.modified_icon ~= "" then
       _set_modified_icon(window_bufnr, i - 1, buf_nr)
     elseif _ext[buf_nr] then
@@ -179,7 +190,7 @@ function M.render_buffers()
     end
 
     if line.icon ~= "" then
-      _highlight_file_icon(window_bufnr, i - 1, buffers[i])
+      _highlight_file_icon(window_bufnr, i - 1, valid_buffers[i])
     end
   end
 

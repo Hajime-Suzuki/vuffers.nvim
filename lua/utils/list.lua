@@ -10,10 +10,10 @@ function M.unsafe_find_index(arr, target_item)
   error("item not found in the list")
 end
 
---- @generic TItem: any
+--- @generic TItem
 --- @param arr TItem[]
---- @param predicate fun(item: any, index: number): boolean
---- @return TItem | nil
+--- @param predicate fun(item: TItem, index: number): boolean
+--- @return TItem[] | nil
 function M.filter(arr, predicate)
   local filtered = {}
   for i, v in ipairs(arr) do
