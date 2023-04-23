@@ -12,6 +12,7 @@ local M = {}
 function M.setup(opts)
   config.setup(opts)
   logger.setup()
+  auto_commands.create_auto_group()
 end
 
 function M.toggle()
@@ -30,8 +31,6 @@ function M.open()
   logger.debug("M.open: start")
 
   local is_valid = window.is_valid()
-
-  auto_commands.create_auto_group()
 
   window.open()
   bufs.reload_all_buffers()
@@ -52,7 +51,6 @@ function M.close()
 
   logger.debug("M.close: start")
 
-  -- auto_commands.remove_auto_group()
   window.close()
   logger.debug("M.close: end")
 end

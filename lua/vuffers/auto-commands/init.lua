@@ -3,6 +3,7 @@ local constants = require("vuffers.constants")
 local events = require("vuffers.events")
 local ui = require("vuffers.ui")
 local buffers = require("vuffers.buffers")
+local window = require("vuffers.window")
 
 local M = {}
 
@@ -45,6 +46,24 @@ function M.create_auto_group()
     group = constants.AUTO_CMD_GROUP,
     callback = function(buffer)
       ui.update_modified_icon(buffer)
+    end,
+  })
+
+  vim.api.nvim_create_autocmd("TabEnter", {
+    pattern = "*",
+    group = constants.AUTO_CMD_GROUP,
+    callback = function(buffer)
+      -- reset view when switching tabs
+
+      if window.is_hidden() then
+        window.force_init()
+        return
+      end
+
+      window.close()
+      window.force_init()
+      window.open()
+      buffers.reload_all_buffers()
     end,
   })
 
