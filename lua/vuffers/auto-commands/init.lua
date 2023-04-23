@@ -5,6 +5,7 @@ local ui = require("vuffers.ui")
 local buffers = require("vuffers.buffers")
 local window = require("vuffers.window")
 local key_bindings = require("vuffers.key-bindings")
+local validations = require("vuffers.validations")
 
 local M = {}
 
@@ -14,7 +15,10 @@ function M.create_auto_group()
     pattern = "*",
     group = constants.AUTO_CMD_GROUP,
     callback = function(buffer)
-      buffers.set_active_bufnr({ path = buffer.file, buf = buffer.buf }, vim.bo.filetype)
+      if not validations.is_valid_buf(buffer) then
+        return
+      end
+      buffers.set_active_bufnr({ path = buffer.file, buf = buffer.buf })
     end,
   })
 
@@ -22,6 +26,10 @@ function M.create_auto_group()
     pattern = "*",
     group = constants.AUTO_CMD_GROUP,
     callback = function(buffer)
+      if not validations.is_valid_buf(buffer) then
+        return
+      end
+
       buffers.add_buffer(buffer, vim.bo.filetype)
     end,
   })
@@ -38,6 +46,10 @@ function M.create_auto_group()
     pattern = "*",
     group = constants.AUTO_CMD_GROUP,
     callback = function(buffer)
+      if not validations.is_valid_buf(buffer) then
+        return
+      end
+
       ui.update_modified_icon(buffer)
     end,
   })
@@ -46,6 +58,10 @@ function M.create_auto_group()
     pattern = "*",
     group = constants.AUTO_CMD_GROUP,
     callback = function(buffer)
+      if not validations.is_valid_buf(buffer) then
+        return
+      end
+
       ui.update_modified_icon(buffer)
     end,
   })
