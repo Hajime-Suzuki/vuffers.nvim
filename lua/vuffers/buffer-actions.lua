@@ -85,6 +85,8 @@ function M.next_or_prev_buffer(args)
   local target_index = active_index + count
   target_index = target_index < 1 and 1 or (target_index > num_of_buffers and num_of_buffers or target_index)
 
+  logger.debug("ui:go_to_buffer_by_count: target index: " .. target_index)
+
   local target = buffers.get_buffer_by_index(target_index)
 
   if not target then

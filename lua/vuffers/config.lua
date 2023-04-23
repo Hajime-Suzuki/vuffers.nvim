@@ -1,44 +1,23 @@
 local M = {}
 
 ---@class Exclude
----@field file_names string[]
----@field file_types string[]
-local default_exclude = {
-  file_names = { "term://" },
-  file_types = { "lazygit", "NvimTree" },
-}
+---@field filenames string[]
+---@field filetypes string[]
 
 ---@class Handlers
 ---@field on_delete_buffer fun(bufnr: number)
-local default_handlers = {
-  on_delete_buffer = function(bufnr)
-    vim.api.nvim_command(":bwipeout " .. bufnr)
-  end,
-}
 
 ---@class DebugConfig
 ---@field enabled boolean
----@field level 'debug' | 'info' | 'warn' | 'error'
-local default_debug_config = {
-  enabled = true,
-  level = "debug",
-}
+---@field level LogLevel
 
 ---@class SortOrder
 ---@field type SortType
 ---@field direction SortDirection
-local default_sort = {
-  type = "none",
-  direction = "asc",
-}
 
 ---@class View
 ---@field modified_icon string
 ---@field window {width: number, focus_on_open: boolean }
-local default_view = {
-  modified_icon = "󰛿",
-  window = { width = 35, focus_on_open = false },
-}
 
 ---@class Config
 ---@field debug DebugConfig
@@ -78,21 +57,39 @@ M.set_window_width = function(width)
   config.view.window.width = width
 end
 
+---@param level LogLevel
+M.set_log_level = function(level)
+  config.debug.level = level
+end
+
 ---@param user_config Config
 function M.setup(user_config)
-  local debug_config = vim.tbl_deep_extend("force", default_debug_config, user_config.debug or {})
-  local view_config = vim.tbl_deep_extend("force", default_view, user_config.view or {})
-  local exclude_config = vim.tbl_deep_extend("force", default_exclude, user_config.view or {})
-  local handlers_config = vim.tbl_deep_extend("force", default_handlers, user_config.view or {})
-  local sort_config = vim.tbl_deep_extend("force", default_sort, user_config.view or {})
-
-  config = {
-    debug = debug_config,
-    exclude = exclude_config,
-    handlers = handlers_config,
-    sort = sort_config,
-    view = view_config,
+  ---@type Config
+  local default = {
+    debug = {
+      enabled = true,
+      level = "error",
+    },
+    exclude = {
+      filenames = { "term://" },
+      filetypes = { "lazygit", "NvimTree", "qf" },
+    },
+    handlers = {
+      on_delete_buffer = function(bufnr)
+        vim.api.nvim_command(":bwipeout " .. bufnr)
+      end,
+    },
+    sort = {
+      type = "none",
+      direction = "asc",
+    },
+    view = {
+      modified_icon = "󰛿",
+      window = { width = 35, focus_on_open = false },
+    },
   }
+
+  config = vim.tbl_deep_extend("force", default, user_config or {})
 end
 
 return M

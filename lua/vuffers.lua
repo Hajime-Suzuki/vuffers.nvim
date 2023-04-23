@@ -4,7 +4,7 @@ local auto_commands = require("vuffers.auto-commands")
 local key_bindings = require("vuffers.key-bindings")
 local logger = require("utils.logger")
 local config = require("vuffers.config")
-local ui_actions = require("vuffers.ui-actions")
+local ui_actions = require("vuffers.buffer-actions")
 local events = require("vuffers.events")
 
 local M = {}
@@ -67,6 +67,13 @@ function M.change_sort(sort)
   config.set_sort(sort)
   logger.info("set_sort: sort order has been updated", sort)
   events.publish(events.names.SortChanged)
+end
+
+---@param level LogLevel
+function M.set_log_level(level)
+  print("log level is set to " .. level)
+  config.set_log_level(level)
+  logger.setup()
 end
 
 ---@param width number | string

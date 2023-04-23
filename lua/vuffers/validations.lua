@@ -24,7 +24,7 @@ function M.is_valid_buf(buffer)
     return false
   end
 
-  local file_names_to_ignore = config.get_exclude().file_names
+  local file_names_to_ignore = config.get_exclude().filenames
 
   for _, pattern in pairs(file_names_to_ignore) do
     if filename:match(pattern) then
@@ -37,7 +37,7 @@ function M.is_valid_buf(buffer)
       return false
     end
 
-    local file_types_to_ignore = config.get_exclude().file_types
+    local file_types_to_ignore = config.get_exclude().filetypes
 
     for _, ft in pairs(file_types_to_ignore) do
       if filetype == ft then

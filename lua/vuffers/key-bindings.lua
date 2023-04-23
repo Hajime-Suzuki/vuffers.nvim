@@ -1,5 +1,5 @@
 local logger = require("utils.logger")
-local actions = require("vuffers.ui-actions")
+local actions = require("vuffers.buffer-actions")
 
 local M = {}
 

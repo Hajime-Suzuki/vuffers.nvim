@@ -15,6 +15,15 @@ M.SORT_DIRECTION = {
   DESC = "desc",
 }
 
+---@enum LogLevel
+M.LOG_LEVEL = {
+  TRACE = "trace",
+  DEBUG = "debug",
+  INFO = "info",
+  WARN = "warn",
+  ERROR = "error",
+}
+
 M.HIGHLIGHTS = {
   ACTIVE = "VuffersSelectedBuffer",
   WINDOW_BG = "VerticalBuffersBackground",
