@@ -6,12 +6,14 @@ local logger = require("utils.logger")
 local config = require("vuffers.config")
 local ui_actions = require("vuffers.buffer-actions")
 local events = require("vuffers.events")
+local highlights = require("vuffers.highlights")
 
 local M = {}
 
 function M.setup(opts)
   config.setup(opts)
   logger.setup()
+  highlights.setup()
   auto_commands.create_auto_group()
 end
 
@@ -63,7 +65,7 @@ function M.go_to_buffer_by_count(args)
 end
 
 ---@param sort {type: SortType, direction: SortDirection}
-function M.change_sort(sort)
+function M.sort(sort)
   config.set_sort(sort)
   logger.info("set_sort: sort order has been updated", sort)
   events.publish(events.names.SortChanged)

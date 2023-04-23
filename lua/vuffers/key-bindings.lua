@@ -3,7 +3,6 @@ local actions = require("vuffers.buffer-actions")
 
 local M = {}
 
--- TODO: delete keymap on clean up
 function M.init(bufnr)
   logger.debug("set key bindings")
   vim.keymap.set("n", "<CR>", actions.open_buffer, { noremap = true, silent = true, nowait = true, buffer = bufnr })

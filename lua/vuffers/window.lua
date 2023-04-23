@@ -28,7 +28,7 @@ function M.init(opts)
       cursorcolumn = false,
       cursorline = false,
       colorcolumn = "0",
-      winhighlight = "Normal:VerticalBuffers",
+      winhighlight = "Normal:Vuffers",
     },
 
     buf_options = {

@@ -19,12 +19,17 @@ local M = {}
 ---@field modified_icon string
 ---@field window {width: number, focus_on_open: boolean }
 
+---@class Keymaps
+---@field use_default boolean
+---@field view { open: string, remove: string  }
+
 ---@class Config
 ---@field debug DebugConfig
 ---@field exclude Exclude
 ---@field handlers Handlers
 ---@field sort SortOrder
 ---@field view View
+---@field keymaps Keymaps
 local config = {}
 
 M.get_config = function()
@@ -68,24 +73,37 @@ function M.setup(user_config)
   local default = {
     debug = {
       enabled = true,
-      level = "error",
+      level = "error", -- "error" | "warn" | "info" | "debug" | "trace"
     },
     exclude = {
+      -- do not show them on the vuffers list
       filenames = { "term://" },
       filetypes = { "lazygit", "NvimTree", "qf" },
     },
     handlers = {
+      -- when deleting a buffer via vuffers list (by default triggered by "d" key)
       on_delete_buffer = function(bufnr)
         vim.api.nvim_command(":bwipeout " .. bufnr)
       end,
     },
+    keymaps = {
+      use_default = true,
+      -- key maps on the vuffers list
+      view = {
+        open = "<CR>",
+        delete = "d",
+      },
+    },
     sort = {
-      type = "none",
-      direction = "asc",
+      type = "none", -- "none" | "filename"
+      direction = "asc", -- "asc" | "desc"
     },
     view = {
-      modified_icon = "󰛿",
-      window = { width = 35, focus_on_open = false },
+      modified_icon = "󰛿", -- when a buffer is modified, this icon will be shown
+      window = {
+        width = 35,
+        focus_on_open = false,
+      },
     },
   }
 
