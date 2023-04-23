@@ -110,6 +110,12 @@ function M.get_bufnr()
   return s.bufnr
 end
 
+function M.get_id()
+  local s = get_split()
+
+  return s.winid
+end
+
 ---@param width string | number
 --width: string such as "+10" or "-10", or number
 function M.resize(width)
