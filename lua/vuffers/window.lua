@@ -35,7 +35,7 @@ function M.init(opts)
       swapfile = false,
       buftype = "nofile",
       modifiable = true,
-      filetype = constants.FILE_TYPE,
+      filetype = constants.VUFFERS_FILE_TYPE,
       bufhidden = "hide",
     },
   })

@@ -4,6 +4,8 @@ local list = require("utils.list")
 local config = require("vuffers.config")
 local constants = require("vuffers.constants")
 local events = require("vuffers.events")
+local validations = require("vuffers.validations")
+
 --------------types >>----------------
 
 ---@class Buffer
@@ -25,40 +27,9 @@ local M = {}
 ---@type number | nil
 local active_bufnr = nil
 
----@param filename string
----@param file_type? string
-local function _is_invalid_file(filename, file_type)
-  if filename == "" or filename == "/" or filename == " " then
-    return true
-  end
-
-  local file_names_to_ignore = config.get_exclude().file_names
-
-  for _, pattern in pairs(file_names_to_ignore) do
-    if filename:match(pattern) then
-      return true
-    end
-  end
-
-  if file_type then
-    if file_type == constants.FILE_TYPE then
-      return true
-    end
-
-    local file_types_to_ignore = config.get_exclude().file_types
-
-    for _, ft in pairs(file_types_to_ignore) do
-      if file_type == ft then
-        return true
-      end
-    end
-  end
-end
-
 ---@param buffer {path: string, buf: integer}
----@param file_type? string
-function M.set_active_bufnr(buffer, file_type)
-  if _is_invalid_file(buffer.path, file_type) then
+function M.set_active_bufnr(buffer)
+  if not validations.is_valid_buf(buffer) then
     return
   end
 
@@ -121,7 +92,7 @@ end
 ---@param buffer NativeBuffer
 ---@param file_type string
 function M.add_buffer(buffer, file_type)
-  local should_ignore = _is_invalid_file(buffer.file, file_type) or _is_in_buf_list(buffer.file)
+  local should_ignore = not validations.is_valid_buf(buffer) or _is_in_buf_list(buffer.file)
 
   if should_ignore then
     return
@@ -206,7 +177,8 @@ function M.reload_all_buffers()
   end)
   ---@diagnostic disable-next-line: cast-local-type
   bufs = list.filter(bufs, function(buf)
-    return not _is_invalid_file(buf.name, buf.filetype) and (vim.fn.buflisted(buf.buf) == 1)
+    -- TODO: move buflisted
+    return validations.is_valid_buf(buf) and (vim.fn.buflisted(buf.buf) == 1)
   end)
 
   if bufs == nil then

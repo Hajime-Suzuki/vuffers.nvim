@@ -5,7 +5,7 @@ local is_devicon_ok, devicon = pcall(require, "nvim-web-devicons")
 local logger = require("utils.logger")
 local constants = require("vuffers.constants")
 local config = require("vuffers.config")
-local validation = require("vuffers.validation")
+local validations = require("vuffers.validations")
 
 local M = {}
 
@@ -32,7 +32,7 @@ end
 ---@class Line
 ---@field text string
 ---@field icon string
----@field modified_icon string
+---@field modified boolean
 
 ---@param buffer Buffer
 ---@return Line
@@ -40,8 +40,8 @@ local function _generate_line(buffer)
   local icon = _get_icon(buffer.name)
 
   local filename = icon .. " " .. string.gsub(buffer.name, "%.%w+$", "")
-  local modified_icon = vim.bo[buffer.buf].modified and "M" or ""
-  return { text = filename, icon = icon, modified_icon = modified_icon }
+  local modified = vim.bo[buffer.buf].modified
+  return { text = filename, icon = icon, modified = modified }
 end
 
 local active_buffer_ns = vim.api.nvim_create_namespace("VuffersActiveFileNamespace") -- namespace id
@@ -125,7 +125,7 @@ function M.highlight_active_buffer()
   local active_line = bufs.get_active_buffer_index()
   local active_buffer = bufs.get_active_buffer()
 
-  if active_line == nil or active_buffer == nil or not validation.is_valid_buf(active_buffer) then
+  if active_line == nil or active_buffer == nil or not validations.is_valid_buf(active_buffer) then
     return
   end
 
@@ -134,7 +134,7 @@ end
 
 ---@param buffer NativeBuffer
 function M.update_modified_icon(buffer)
-  if not validation.is_valid_buf(buffer) then
+  if not validations.is_valid_buf(buffer) then
     return
   end
 
@@ -162,7 +162,7 @@ function M.render_buffers()
   end
 
   local buffers = bufs.get_all_buffers()
-  local valid_buffers = list.filter(buffers, validation.is_valid_buf)
+  local valid_buffers = list.filter(buffers, validations.is_valid_buf)
 
   if not valid_buffers then
     return
@@ -183,7 +183,7 @@ function M.render_buffers()
 
   for i, line in ipairs(lines) do
     local buf_nr = valid_buffers[i].buf
-    if line.modified_icon ~= "" then
+    if line.modified then
       _set_modified_icon(window_bufnr, i - 1, buf_nr)
     elseif _ext[buf_nr] then
       _delete_modified_icon(window_bufnr, buf_nr)
