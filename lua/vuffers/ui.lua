@@ -25,7 +25,7 @@ local function _get_icon(filename)
 
   local extension = string.match(filename, "%.(%w+)$")
 
-  local icon, color = devicon.get_icon(filename, extension)
+  local icon, color = devicon.get_icon(filename, extension, { default = true })
   return icon or " ", color or ""
 end
 

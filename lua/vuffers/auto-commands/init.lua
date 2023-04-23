@@ -18,6 +18,18 @@ function M.create_auto_group()
       if not validations.is_valid_buf(buffer) then
         return
       end
+
+      if not window.is_hidden() then
+        local current_win = vim.api.nvim_get_current_win()
+        local vuffer_win = window.get_id()
+
+        if current_win and vuffer_win and current_win == vuffer_win then
+          vim.api.nvim_command("wincmd l" .. "|" .. "buffer " .. buffer.buf)
+          window.close()
+          window.open()
+        end
+      end
+
       buffers.set_active_bufnr({ path = buffer.file, buf = buffer.buf })
     end,
   })
