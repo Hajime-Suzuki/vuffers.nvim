@@ -1,3 +1,4 @@
+local window2 = require("vuffers.window2")
 local window = require("vuffers.window")
 local bufs = require("vuffers.buffers")
 local auto_commands = require("vuffers.auto-commands")
@@ -82,6 +83,10 @@ end
 --width: string such as "+10" or "-10", or number
 function M.resize(width)
   window.resize(width)
+end
+
+function M.open2()
+  window2.open()
 end
 
 return M
