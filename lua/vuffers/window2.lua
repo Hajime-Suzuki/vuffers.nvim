@@ -84,6 +84,15 @@ local function _get_view()
   return nil
 end
 
+function M.get_bufnr()
+  local view = _get_view()
+  if view then
+    return view.bufnr
+  end
+
+  return nil
+end
+
 function M.is_open()
   local window = _get_view()
   return window ~= nil

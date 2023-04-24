@@ -19,7 +19,7 @@ function M.setup(opts)
 end
 
 function M.toggle()
-  if window.is_hidden() then
+  if window2.is_hidden() then
     M.open()
   else
     M.close()
@@ -27,28 +27,28 @@ function M.toggle()
 end
 
 function M.open()
-  if not window.is_hidden() then
+  if window2.is_open() then
     return
   end
 
-  logger.debug("M.open: start")
+  logger.trace("M.open: start")
 
-  window.open()
+  window2.open()
   bufs.reload_all_buffers()
-  key_bindings.init(window.get_bufnr())
 
-  logger.debug("M.open: end")
+  logger.trace("M.open: end")
 end
 
 function M.close()
-  if window.is_hidden() then
+  if not window2.is_open() then
     return
   end
 
-  logger.debug("M.close: start")
+  logger.trace("M.close: start")
 
-  window.close()
-  logger.debug("M.close: end")
+  window2.close()
+
+  logger.trace("M.close: end")
 end
 
 function M.debug_buffers()
@@ -83,10 +83,6 @@ end
 --width: string such as "+10" or "-10", or number
 function M.resize(width)
   window.resize(width)
-end
-
-function M.toggle2()
-  window2.toggle()
 end
 
 return M
