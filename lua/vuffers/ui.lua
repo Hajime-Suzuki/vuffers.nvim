@@ -125,6 +125,10 @@ local function _delete_modified_icon(window_bufnr, bufnr)
 end
 
 function M.highlight_active_buffer()
+  if window.is_hidden() then
+    return
+  end
+
   local window_nr = window.get_bufnr()
   local active_line = bufs.get_active_buffer_index()
   local active_buffer = bufs.get_active_buffer()
@@ -138,6 +142,9 @@ end
 
 ---@param buffer NativeBuffer
 function M.update_modified_icon(buffer)
+  if window.is_hidden() then
+    return
+  end
   if not validations.is_valid_buf(buffer) then
     return
   end

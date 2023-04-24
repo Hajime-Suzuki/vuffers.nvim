@@ -5,6 +5,7 @@ local window = require("vuffers.window")
 
 local M = {}
 
+-- TODO: move to window actions
 function M.open_buffer()
   local pos = vim.api.nvim_win_get_cursor(0)
   local row = pos[1]
@@ -13,6 +14,7 @@ function M.open_buffer()
   vim.api.nvim_command("wincmd l" .. "|" .. "buffer " .. buf.buf)
 end
 
+-- TODO: move to window actions
 function M.delete_buffer()
   local pos = vim.api.nvim_win_get_cursor(0)
   local row = pos[1]
