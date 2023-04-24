@@ -106,6 +106,14 @@ function M.open()
   vim.api.nvim_command("wincmd p")
 end
 
+function M.toggle()
+  if M.is_open() then
+    M.close()
+  else
+    M.open()
+  end
+end
+
 function M.close()
   local view = _get_view()
   if not view then

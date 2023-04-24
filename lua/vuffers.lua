@@ -85,12 +85,8 @@ function M.resize(width)
   window.resize(width)
 end
 
-function M.open2()
-  window2.open()
-end
-
-function M.close2()
-  window2.close()
+function M.toggle2()
+  window2.toggle()
 end
 
 return M
