@@ -1,7 +1,7 @@
 local logger = require("utils.logger")
 local buffers = require("vuffers.buffers")
 local config = require("vuffers.config")
-local window = require("vuffers.window")
+local window = require("vuffers.window2")
 
 local M = {}
 
@@ -63,9 +63,9 @@ function M.go_to_buffer_by_index(_index)
     return
   end
 
-  if not window.is_hidden() then
-    local window_id = window.get_window_id()
-    vim.api.nvim_win_set_cursor(window_id, { index, 0 })
+  local window_nr = window.get_window_nr()
+  if window.is_open() and window_nr then
+    vim.api.nvim_win_set_cursor(window_nr, { index, 0 })
   end
 
   vim.api.nvim_command(":b " .. target.buf)
@@ -96,9 +96,9 @@ function M.next_or_prev_buffer(args)
     return
   end
 
-  if not window.is_hidden() then
-    local window_id = window.get_window_id()
-    vim.api.nvim_win_set_cursor(window_id, { target_index, 0 })
+  local window_nr = window.get_window_nr()
+  if window.is_open() and window_nr then
+    vim.api.nvim_win_set_cursor(window_nr, { target_index, 0 })
   end
 
   vim.api.nvim_command(":b " .. target.buf)

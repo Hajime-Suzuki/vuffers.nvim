@@ -2,10 +2,10 @@ local window2 = require("vuffers.window2")
 local window = require("vuffers.window")
 local bufs = require("vuffers.buffers")
 local auto_commands = require("vuffers.auto-commands")
-local key_bindings = require("vuffers.key-bindings")
+local keymaps = require("vuffers.key-bindings")
 local logger = require("utils.logger")
 local config = require("vuffers.config")
-local ui_actions = require("vuffers.buffer-actions")
+local buffer_actions = require("vuffers.buffer-actions")
 local events = require("vuffers.events")
 local highlights = require("vuffers.highlights")
 
@@ -19,10 +19,10 @@ function M.setup(opts)
 end
 
 function M.toggle()
-  if window2.is_hidden() then
-    M.open()
-  else
+  if window2.is_open() then
     M.close()
+  else
+    M.open()
   end
 end
 
@@ -34,6 +34,15 @@ function M.open()
   logger.trace("M.open: start")
 
   window2.open()
+
+  local bufnr = window2.get_bufnr()
+  if bufnr == nil then
+    error("open: buffer not found")
+    return
+  end
+
+  keymaps.setup(bufnr)
+
   bufs.reload_all_buffers()
 
   logger.trace("M.open: end")
@@ -46,6 +55,13 @@ function M.close()
 
   logger.trace("M.close: start")
 
+  local bufnr = window2.get_bufnr()
+  if bufnr == nil then
+    error("open: buffer not found")
+    return
+  end
+
+  keymaps.destroy(bufnr)
   window2.close()
 
   logger.trace("M.close: end")
@@ -57,12 +73,12 @@ end
 
 ---@param line_number? integer
 function M.go_to_buffer_by_line(line_number)
-  return ui_actions.go_to_buffer_by_index(line_number)
+  return buffer_actions.go_to_buffer_by_index(line_number)
 end
 
 ---@param args {direction: 'next' | 'prev', count?: integer}
 function M.go_to_buffer_by_count(args)
-  return ui_actions.next_or_prev_buffer(args)
+  return buffer_actions.next_or_prev_buffer(args)
 end
 
 ---@param sort {type: SortType, direction: SortDirection}

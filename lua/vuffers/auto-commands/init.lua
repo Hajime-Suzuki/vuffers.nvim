@@ -91,7 +91,7 @@ function M.create_auto_group()
       window.close()
       window.force_init()
       window.open()
-      key_bindings.init(window.get_bufnr())
+      key_bindings.setup(window.get_bufnr())
       buffers.reload_all_buffers()
     end,
   })
