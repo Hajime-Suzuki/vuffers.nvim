@@ -89,4 +89,8 @@ function M.open2()
   window2.open()
 end
 
+function M.close2()
+  window2.close()
+end
+
 return M

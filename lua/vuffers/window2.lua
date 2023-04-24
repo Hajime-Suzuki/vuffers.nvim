@@ -1,15 +1,16 @@
-local list = require("utils.list")
 local logger = require("utils.logger")
 local constants = require("vuffers.constants")
 local M = {}
+
+---@alias TabNumber number
 
 ---@class VufferWindow
 ---@field winnr number
 ---@field bufnr number
 ---@field is_open boolean
 
----@type table<number, VufferWindow>
-local window_by_tab = {}
+---@type table<TabNumber, VufferWindow>
+local view_by_tab = {}
 
 local buffer_options = {
   swapfile = false,
@@ -60,31 +61,59 @@ local function _create_buffer()
   return bufnr
 end
 
-function M.open()
+---@param args {winnr: number, bufnr: number}
+local function _set_view(args)
+  local tab = vim.api.nvim_get_current_tabpage()
+  view_by_tab[tab] = { winnr = args.winnr, bufnr = args.bufnr }
+end
+
+local function _reset_view()
+  local tab = vim.api.nvim_get_current_tabpage()
+  view_by_tab[tab] = nil
+end
+
+---@return VufferWindow | nil
+local function _get_view()
   local tab = vim.api.nvim_get_current_tabpage()
 
-  if window_by_tab[tab] then
-    logger.debug("window is already open")
-    logger.debug("window and buffer: ", window_by_tab[tab])
-    vim.api.nvim_win_close(window_by_tab[tab].winnr, true)
-    vim.api.nvim_buf_delete(window_by_tab[tab].bufnr, { force = true })
-    window_by_tab[tab] = nil
+  if view_by_tab[tab] then
+    return view_by_tab[tab]
+  end
 
-    logger.debug("window and buffer cleaned up")
+  return nil
+end
+
+function M.is_open()
+  local window = _get_view()
+  return window ~= nil
+end
+
+function M.open()
+  local view = _get_view()
+
+  if view then
+    logger.debug("view is already open")
     return
   end
 
-  -- create window and buffer
   local winnr = _create_window()
   local bufnr = _create_buffer()
+  _set_view({ winnr = winnr, bufnr = bufnr })
 
-  logger.debug("window buffer is initiated ", { winnr = winnr, bufnr = bufnr })
+  logger.debug("window and buffer is initiated ", { winnr = winnr, bufnr = bufnr })
 
-  window_by_tab[tab] = { bufnr = bufnr, winnr = winnr, is_open = true }
-
-  -- open buffer in the window
   vim.api.nvim_win_set_buf(winnr, bufnr)
   vim.api.nvim_command("wincmd p")
+end
+
+function M.close()
+  local view = _get_view()
+  if not view then
+    return
+  end
+
+  vim.api.nvim_buf_delete(view.bufnr, { force = true })
+  _reset_view()
 end
 
 return M
