@@ -1,3 +1,4 @@
+local keymaps = require("vuffers.key-bindings")
 local logger = require("utils.logger")
 local constants = require("vuffers.constants")
 local M = {}
@@ -102,6 +103,7 @@ function M.open()
 
   logger.debug("window and buffer is initiated ", { winnr = winnr, bufnr = bufnr })
 
+  keymaps.init(bufnr)
   vim.api.nvim_win_set_buf(winnr, bufnr)
   vim.api.nvim_command("wincmd p")
 end
@@ -120,6 +122,8 @@ function M.close()
     return
   end
 
+  keymaps.destroy(view.bufnr)
+  -- NOTE: delete all buffers, then window is closed. Otherwise, window is not closed and throws an error.
   vim.api.nvim_buf_delete(view.bufnr, { force = true })
   _reset_view()
 end
