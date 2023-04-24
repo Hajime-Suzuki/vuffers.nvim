@@ -60,9 +60,7 @@ function M.close()
     return
   end
 
-  keymaps.destroy(bufnr)
   window.close()
-
   logger.trace("M.close: end")
 end
 

@@ -10,13 +10,4 @@ function M.setup(bufnr)
   vim.keymap.set("n", "d", actions.delete_buffer, { noremap = true, silent = true, nowait = true, buffer = bufnr })
 end
 
----@param bufnr integer
-function M.destroy(bufnr)
-  logger.debug("delete key bindings")
-  pcall(function()
-    vim.keymap.del("n", "<CR>", { buffer = bufnr })
-    vim.keymap.del("n", "d", { buffer = bufnr })
-  end)
-end
-
 return M

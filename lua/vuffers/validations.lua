@@ -13,7 +13,6 @@ function M.is_valid_buf(buffer)
   end
 
   if vim.fn.buflisted(buffer.buf) == 0 then
-    logger.debug("Buffer is not listed", buffer) -- happens when switching tabs
     return false
   end
 

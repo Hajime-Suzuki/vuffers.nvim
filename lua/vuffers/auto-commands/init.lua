@@ -5,6 +5,7 @@ local ui = require("vuffers.ui")
 local buffers = require("vuffers.buffers")
 local window = require("vuffers.window")
 local validations = require("vuffers.validations")
+local keymaps = require("vuffers.key-bindings")
 
 local M = {}
 
@@ -74,6 +75,18 @@ function M.create_auto_group()
       end
 
       ui.update_modified_icon(buffer)
+    end,
+  })
+
+  vim.api.nvim_create_autocmd("WinClosed", {
+    pattern = "*",
+    group = constants.AUTO_CMD_GROUP,
+    callback = function(buffer)
+      -- TODO: check if this is needed
+      if tonumber(buffer.match) == window.get_window_nr() then
+        logger.debug("closing vuffer window", { buffer = buffer })
+        window.close()
+      end
     end,
   })
 
