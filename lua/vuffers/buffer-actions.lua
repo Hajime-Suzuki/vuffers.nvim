@@ -1,7 +1,7 @@
 local logger = require("utils.logger")
 local buffers = require("vuffers.buffers")
 local config = require("vuffers.config")
-local window = require("vuffers.window2")
+local window = require("vuffers.window")
 
 local M = {}
 

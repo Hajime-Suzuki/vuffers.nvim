@@ -1,4 +1,4 @@
-local window = require("vuffers.window2")
+local window = require("vuffers.window")
 local bufs = require("vuffers.buffers")
 local auto_commands = require("vuffers.auto-commands")
 local keymaps = require("vuffers.key-bindings")

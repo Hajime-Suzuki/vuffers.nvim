@@ -63,7 +63,6 @@ Older versions may work without a problem but not tested
 
 ### Dependencies
 
-- MunifTanjim/nui.nvim
 - nvim-tree/nvim-web-devicons
 
 <br>
@@ -75,7 +74,7 @@ default setup with lazy.nvim
 ```lua
 return {
 	"Hajime-Suzuki/vuffers.nvim",
-	dependencies = { "MunifTanjim/nui.nvim", "nvim-tree/nvim-web-devicons" },
+	dependencies = { "nvim-tree/nvim-web-devicons" },
 	config = function()
 		require("vuffers").setup({
 			debug = {

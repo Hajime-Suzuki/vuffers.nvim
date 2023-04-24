@@ -3,7 +3,7 @@ local constants = require("vuffers.constants")
 local events = require("vuffers.events")
 local ui = require("vuffers.ui")
 local buffers = require("vuffers.buffers")
-local window = require("vuffers.window2")
+local window = require("vuffers.window")
 local validations = require("vuffers.validations")
 
 local M = {}

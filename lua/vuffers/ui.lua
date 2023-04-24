@@ -1,5 +1,5 @@
 local list = require("utils.list")
-local window = require("vuffers.window2")
+local window = require("vuffers.window")
 local bufs = require("vuffers.buffers")
 local is_devicon_ok, devicon = pcall(require, "nvim-web-devicons")
 local logger = require("utils.logger")
