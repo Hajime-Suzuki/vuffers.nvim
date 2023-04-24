@@ -12,6 +12,16 @@ end
 
 --- @generic TItem
 --- @param arr TItem[]
+--- @param callback fun(item: TItem, index: number): nil
+--- @return nil
+function M.for_each(arr, callback)
+  for i, v in ipairs(arr) do
+    callback(v, i)
+  end
+end
+
+--- @generic TItem
+--- @param arr TItem[]
 --- @param predicate fun(item: TItem, index: number): boolean
 --- @return TItem[] | nil
 function M.filter(arr, predicate)

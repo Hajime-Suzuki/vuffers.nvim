@@ -1,6 +1,7 @@
 local config = require("vuffers.config")
 
 ---@class Logger
+---@field trace fun(message: string, event?: table): nil
 ---@field debug fun(message: string, event?: table): nil
 ---@field info fun(message: string, event?: table): nil
 ---@field warn fun(message: string, event?: table): nil
@@ -43,6 +44,16 @@ function M.setup()
       print("structlog is not installed")
     end
   end
+end
+
+---@param message string
+---@param event? table
+function M.trace(message, event)
+  if not logger then
+    return
+  end
+
+  logger:trace(message, event)
 end
 
 ---@param message string
