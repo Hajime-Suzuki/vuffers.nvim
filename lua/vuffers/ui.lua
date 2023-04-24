@@ -166,7 +166,6 @@ function M.update_modified_icon(buffer)
 end
 
 function M.render_buffers()
-  logger.debug("b!")
   local window_nr = window.get_bufnr()
 
   if not window.is_open() or not window_nr then
@@ -174,8 +173,6 @@ function M.render_buffers()
   end
 
   local buffers = bufs.get_all_buffers()
-
-  logger.debug("bs", buffers)
 
   local valid_buffers = list.filter(buffers, validations.is_valid_buf)
 

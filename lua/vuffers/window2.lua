@@ -1,3 +1,4 @@
+local config = require("vuffers.config")
 local logger = require("utils.logger")
 local constants = require("vuffers.constants")
 local M = {}
@@ -38,7 +39,8 @@ local function _create_window()
   vim.api.nvim_command("topleft vs")
   local win = vim.api.nvim_get_current_win()
 
-  vim.api.nvim_win_set_width(win, 30)
+  local width = config.get_view_config().window.width
+  vim.api.nvim_win_set_width(win, width)
 
   for option, value in pairs(window_options) do
     vim.api.nvim_win_set_option(win, option, value)
@@ -124,14 +126,6 @@ function M.open()
   vim.api.nvim_command("wincmd p")
 end
 
-function M.toggle()
-  if M.is_open() then
-    M.close()
-  else
-    M.open()
-  end
-end
-
 function M.close()
   local view = _get_view()
   if not view then
@@ -141,6 +135,40 @@ function M.close()
   -- NOTE: delete all buffers, then window is closed. Otherwise, window is not closed and throws an error.
   vim.api.nvim_buf_delete(view.bufnr, { force = true })
   _reset_view()
+end
+
+function M.toggle()
+  if M.is_open() then
+    M.close()
+  else
+    M.open()
+  end
+end
+
+---@param width string | number
+--width: string such as "+10" or "-10", or number
+function M.resize(width)
+  logger.trace("M.resize")
+  local view = _get_view()
+  if not M.is_open or not view then
+    logger.warn("resize only works when vuffers window is open")
+    return
+  end
+
+  local window_config = config.get_view_config().window
+
+  local new_width
+  if type(width) == "string" then
+    local w = vim.trim(width)
+    if w:match("^[+-]") then
+      new_width = window_config.width + tonumber(w)
+    end
+  else
+    new_width = width
+  end
+
+  config.set_window_width(new_width)
+  vim.api.nvim_win_set_width(view.winnr, new_width)
 end
 
 return M

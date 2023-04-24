@@ -1,5 +1,4 @@
-local window2 = require("vuffers.window2")
-local window = require("vuffers.window")
+local window = require("vuffers.window2")
 local bufs = require("vuffers.buffers")
 local auto_commands = require("vuffers.auto-commands")
 local keymaps = require("vuffers.key-bindings")
@@ -19,7 +18,7 @@ function M.setup(opts)
 end
 
 function M.toggle()
-  if window2.is_open() then
+  if window.is_open() then
     M.close()
   else
     M.open()
@@ -27,15 +26,15 @@ function M.toggle()
 end
 
 function M.open()
-  if window2.is_open() then
+  if window.is_open() then
     return
   end
 
   logger.trace("M.open: start")
 
-  window2.open()
+  window.open()
 
-  local bufnr = window2.get_bufnr()
+  local bufnr = window.get_bufnr()
   if bufnr == nil then
     error("open: buffer not found")
     return
@@ -49,20 +48,20 @@ function M.open()
 end
 
 function M.close()
-  if not window2.is_open() then
+  if not window.is_open() then
     return
   end
 
   logger.trace("M.close: start")
 
-  local bufnr = window2.get_bufnr()
+  local bufnr = window.get_bufnr()
   if bufnr == nil then
     error("open: buffer not found")
     return
   end
 
   keymaps.destroy(bufnr)
-  window2.close()
+  window.close()
 
   logger.trace("M.close: end")
 end
