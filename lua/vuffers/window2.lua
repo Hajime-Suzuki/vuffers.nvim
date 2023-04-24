@@ -58,7 +58,7 @@ local function _create_buffer()
 
   logger.debug("window buffer option is set initiated " .. bufnr)
 
-  vim.api.nvim_buf_set_name(bufnr, constants.VUFFERS_FILE_TYPE)
+  vim.api.nvim_buf_set_name(bufnr, constants.VUFFERS_FILE_TYPE .. "_" .. tostring(#view_by_tab))
 
   return bufnr
 end

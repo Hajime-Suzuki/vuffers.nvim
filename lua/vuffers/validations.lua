@@ -33,7 +33,7 @@ function M.is_valid_buf(buffer)
   end
 
   if filetype then
-    if filetype == constants.VUFFERS_FILE_TYPE then
+    if string.match(filetype, constants.VUFFERS_FILE_TYPE) then
       return false
     end
 
