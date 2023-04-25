@@ -1,20 +1,32 @@
 local logger = require("utils.logger")
 local actions = require("vuffers.buffer-actions")
+local config = require("vuffers.config")
 
 local M = {}
 
-function M.init(bufnr)
-  logger.debug("set key bindings")
-  vim.keymap.set("n", "<CR>", actions.open_buffer, { noremap = true, silent = true, nowait = true, buffer = bufnr })
-  vim.keymap.set("n", "d", actions.delete_buffer, { noremap = true, silent = true, nowait = true, buffer = bufnr })
-end
+---@param bufnr integer
+function M.setup(bufnr)
+  local keymaps = config.get_keymaps()
+  if not keymaps.use_default then
+    logger.debug("skipping setting key bindings")
+    return
+  end
 
-function M.destroy(bufnr)
-  logger.debug("delete key bindings")
-  pcall(function()
-    vim.keymap.del("n", "<CR>", { buffer = bufnr })
-    vim.keymap.del("n", "d", { buffer = bufnr })
-  end)
+  logger.debug("setting key bindings", keymaps)
+
+  vim.keymap.set(
+    "n",
+    keymaps.view.open,
+    actions.open_buffer,
+    { noremap = true, silent = true, nowait = true, buffer = bufnr }
+  )
+
+  vim.keymap.set(
+    "n",
+    keymaps.view.delete,
+    actions.delete_buffer,
+    { noremap = true, silent = true, nowait = true, buffer = bufnr }
+  )
 end
 
 return M

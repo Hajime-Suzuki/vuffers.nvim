@@ -4,8 +4,8 @@ local events = require("vuffers.events")
 local ui = require("vuffers.ui")
 local buffers = require("vuffers.buffers")
 local window = require("vuffers.window")
-local key_bindings = require("vuffers.key-bindings")
 local validations = require("vuffers.validations")
+local keymaps = require("vuffers.key-bindings")
 
 local M = {}
 
@@ -19,14 +19,15 @@ function M.create_auto_group()
         return
       end
 
-      if not window.is_hidden() then
+      if window.is_open() then
         local current_win = vim.api.nvim_get_current_win()
-        local vuffer_win = window.get_window_id()
+        local vuffer_win = window.get_window_number()
+        local bufnr = window.get_buffer_number()
 
-        if current_win and vuffer_win and current_win == vuffer_win then
+        if current_win and vuffer_win and bufnr and current_win == vuffer_win then
+          logger.debug("opening another buffer in vuffer window")
+          vim.api.nvim_win_set_buf(vuffer_win, bufnr)
           vim.api.nvim_command("wincmd l" .. "|" .. "buffer " .. buffer.buf)
-          window.close()
-          window.open()
         end
       end
 
@@ -78,29 +79,15 @@ function M.create_auto_group()
     end,
   })
 
-  vim.api.nvim_create_autocmd("TabEnter", {
+  vim.api.nvim_create_autocmd("WinClosed", {
     pattern = "*",
     group = constants.AUTO_CMD_GROUP,
     callback = function(buffer)
-      -- reset view when switching tabs
-      if window.is_hidden() then
-        window.force_init()
-        return
+      -- TODO: check if this is needed
+      if tonumber(buffer.match) == window.get_window_number() then
+        logger.debug("closing vuffer window", { buffer = buffer })
+        window.close()
       end
-
-      window.close()
-      window.force_init()
-      window.open()
-      key_bindings.init(window.get_bufnr())
-      buffers.reload_all_buffers()
-    end,
-  })
-
-  vim.api.nvim_create_autocmd("TabLeave", {
-    pattern = "*",
-    group = constants.AUTO_CMD_GROUP,
-    callback = function(buffer)
-      key_bindings.destroy(window.get_bufnr())
     end,
   })
 

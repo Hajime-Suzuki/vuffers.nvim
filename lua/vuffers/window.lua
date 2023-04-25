@@ -1,119 +1,155 @@
+local config = require("vuffers.config")
 local logger = require("utils.logger")
 local constants = require("vuffers.constants")
-local config = require("vuffers.config")
-
 local M = {}
-local split
 
-function M.init(opts)
-  local Split = require("nui.split")
+---@alias TabNumber number
 
-  local view_config = config.get_view_config()
-  split = Split({
-    relative = "editor",
-    position = "left",
-    size = view_config.window.width,
-    enter = view_config.window.focus_on_open,
-    win_options = {
-      relativenumber = false,
-      number = true,
-      list = false,
-      winfixwidth = true,
-      winfixheight = true,
-      foldenable = false,
-      spell = false,
-      signcolumn = "yes",
-      foldmethod = "manual",
-      foldcolumn = "0",
-      cursorcolumn = false,
-      cursorline = false,
-      colorcolumn = "0",
-      winhighlight = "Normal:Vuffers",
-    },
+---@class VufferWindow
+---@field winnr number
+---@field bufnr number
+---@field is_open boolean
 
-    buf_options = {
-      swapfile = false,
-      buftype = "nofile",
-      modifiable = true,
-      filetype = constants.VUFFERS_FILE_TYPE,
-      bufhidden = "hide",
-    },
-  })
+---@type table<TabNumber, VufferWindow>
+local view_by_tab = {}
 
-  split:mount()
+local buffer_options = {
+  swapfile = false,
+  buftype = "nofile",
+  modifiable = true,
+  filetype = constants.VUFFERS_FILE_TYPE,
+  bufhidden = "hide",
+}
 
-  split:hide()
+local window_options = {
+  relativenumber = false,
+  number = true,
+  list = false,
+  winfixwidth = true,
+  winfixheight = true,
+  foldenable = false,
+  spell = false,
+  -- signcolumn = "no",
+  cursorcolumn = false,
+  cursorline = false,
+  colorcolumn = "0",
+}
 
-  -- print("window is initiated" .. split.bufnr)
-  return split
-end
+local function _create_window()
+  vim.api.nvim_command("topleft vs")
+  local win = vim.api.nvim_get_current_win()
 
-function M.force_init()
-  split = nil
-  return M.init()
-end
+  local width = config.get_view_config().window.width
+  vim.api.nvim_win_set_width(win, width)
 
-local function get_split()
-  if not M.is_valid() then
-    return M.init()
+  for option, value in pairs(window_options) do
+    vim.api.nvim_win_set_option(win, option, value)
   end
 
-  if split then
-    return split
-  end
-
-  print("this should not happen...")
-  return M.init()
+  return win
 end
 
-function M.get_window_id()
-  return vim.fn.bufwinid(M.get_bufnr())
-end
+local function _create_buffer()
+  local bufnr = vim.api.nvim_create_buf(false, false)
 
-function M.is_valid()
-  if not (split and split.bufnr) then
-    -- TODO: check why split is nil right after init
-    return false
+  for option, value in pairs(buffer_options) do
+    vim.bo[bufnr][option] = value
   end
 
-  if not vim.api.nvim_buf_is_valid(split.bufnr) then
-    print("split has invalid buffer")
-    return false
-  end
+  logger.debug("window buffer option is set initiated " .. bufnr)
 
-  return true
+  return bufnr
 end
 
-local is_open = false
+---@param args {winnr: number, bufnr: number}
+local function _set_view(args)
+  local tab = vim.api.nvim_get_current_tabpage()
+  view_by_tab[tab] = { winnr = args.winnr, bufnr = args.bufnr }
+end
+
+local function _reset_view()
+  local tab = vim.api.nvim_get_current_tabpage()
+  view_by_tab[tab] = nil
+end
+
+---@return VufferWindow | nil
+local function _get_view()
+  local tab = vim.api.nvim_get_current_tabpage()
+
+  if view_by_tab[tab] then
+    return view_by_tab[tab]
+  end
+
+  return nil
+end
+
+function M.get_buffer_number()
+  local view = _get_view()
+  if view then
+    return view.bufnr
+  end
+
+  return nil
+end
+
+function M.get_window_number()
+  local view = _get_view()
+  if view then
+    return view.winnr
+  end
+
+  return nil
+end
+
+function M.is_open()
+  local window = _get_view()
+  return window ~= nil
+end
 
 function M.open()
-  local s = get_split()
-  s:show()
-  is_open = true
+  local view = _get_view()
+
+  if view then
+    logger.debug("view is already open")
+    return
+  end
+
+  local winnr = _create_window()
+  local bufnr = _create_buffer()
+  _set_view({ winnr = winnr, bufnr = bufnr })
+
+  logger.debug("window and buffer is initiated ", { winnr = winnr, bufnr = bufnr })
+
+  vim.api.nvim_win_set_buf(winnr, bufnr)
+  vim.api.nvim_command("wincmd p")
 end
 
 function M.close()
-  local s = get_split()
+  local view = _get_view()
+  if not view then
+    return
+  end
 
-  s:hide()
-  is_open = false
+  -- NOTE: delete all buffers, then window is closed. Otherwise, window is not closed and throws an error.
+  vim.api.nvim_buf_delete(view.bufnr, { force = true })
+  _reset_view()
 end
 
-function M.is_hidden()
-  return not is_open
-end
-
----@return number
-function M.get_bufnr()
-  local s = get_split()
-
-  return s.bufnr
+function M.toggle()
+  if M.is_open() then
+    M.close()
+  else
+    M.open()
+  end
 end
 
 ---@param width string | number
 --width: string such as "+10" or "-10", or number
 function M.resize(width)
-  if not is_open then
+  logger.trace("M.resize")
+  local view = _get_view()
+  if not M.is_open or not view then
+    logger.warn("resize only works when vuffers window is open")
     return
   end
 
@@ -129,9 +165,8 @@ function M.resize(width)
     new_width = width
   end
 
-  local s = get_split()
-  s:update_layout({ size = { width = new_width } })
   config.set_window_width(new_width)
+  vim.api.nvim_win_set_width(view.winnr, new_width)
 end
 
 return M

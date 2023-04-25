@@ -125,11 +125,12 @@ local function _delete_modified_icon(window_bufnr, bufnr)
 end
 
 function M.highlight_active_buffer()
-  if window.is_hidden() then
+  local window_nr = window.get_buffer_number()
+
+  if not window.is_open() or not window_nr then
     return
   end
 
-  local window_nr = window.get_bufnr()
   local active_line = bufs.get_active_buffer_index()
   local active_buffer = bufs.get_active_buffer()
 
@@ -142,16 +143,13 @@ end
 
 ---@param buffer NativeBuffer
 function M.update_modified_icon(buffer)
-  if window.is_hidden() then
-    return
-  end
-  if not validations.is_valid_buf(buffer) then
+  local window_nr = window.get_buffer_number()
+
+  if not window.is_open() or not window_nr then
     return
   end
 
   local new_modified = vim.bo[buffer.buf].modified
-
-  local window_nr = window.get_bufnr()
   local target, index = bufs.get_buffer_by_bufnr(buffer.buf)
 
   if target == nil then
@@ -168,25 +166,26 @@ function M.update_modified_icon(buffer)
 end
 
 function M.render_buffers()
-  if window.is_hidden() then
+  local window_nr = window.get_buffer_number()
+
+  if not window.is_open() or not window_nr then
     return
   end
 
   local buffers = bufs.get_all_buffers()
+
   local valid_buffers = list.filter(buffers, validations.is_valid_buf)
 
   if not valid_buffers then
     return
   end
 
-  local window_bufnr = window.get_bufnr()
-
   local lines = list.map(valid_buffers, function(buffer)
     return _generate_line(buffer)
   end)
 
   _render_lines(
-    window_bufnr,
+    window_nr,
     list.map(lines, function(line)
       return line.text
     end)
@@ -195,13 +194,13 @@ function M.render_buffers()
   for i, line in ipairs(lines) do
     local buf_nr = valid_buffers[i].buf
     if line.modified then
-      _set_modified_icon(window_bufnr, i - 1, buf_nr)
+      _set_modified_icon(window_nr, i - 1, buf_nr)
     elseif _ext[buf_nr] then
-      _delete_modified_icon(window_bufnr, buf_nr)
+      _delete_modified_icon(window_nr, buf_nr)
     end
 
     if line.icon ~= "" then
-      _highlight_file_icon(window_bufnr, i - 1, valid_buffers[i])
+      _highlight_file_icon(window_nr, i - 1, valid_buffers[i])
     end
   end
 

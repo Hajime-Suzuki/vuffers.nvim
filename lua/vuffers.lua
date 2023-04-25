@@ -1,10 +1,10 @@
 local window = require("vuffers.window")
 local bufs = require("vuffers.buffers")
 local auto_commands = require("vuffers.auto-commands")
-local key_bindings = require("vuffers.key-bindings")
+local keymaps = require("vuffers.key-bindings")
 local logger = require("utils.logger")
 local config = require("vuffers.config")
-local ui_actions = require("vuffers.buffer-actions")
+local buffer_actions = require("vuffers.buffer-actions")
 local events = require("vuffers.events")
 local highlights = require("vuffers.highlights")
 
@@ -18,36 +18,50 @@ function M.setup(opts)
 end
 
 function M.toggle()
-  if window.is_hidden() then
-    M.open()
-  else
+  if window.is_open() then
     M.close()
+  else
+    M.open()
   end
 end
 
 function M.open()
-  if not window.is_hidden() then
+  if window.is_open() then
     return
   end
 
-  logger.debug("M.open: start")
+  logger.trace("M.open: start")
 
   window.open()
-  bufs.reload_all_buffers()
-  key_bindings.init(window.get_bufnr())
 
-  logger.debug("M.open: end")
+  local bufnr = window.get_buffer_number()
+  if bufnr == nil then
+    error("open: buffer not found")
+    return
+  end
+
+  keymaps.setup(bufnr)
+
+  bufs.reload_all_buffers()
+
+  logger.trace("M.open: end")
 end
 
 function M.close()
-  if window.is_hidden() then
+  if not window.is_open() then
     return
   end
 
-  logger.debug("M.close: start")
+  logger.trace("M.close: start")
+
+  local bufnr = window.get_buffer_number()
+  if bufnr == nil then
+    error("open: buffer not found")
+    return
+  end
 
   window.close()
-  logger.debug("M.close: end")
+  logger.trace("M.close: end")
 end
 
 function M.debug_buffers()
@@ -56,12 +70,12 @@ end
 
 ---@param line_number? integer
 function M.go_to_buffer_by_line(line_number)
-  return ui_actions.go_to_buffer_by_index(line_number)
+  return buffer_actions.go_to_buffer_by_index(line_number)
 end
 
 ---@param args {direction: 'next' | 'prev', count?: integer}
 function M.go_to_buffer_by_count(args)
-  return ui_actions.next_or_prev_buffer(args)
+  return buffer_actions.next_or_prev_buffer(args)
 end
 
 ---@param sort {type: SortType, direction: SortDirection}

@@ -21,7 +21,7 @@ local M = {}
 
 ---@class Keymaps
 ---@field use_default boolean
----@field view { open: string, remove: string  }
+---@field view { open: string, delete: string  }
 
 ---@class Config
 ---@field debug DebugConfig
@@ -46,6 +46,10 @@ end
 
 M.get_sort = function()
   return config.sort
+end
+
+M.get_keymaps = function()
+  return config.keymaps
 end
 
 M.get_view_config = function()
