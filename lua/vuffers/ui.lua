@@ -98,8 +98,9 @@ local _ext = {}
 ---@param window_bufnr integer
 ---@param line_number integer
 ---@param bufnr integer
-local function _set_modified_icon(window_bufnr, line_number, bufnr)
-  if _ext[bufnr] then
+---@param force? boolean
+local function _set_modified_icon(window_bufnr, line_number, bufnr, force)
+  if _ext[bufnr] and not force then
     return
   end
 
@@ -194,7 +195,7 @@ function M.render_buffers()
   for i, line in ipairs(lines) do
     local buf_nr = valid_buffers[i].buf
     if line.modified then
-      _set_modified_icon(window_nr, i - 1, buf_nr)
+      _set_modified_icon(window_nr, i - 1, buf_nr, true)
     elseif _ext[buf_nr] then
       _delete_modified_icon(window_nr, buf_nr)
     end

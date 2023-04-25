@@ -3,6 +3,7 @@ local hl = require("vuffers.constants").HIGHLIGHTS
 local M = {}
 
 local highlights = {
+  [hl.WINDOW_BG] = "TabLineFill",
   [hl.ACTIVE] = "Identifier",
   [hl.MODIFIED] = "Identifier",
 }

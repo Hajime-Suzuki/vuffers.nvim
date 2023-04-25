@@ -33,6 +33,7 @@ local window_options = {
   cursorcolumn = false,
   cursorline = false,
   colorcolumn = "0",
+  winhighlight = "Normal:" .. constants.HIGHLIGHTS.WINDOW_BG,
 }
 
 local function _create_window()
