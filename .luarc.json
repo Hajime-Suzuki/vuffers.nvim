@@ -1,8 +1,0 @@
-{
-  "workspace.library": [
-    "/Users/hajime/.local/share/nvim/lazy/neodev.nvim/types/stable",
-    "/Users/hajime/nvim-macos/share/nvim/runtime/lua",
-    "/Users/hajime/Main/programming/nvim-plugins/vuffers.nvim/lua",
-    "${3rd}/luv/library"
-  ]
-}
