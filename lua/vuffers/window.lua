@@ -83,7 +83,7 @@ local function _get_view()
   return nil
 end
 
-function M.get_bufnr()
+function M.get_buffer_number()
   local view = _get_view()
   if view then
     return view.bufnr
@@ -92,7 +92,7 @@ function M.get_bufnr()
   return nil
 end
 
-function M.get_window_nr()
+function M.get_window_number()
   local view = _get_view()
   if view then
     return view.winnr

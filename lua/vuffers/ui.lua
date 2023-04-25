@@ -125,7 +125,7 @@ local function _delete_modified_icon(window_bufnr, bufnr)
 end
 
 function M.highlight_active_buffer()
-  local window_nr = window.get_bufnr()
+  local window_nr = window.get_buffer_number()
 
   if not window.is_open() or not window_nr then
     return
@@ -143,7 +143,7 @@ end
 
 ---@param buffer NativeBuffer
 function M.update_modified_icon(buffer)
-  local window_nr = window.get_bufnr()
+  local window_nr = window.get_buffer_number()
 
   if not window.is_open() or not window_nr then
     return
@@ -166,7 +166,7 @@ function M.update_modified_icon(buffer)
 end
 
 function M.render_buffers()
-  local window_nr = window.get_bufnr()
+  local window_nr = window.get_buffer_number()
 
   if not window.is_open() or not window_nr then
     return

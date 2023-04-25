@@ -34,7 +34,7 @@ function M.open()
 
   window.open()
 
-  local bufnr = window.get_bufnr()
+  local bufnr = window.get_buffer_number()
   if bufnr == nil then
     error("open: buffer not found")
     return
@@ -54,7 +54,7 @@ function M.close()
 
   logger.trace("M.close: start")
 
-  local bufnr = window.get_bufnr()
+  local bufnr = window.get_buffer_number()
   if bufnr == nil then
     error("open: buffer not found")
     return

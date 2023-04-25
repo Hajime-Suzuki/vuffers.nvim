@@ -63,7 +63,7 @@ function M.go_to_buffer_by_index(_index)
     return
   end
 
-  local window_nr = window.get_window_nr()
+  local window_nr = window.get_window_number()
   if window.is_open() and window_nr then
     vim.api.nvim_win_set_cursor(window_nr, { index, 0 })
   end
@@ -96,7 +96,7 @@ function M.next_or_prev_buffer(args)
     return
   end
 
-  local window_nr = window.get_window_nr()
+  local window_nr = window.get_window_number()
   if window.is_open() and window_nr then
     vim.api.nvim_win_set_cursor(window_nr, { target_index, 0 })
   end

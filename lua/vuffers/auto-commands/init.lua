@@ -21,8 +21,8 @@ function M.create_auto_group()
 
       if window.is_open() then
         local current_win = vim.api.nvim_get_current_win()
-        local vuffer_win = window.get_window_nr()
-        local bufnr = window.get_bufnr()
+        local vuffer_win = window.get_window_number()
+        local bufnr = window.get_buffer_number()
 
         if current_win and vuffer_win and bufnr and current_win == vuffer_win then
           logger.debug("opening another buffer in vuffer window")
@@ -84,7 +84,7 @@ function M.create_auto_group()
     group = constants.AUTO_CMD_GROUP,
     callback = function(buffer)
       -- TODO: check if this is needed
-      if tonumber(buffer.match) == window.get_window_nr() then
+      if tonumber(buffer.match) == window.get_window_number() then
         logger.debug("closing vuffer window", { buffer = buffer })
         window.close()
       end
