@@ -22,11 +22,12 @@ function M.create_auto_group()
       if window.is_open() then
         local current_win = vim.api.nvim_get_current_win()
         local vuffer_win = window.get_window_nr()
+        local bufnr = window.get_bufnr()
 
-        if current_win and vuffer_win and current_win == vuffer_win then
+        if current_win and vuffer_win and bufnr and current_win == vuffer_win then
+          logger.debug("opening another buffer in vuffer window")
+          vim.api.nvim_win_set_buf(vuffer_win, bufnr)
           vim.api.nvim_command("wincmd l" .. "|" .. "buffer " .. buffer.buf)
-          window.close()
-          window.open()
         end
       end
 
