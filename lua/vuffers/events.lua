@@ -1,9 +1,6 @@
 local M = {}
 
----@class events
----@field BufferListChanged string
----@field ActiveFileChanged string
----@field SortChanged string
+---@enum Event
 M.names = {
   BufferListChanged = "BufferListChanged",
   ActiveFileChanged = "ActiveFileChanged",
