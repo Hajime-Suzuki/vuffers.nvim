@@ -132,9 +132,9 @@ return {
 
 ## ⚡ Highlight Groups
 
-- `VuffersBackground`
+- `VuffersWindowBackground`
 
-- `VuffersSelectedBuffer`
+- `VuffersActiveBuffer`
 
 - `VuffersModifiedIcon`
 

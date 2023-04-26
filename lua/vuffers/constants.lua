@@ -25,9 +25,9 @@ M.LOG_LEVEL = {
 }
 
 M.HIGHLIGHTS = {
-  WINDOW_BG = "VuffersBackground",
-  ACTIVE = "VuffersSelectedBuffer",
-  MODIFIED = "VuffersModifiedIcon",
+  WINDOW_BG = "VuffersWindowBackground",
+  ACTIVE = "VuffersActiveBuffer",
+  MODIFIED_ICON = "VuffersModifiedIcon",
 }
 
 return M

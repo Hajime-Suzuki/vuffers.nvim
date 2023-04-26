@@ -106,7 +106,7 @@ local function _set_modified_icon(window_bufnr, line_number, bufnr, force)
 
   local modified_icon = config.get_view_config().modified_icon
   local ext_id = vim.api.nvim_buf_set_extmark(window_bufnr, icon_ns, line_number, -1, {
-    virt_text = { { modified_icon, constants.HIGHLIGHTS.MODIFIED } },
+    virt_text = { { modified_icon, constants.HIGHLIGHTS.MODIFIED_ICON } },
     virt_text_pos = "eol",
   })
 
