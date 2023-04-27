@@ -5,7 +5,7 @@ local constants = require("vuffers.constants")
 
 local M = {}
 
---- @param buffers Buffer[]
+--- @param buffers { buf:integer, name: string, path: string }[]
 --- @return Buffer[]
 function M.get_file_names(buffers)
   local output = {}
@@ -46,6 +46,7 @@ function M.get_file_names(buffers)
           name = filename,
           buf = item.buf,
           path = item.path,
+          ext = item.ext,
         }
 
         table.insert(output, filename_with_index)
@@ -63,6 +64,7 @@ function M.get_file_names(buffers)
             name = filename,
             buf = item.buf,
             path = item.path,
+            ext = item.ext,
           })
         else
           table.insert(next_items, {
@@ -71,6 +73,7 @@ function M.get_file_names(buffers)
             index = item.index,
             buf = item.buf,
             path = item.path,
+            ext = item.ext,
           })
         end
       end
@@ -86,12 +89,44 @@ function M.get_file_names(buffers)
   loop(input)
 
   return list.map(output, function(item)
+    local extension = string.match(item.name, "%.(.+)$")
+
+    local name_without_extension = extension and string.gsub(item.name, "." .. extension .. "$", "")
+    if not name_without_extension or name_without_extension == "" then
+      name_without_extension = item.name
+    end
+
     return {
       buf = item.buf,
-      name = item.name,
+      name = name_without_extension,
       path = item.path,
+      ext = extension,
     }
   end)
+end
+
+--- @param buffers Buffer[]
+--- @param sort SortOrder
+function M.sort_buffers(buffers, sort)
+  if sort.type == constants.SORT_TYPE.NONE then
+    table.sort(buffers, function(a, b)
+      return a.buf < b.buf
+    end)
+  elseif sort.type == constants.SORT_TYPE.FILENAME then
+    table.sort(buffers, function(a, b)
+      local n1 = a.name:match(".+/(.+)$") or a.name
+      local n2 = b.name:match(".+/(.+)$") or b.name
+      if sort.direction == constants.SORT_DIRECTION.ASC then
+        return n1 < n2
+      else
+        return n1 > n2
+      end
+    end)
+  else
+    logger.warn("sort_buffers: unknown sort type", sort)
+  end
+
+  logger.info("sort_buffers: buffers are sorted", sort)
 end
 
 ---@param buffer NativeBuffer | Buffer
