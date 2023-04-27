@@ -1,3 +1,4 @@
+local eb = require("vuffers.event-bus")
 local logger = require("utils.logger")
 local utils = require("vuffers.buffer-utils")
 local list = require("utils.list")
@@ -30,7 +31,7 @@ local active_bufnr = nil
 ---@param buffer {path: string, buf: integer}
 function M.set_active_bufnr(buffer)
   active_bufnr = buffer.buf
-  events.publish(events.names.ActiveFileChanged)
+  eb.publish(events.names.ActiveFileChanged)
 end
 
 local function _get_active_bufnr()
@@ -183,7 +184,7 @@ function M.reload_all_buffers()
   _sort_buffers()
 
   events.publish(events.names.BufferListChanged)
-  events.publish(events.names.ActiveFileChanged)
+  eb.publish(events.names.ActiveFileChanged)
 end
 
 function M.get_all_buffers()

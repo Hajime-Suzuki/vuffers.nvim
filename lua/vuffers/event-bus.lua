@@ -10,11 +10,11 @@ local _subscribers = {}
 ---@param handler function
 ---@param opts {label: string}
 function M.subscribe(event, handler, opts)
-  if _subscribers[event] then
+  if not _subscribers[event] then
     _subscribers[event] = {}
   end
 
-  table.insert(_subscribers[event], handler)
+  table.insert(_subscribers[event], { handler = handler, label = opts.label })
 
   local label = opts.label
   logger.debug("subscribed to event: " .. event .. " (" .. label .. ")")
@@ -26,15 +26,20 @@ function M.publish(event, payload)
   logger.debug("receiving event: " .. event, { event = event, payload = payload })
 
   local handlers = _subscribers[event]
-  if not #handlers then
+  if not handlers or not #handlers then
     logger.debug("no handler found", { event = event })
     return
   end
 
   list.for_each(handlers, function(handler)
+    logger.debug("handling event: " .. event, { target = handler.label, payload = payload })
     handler.handler(payload)
-    logger.debug("publish event: " .. event, { target = handler.label, payload = payload })
   end)
+end
+
+--- only for testing
+function M._delete_all_subscriptions()
+  _subscribers = {}
 end
 
 return M

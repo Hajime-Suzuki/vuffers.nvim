@@ -7,6 +7,7 @@ local config = require("vuffers.config")
 local buffer_actions = require("vuffers.buffer-actions")
 local events = require("vuffers.events")
 local highlights = require("vuffers.highlights")
+local subscriptions = require("vuffers.subscriptions")
 
 local M = {}
 
@@ -14,6 +15,7 @@ function M.setup(opts)
   config.setup(opts)
   logger.setup()
   highlights.setup()
+  subscriptions.setup()
   auto_commands.create_auto_group()
 end
 
