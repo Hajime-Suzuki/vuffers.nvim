@@ -1,10 +1,9 @@
+local event_bus = require("vuffers.event-bus")
 local logger = require("utils.logger")
 local utils = require("vuffers.buffer-utils")
 local list = require("utils.list")
 local config = require("vuffers.config")
 local constants = require("vuffers.constants")
-local events = require("vuffers.events")
-local validations = require("vuffers.validations")
 
 --------------types >>----------------
 
@@ -24,21 +23,46 @@ local validations = require("vuffers.validations")
 --------------<<types ----------------
 
 local M = {}
----@type number | nil
-local active_bufnr = nil
-
----@param buffer {path: string, buf: integer}
-function M.set_active_bufnr(buffer)
-  active_bufnr = buffer.buf
-  events.publish(events.names.ActiveFileChanged)
-end
-
-local function _get_active_bufnr()
-  return active_bufnr
-end
 
 ---@type Buffer[]
 local _buf_list = {}
+
+---@type number | nil
+local _active_bufnr = nil
+
+local function _get_all_buffers()
+  return _buf_list
+end
+
+local function _get_active_bufnr()
+  return _active_bufnr
+end
+
+---@return ActiveBufferChangedPayload
+local function _get_active_buf_changed_event_payload()
+  local _, index = M.get_active_buffer()
+
+  ---@type ActiveBufferChangedPayload
+  local payload = { index = index or 1 }
+  return payload
+end
+
+---@return BufferListChangedPayload
+local function _get_buffer_list_changed_event_payload()
+  local _, index = M.get_active_buffer()
+
+  ---@type BufferListChangedPayload
+  local payload = { buffers = _buf_list, active_buffer_index = index or 1 }
+  return payload
+end
+
+---@param buffer {path: string, buf: integer}
+function M.set_active_bufnr(buffer)
+  _active_bufnr = buffer.buf
+
+  local event_payload = _get_active_buf_changed_event_payload()
+  event_bus.publish_active_buffer_changed(event_payload)
+end
 
 local function reset_buffers()
   _buf_list = {}
@@ -106,7 +130,8 @@ function M.add_buffer(buffer)
 
   logger.debug("add_buffer: buffer is added", { file = buffer.file })
 
-  events.publish(events.names.BufferListChanged)
+  local payload = _get_buffer_list_changed_event_payload()
+  event_bus.publish_buffer_list_changed(payload)
 end
 
 ---@param args {bufnr?: number, index?: integer}
@@ -134,17 +159,19 @@ function M.remove_buffer(args)
 
     logger.debug("remove_buffer: buffer is removed", args)
 
-    events.publish(events.names.BufferListChanged)
+    local payload = _get_buffer_list_changed_event_payload()
+    event_bus.publish_buffer_list_changed(payload)
     return
   end
   --
   ---@type Buffer | nil
   local next_active_buffer = _buf_list[target_index + 1] or _buf_list[target_index - 1]
 
+  -- TODO: remove
   if next_active_buffer then
     logger.warn("remove_buffer: found new active buffer " .. next_active_buffer.name, arg)
 
-    M.set_active_bufnr(next_active_buffer)
+    -- M.set_active_bufnr(next_active_buffer)
   else
     logger.warn("remove_buffer: can not delete the last buffer", args)
     return
@@ -153,12 +180,15 @@ function M.remove_buffer(args)
   table.remove(_buf_list, target_index)
   logger.debug("remove_buffer: buffer is removed", args)
 
-  events.publish(events.names.BufferListChanged)
+  local payload = _get_buffer_list_changed_event_payload()
+  event_bus.publish_buffer_list_changed(payload)
 end
 
 function M.change_sort()
   _sort_buffers()
-  events.publish(events.names.BufferListChanged)
+
+  local payload = _get_buffer_list_changed_event_payload()
+  event_bus.publish_buffer_list_changed(payload)
 end
 
 function M.reload_all_buffers()
@@ -171,7 +201,7 @@ function M.reload_all_buffers()
     return { buf = buf, name = name, index = i, path = name, filetype = filetype }
   end)
   ---@diagnostic disable-next-line: cast-local-type
-  bufs = list.filter(bufs, validations.is_valid_buf)
+  bufs = list.filter(bufs, utils.is_valid_buf)
 
   if bufs == nil then
     logger.warn("reload_all_buffers: no buffers found")
@@ -182,25 +212,21 @@ function M.reload_all_buffers()
   _buf_list = _get_formatted_buffers()
   _sort_buffers()
 
-  events.publish(events.names.BufferListChanged)
-  events.publish(events.names.ActiveFileChanged)
-end
-
-function M.get_all_buffers()
-  return _buf_list
+  local payload = _get_buffer_list_changed_event_payload()
+  event_bus.publish_buffer_list_changed(payload)
 end
 
 ---@param index integer
 function M.get_buffer_by_index(index)
-  local buffers = M.get_all_buffers()
+  local buffers = _get_all_buffers()
 
   return buffers[index]
 end
 
 ---@param bufnr integer
----@return Buffer | nil, integer | nil -- buffer, index
+---@return Buffer | nil buffer, integer | nil index
 function M.get_buffer_by_bufnr(bufnr)
-  local buffers = M.get_all_buffers()
+  local buffers = _get_all_buffers()
 
   local index = list.find_index(buffers, function(buf)
     return buf.buf == bufnr
@@ -217,24 +243,14 @@ function M.get_active_buffer()
   local bufnr = _get_active_bufnr()
 
   if not bufnr then
-    return nil
+    return nil, nil
   end
 
-  local buffer = M.get_buffer_by_bufnr(bufnr)
-  return buffer
-end
-
-function M.get_active_buffer_index()
-  local buffers = M.get_all_buffers()
-  local bufnr = _get_active_bufnr()
-
-  return list.find_index(buffers, function(buf)
-    return buf.buf == bufnr
-  end)
+  return M.get_buffer_by_bufnr(bufnr)
 end
 
 function M.debug_buffers()
-  print("active", active_bufnr)
+  print("active", _active_bufnr)
   print("buffers", vim.inspect(_buf_list))
 end
 

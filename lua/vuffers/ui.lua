@@ -5,7 +5,6 @@ local is_devicon_ok, devicon = pcall(require, "nvim-web-devicons")
 local logger = require("utils.logger")
 local constants = require("vuffers.constants")
 local config = require("vuffers.config")
-local validations = require("vuffers.validations")
 
 local M = {}
 
@@ -125,21 +124,15 @@ local function _delete_modified_icon(window_bufnr, bufnr)
   _ext[bufnr] = nil
 end
 
-function M.highlight_active_buffer()
+---@param payload ActiveBufferChangedPayload
+function M.highlight_active_buffer(payload)
   local window_nr = window.get_buffer_number()
 
   if not window.is_open() or not window_nr then
     return
   end
 
-  local active_line = bufs.get_active_buffer_index()
-  local active_buffer = bufs.get_active_buffer()
-
-  if active_line == nil or active_buffer == nil or not validations.is_valid_buf(active_buffer) then
-    return
-  end
-
-  _highlight_active_buffer(window_nr, active_line - 1)
+  _highlight_active_buffer(window_nr, payload.index - 1)
 end
 
 ---@param buffer NativeBuffer
@@ -166,22 +159,21 @@ function M.update_modified_icon(buffer)
   end
 end
 
-function M.render_buffers()
+---@param payload BufferListChangedPayload
+function M.render_buffers(payload)
   local window_nr = window.get_buffer_number()
 
   if not window.is_open() or not window_nr then
     return
   end
 
-  local buffers = bufs.get_all_buffers()
+  local buffers = payload.buffers
 
-  local valid_buffers = list.filter(buffers, validations.is_valid_buf)
-
-  if not valid_buffers then
+  if not #buffers then
     return
   end
 
-  local lines = list.map(valid_buffers, function(buffer)
+  local lines = list.map(buffers, function(buffer)
     return _generate_line(buffer)
   end)
 
@@ -193,7 +185,7 @@ function M.render_buffers()
   )
 
   for i, line in ipairs(lines) do
-    local buf_nr = valid_buffers[i].buf
+    local buf_nr = buffers[i].buf
     if line.modified then
       _set_modified_icon(window_nr, i - 1, buf_nr, true)
     elseif _ext[buf_nr] then
@@ -201,11 +193,13 @@ function M.render_buffers()
     end
 
     if line.icon ~= "" then
-      _highlight_file_icon(window_nr, i - 1, valid_buffers[i])
+      _highlight_file_icon(window_nr, i - 1, buffers[i])
     end
   end
 
   logger.debug("Rendered buffers")
+
+  M.highlight_active_buffer({ index = payload.active_buffer_index })
 end
 
 return M

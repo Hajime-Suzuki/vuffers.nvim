@@ -37,7 +37,7 @@ function M.next_or_prev_buffer(args)
   count = count == 0 and 1 or count
   count = args.direction == "next" and count or -count
 
-  local active_index = buffers.get_active_buffer_index()
+  local _, active_index = buffers.get_active_buffer()
   if not active_index then
     logger.warn("ui:go_to_buffer_by_count: active buffer not found")
     return

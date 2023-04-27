@@ -1,11 +1,9 @@
 local logger = require("utils.logger")
 local constants = require("vuffers.constants")
-local events = require("vuffers.events")
 local ui = require("vuffers.ui")
 local buffers = require("vuffers.buffers")
 local window = require("vuffers.window")
-local validations = require("vuffers.validations")
-local keymaps = require("vuffers.key-bindings")
+local buf_utils = require("vuffers.buffer-utils")
 
 local M = {}
 
@@ -15,10 +13,11 @@ function M.create_auto_group()
     pattern = "*",
     group = constants.AUTO_CMD_GROUP,
     callback = function(buffer)
-      if not validations.is_valid_buf(buffer) then
+      if not buf_utils.is_valid_buf(buffer) then
         return
       end
 
+      -- when buffer is open on the vuffer window, open it in another window
       if window.is_open() then
         local current_win = vim.api.nvim_get_current_win()
         local vuffer_win = window.get_window_number()
@@ -39,7 +38,7 @@ function M.create_auto_group()
     pattern = "*",
     group = constants.AUTO_CMD_GROUP,
     callback = function(buffer)
-      if not validations.is_valid_buf(buffer) then
+      if not buf_utils.is_valid_buf(buffer) then
         return
       end
 
@@ -59,7 +58,7 @@ function M.create_auto_group()
     pattern = "*",
     group = constants.AUTO_CMD_GROUP,
     callback = function(buffer)
-      if not validations.is_valid_buf(buffer) then
+      if not buf_utils.is_valid_buf(buffer) then
         return
       end
 
@@ -71,7 +70,7 @@ function M.create_auto_group()
     pattern = "*",
     group = constants.AUTO_CMD_GROUP,
     callback = function(buffer)
-      if not validations.is_valid_buf(buffer) then
+      if not buf_utils.is_valid_buf(buffer) then
         return
       end
 
@@ -90,40 +89,6 @@ function M.create_auto_group()
       end
     end,
   })
-
-  vim.api.nvim_create_autocmd("User", {
-    pattern = events.names.BufferListChanged,
-    group = constants.AUTO_CMD_GROUP,
-    callback = function()
-      logger.debug(events.names.BufferListChanged)
-      ui.render_buffers()
-      ui.highlight_active_buffer()
-    end,
-  })
-
-  vim.api.nvim_create_autocmd("User", {
-    pattern = events.names.ActiveFileChanged,
-    group = constants.AUTO_CMD_GROUP,
-    callback = function()
-      logger.debug(events.names.ActiveFileChanged)
-      ui.highlight_active_buffer()
-    end,
-  })
-
-  vim.api.nvim_create_autocmd("User", {
-    pattern = events.names.SortChanged,
-    group = constants.AUTO_CMD_GROUP,
-    callback = function()
-      logger.debug(events.names.SortChanged)
-      buffers.change_sort()
-    end,
-  })
-end
-
-function M.remove_auto_group()
-  pcall(function()
-    vim.api.nvim_del_augroup_by_name(constants.AUTO_CMD_GROUP)
-  end)
 end
 
 return M

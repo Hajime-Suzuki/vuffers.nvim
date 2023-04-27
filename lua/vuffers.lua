@@ -1,20 +1,22 @@
 local window = require("vuffers.window")
 local bufs = require("vuffers.buffers")
 local auto_commands = require("vuffers.auto-commands")
-local keymaps = require("vuffers.key-bindings")
 local logger = require("utils.logger")
 local config = require("vuffers.config")
 local buffer_actions = require("vuffers.buffer-actions")
-local events = require("vuffers.events")
 local highlights = require("vuffers.highlights")
+local subscriptions = require("vuffers.subscriptions")
 
 local M = {}
 
 function M.setup(opts)
+  logger.debug("setup start")
   config.setup(opts)
   logger.setup()
   highlights.setup()
+  subscriptions.setup()
   auto_commands.create_auto_group()
+  logger.debug("setup end")
 end
 
 function M.toggle()
@@ -33,16 +35,6 @@ function M.open()
   logger.trace("M.open: start")
 
   window.open()
-
-  local bufnr = window.get_buffer_number()
-  if bufnr == nil then
-    error("open: buffer not found")
-    return
-  end
-
-  keymaps.setup(bufnr)
-
-  bufs.reload_all_buffers()
 
   logger.trace("M.open: end")
 end
@@ -82,7 +74,7 @@ end
 function M.sort(sort)
   config.set_sort(sort)
   logger.info("set_sort: sort order has been updated", sort)
-  events.publish(events.names.SortChanged)
+  bufs.change_sort()
 end
 
 ---@param level LogLevel
