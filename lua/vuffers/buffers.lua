@@ -34,10 +34,19 @@ local _active_bufnr = nil
 
 ---@return ActiveBufferChangedPayload
 local function _get_active_buf_changed_event_payload()
-  local buffer, index = M.get_active_buffer()
+  local index = M.get_active_buffer_index() or 1
 
   ---@type ActiveBufferChangedPayload
-  local payload = { buffer = buffer, index = index or 1 }
+  local payload = { index = index }
+  return payload
+end
+
+---@return BufferListChangedPayload
+local function _get_buffer_list_changed_event_payload()
+  local index = M.get_active_buffer_index() or 1
+
+  ---@type BufferListChangedPayload
+  local payload = { buffers = _buf_list, active_buffer_index = index }
   return payload
 end
 
@@ -119,7 +128,8 @@ function M.add_buffer(buffer)
 
   logger.debug("add_buffer: buffer is added", { file = buffer.file })
 
-  events.publish(events.names.BufferListChanged)
+  local payload = _get_buffer_list_changed_event_payload()
+  event_bus.publish_buffer_list_changed(payload)
 end
 
 ---@param args {bufnr?: number, index?: integer}
@@ -147,17 +157,19 @@ function M.remove_buffer(args)
 
     logger.debug("remove_buffer: buffer is removed", args)
 
-    events.publish(events.names.BufferListChanged)
+    local payload = _get_buffer_list_changed_event_payload()
+    event_bus.publish_buffer_list_changed(payload)
     return
   end
   --
   ---@type Buffer | nil
   local next_active_buffer = _buf_list[target_index + 1] or _buf_list[target_index - 1]
 
+  -- TODO: remove
   if next_active_buffer then
     logger.warn("remove_buffer: found new active buffer " .. next_active_buffer.name, arg)
 
-    M.set_active_bufnr(next_active_buffer)
+    -- M.set_active_bufnr(next_active_buffer)
   else
     logger.warn("remove_buffer: can not delete the last buffer", args)
     return
@@ -166,12 +178,15 @@ function M.remove_buffer(args)
   table.remove(_buf_list, target_index)
   logger.debug("remove_buffer: buffer is removed", args)
 
-  events.publish(events.names.BufferListChanged)
+  local payload = _get_buffer_list_changed_event_payload()
+  event_bus.publish_buffer_list_changed(payload)
 end
 
 function M.change_sort()
   _sort_buffers()
-  events.publish(events.names.BufferListChanged)
+
+  local payload = _get_buffer_list_changed_event_payload()
+  event_bus.publish_buffer_list_changed(payload)
 end
 
 function M.reload_all_buffers()
@@ -195,9 +210,11 @@ function M.reload_all_buffers()
   _buf_list = _get_formatted_buffers()
   _sort_buffers()
 
-  events.publish(events.names.BufferListChanged)
-  local payload = _get_active_buf_changed_event_payload()
-  event_bus.publish_active_buffer_changed(payload)
+  -- local payload = _get_active_buf_changed_event_payload()
+  -- event_bus.publish_active_buffer_changed(payload)
+
+  local payload = _get_buffer_list_changed_event_payload()
+  event_bus.publish_buffer_list_changed(payload)
 end
 
 function M.get_all_buffers()
@@ -241,9 +258,15 @@ function M.get_active_buffer_index()
   local buffers = M.get_all_buffers()
   local bufnr = _get_active_bufnr()
 
-  return list.find_index(buffers, function(buf)
+  local i = list.find_index(buffers, function(buf)
     return buf.buf == bufnr
   end)
+
+  if not i then
+    logger.error("get_active_buffer_index: active buffer not found")
+  end
+
+  return i
 end
 
 function M.debug_buffers()

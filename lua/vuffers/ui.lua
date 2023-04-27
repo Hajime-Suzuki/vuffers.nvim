@@ -160,22 +160,21 @@ function M.update_modified_icon(buffer)
   end
 end
 
-function M.render_buffers()
+---@param payload BufferListChangedPayload
+function M.render_buffers(payload)
   local window_nr = window.get_buffer_number()
 
   if not window.is_open() or not window_nr then
     return
   end
 
-  local buffers = bufs.get_all_buffers()
+  local buffers = payload.buffers
 
-  local valid_buffers = list.filter(buffers, validations.is_valid_buf)
-
-  if not valid_buffers then
+  if not #buffers then
     return
   end
 
-  local lines = list.map(valid_buffers, function(buffer)
+  local lines = list.map(buffers, function(buffer)
     return _generate_line(buffer)
   end)
 
@@ -187,7 +186,7 @@ function M.render_buffers()
   )
 
   for i, line in ipairs(lines) do
-    local buf_nr = valid_buffers[i].buf
+    local buf_nr = buffers[i].buf
     if line.modified then
       _set_modified_icon(window_nr, i - 1, buf_nr, true)
     elseif _ext[buf_nr] then
@@ -195,11 +194,13 @@ function M.render_buffers()
     end
 
     if line.icon ~= "" then
-      _highlight_file_icon(window_nr, i - 1, valid_buffers[i])
+      _highlight_file_icon(window_nr, i - 1, buffers[i])
     end
   end
 
   logger.debug("Rendered buffers")
+
+  M.highlight_active_buffer({ index = payload.active_buffer_index })
 end
 
 return M

@@ -95,8 +95,8 @@ function M.create_auto_group()
     pattern = events.names.BufferListChanged,
     group = constants.AUTO_CMD_GROUP,
     callback = function()
-      logger.debug(events.names.BufferListChanged)
-      ui.render_buffers()
+      -- logger.debug(events.names.BufferListChanged)
+      -- ui.render_buffers()
       -- ui.highlight_active_buffer()
     end,
   })

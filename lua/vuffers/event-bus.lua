@@ -46,10 +46,16 @@ end
 -- NOTE: for typing purpose, publish function is created per event type
 
 ---@alias ActiveBufferChangedPayload { index: integer }
+---@alias BufferListChangedPayload { buffers: Buffer[], active_buffer_index: integer }
 
 ---@param payload ActiveBufferChangedPayload
 function M.publish_active_buffer_changed(payload)
   M.publish(events.names.ActiveBufferChanged, payload)
+end
+
+---@param payload BufferListChangedPayload
+function M.publish_buffer_list_changed(payload)
+  M.publish(events.names.BufferListChanged, payload)
 end
 
 return M
