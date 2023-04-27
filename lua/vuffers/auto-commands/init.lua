@@ -19,6 +19,7 @@ function M.create_auto_group()
         return
       end
 
+      -- when buffer is open on the vuffer window, open it in another window
       if window.is_open() then
         local current_win = vim.api.nvim_get_current_win()
         local vuffer_win = window.get_window_number()
@@ -88,25 +89,6 @@ function M.create_auto_group()
         logger.debug("closing vuffer window", { buffer = buffer })
         window.close()
       end
-    end,
-  })
-
-  vim.api.nvim_create_autocmd("User", {
-    pattern = events.names.BufferListChanged,
-    group = constants.AUTO_CMD_GROUP,
-    callback = function()
-      -- logger.debug(events.names.BufferListChanged)
-      -- ui.render_buffers()
-      -- ui.highlight_active_buffer()
-    end,
-  })
-
-  vim.api.nvim_create_autocmd("User", {
-    pattern = events.names.SortChanged,
-    group = constants.AUTO_CMD_GROUP,
-    callback = function()
-      logger.debug(events.names.SortChanged)
-      buffers.change_sort()
     end,
   })
 end

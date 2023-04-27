@@ -2,9 +2,12 @@ local M = {}
 
 ---@enum Event
 M.names = {
+  -- Events into UI
   BufferListChanged = "BufferListChanged",
   ActiveBufferChanged = "ActiveBufferChanged",
-  SortChanged = "SortChanged",
+
+  -- Events from UI
+  VuffersWindowOpened = "VuffersWindowOpened",
 }
 
 ---@param event string

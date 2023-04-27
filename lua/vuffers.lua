@@ -36,15 +36,15 @@ function M.open()
 
   window.open()
 
-  local bufnr = window.get_buffer_number()
-  if bufnr == nil then
-    error("open: buffer not found")
-    return
-  end
+  -- local bufnr = window.get_buffer_number()
+  -- if bufnr == nil then
+  --   error("open: buffer not found")
+  --   return
+  -- end
 
-  keymaps.setup(bufnr)
-
-  bufs.reload_all_buffers()
+  -- keymaps.setup(bufnr)
+  --
+  -- bufs.reload_all_buffers()
 
   logger.trace("M.open: end")
 end
@@ -84,7 +84,7 @@ end
 function M.sort(sort)
   config.set_sort(sort)
   logger.info("set_sort: sort order has been updated", sort)
-  events.publish(events.names.SortChanged)
+  bufs.change_sort()
 end
 
 ---@param level LogLevel

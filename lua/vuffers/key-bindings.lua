@@ -4,8 +4,9 @@ local config = require("vuffers.config")
 
 local M = {}
 
----@param bufnr integer
-function M.setup(bufnr)
+---@param payload VuffersWindowOpenedPayload
+function M.setup(payload)
+  local bufnr = payload.buffer_number
   local keymaps = config.get_keymaps()
   if not keymaps.use_default then
     logger.debug("skipping setting key bindings")

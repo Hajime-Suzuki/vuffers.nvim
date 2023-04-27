@@ -47,6 +47,7 @@ end
 
 ---@alias ActiveBufferChangedPayload { index: integer }
 ---@alias BufferListChangedPayload { buffers: Buffer[], active_buffer_index: integer }
+---@alias VuffersWindowOpenedPayload {buffer_number: integer }
 
 ---@param payload ActiveBufferChangedPayload
 function M.publish_active_buffer_changed(payload)
@@ -56,6 +57,11 @@ end
 ---@param payload BufferListChangedPayload
 function M.publish_buffer_list_changed(payload)
   M.publish(events.names.BufferListChanged, payload)
+end
+
+---@param payload VuffersWindowOpenedPayload
+function M.publish_vuffers_window_opened(payload)
+  M.publish(events.names.VuffersWindowOpened, payload)
 end
 
 return M

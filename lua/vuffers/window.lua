@@ -1,6 +1,9 @@
 local config = require("vuffers.config")
 local logger = require("utils.logger")
 local constants = require("vuffers.constants")
+local event_bus = require("vuffers.event-bus")
+local events = require("vuffers.events")
+
 local M = {}
 
 ---@alias TabNumber number
@@ -123,6 +126,7 @@ function M.open()
 
   vim.api.nvim_win_set_buf(winnr, bufnr)
   vim.api.nvim_command("wincmd p")
+  event_bus.publish_vuffers_window_opened({ buffer_number = bufnr })
 end
 
 function M.close()
