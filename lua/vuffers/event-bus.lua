@@ -1,8 +1,17 @@
 local logger = require("utils.logger")
 local list = require("utils.list")
-local events = require("vuffers.events")
 
 local M = {}
+
+---@enum Event
+M.event = {
+  -- Events into UI
+  BufferListChanged = "BufferListChanged",
+  ActiveBufferChanged = "ActiveBufferChanged",
+
+  -- Events from UI
+  VuffersWindowOpened = "VuffersWindowOpened",
+}
 
 ---@type table<string, {handler: function, label: string}[]>
 local _subscribers = {}
@@ -51,17 +60,17 @@ end
 
 ---@param payload ActiveBufferChangedPayload
 function M.publish_active_buffer_changed(payload)
-  M.publish(events.names.ActiveBufferChanged, payload)
+  M.publish(M.event.ActiveBufferChanged, payload)
 end
 
 ---@param payload BufferListChangedPayload
 function M.publish_buffer_list_changed(payload)
-  M.publish(events.names.BufferListChanged, payload)
+  M.publish(M.event.BufferListChanged, payload)
 end
 
 ---@param payload VuffersWindowOpenedPayload
 function M.publish_vuffers_window_opened(payload)
-  M.publish(events.names.VuffersWindowOpened, payload)
+  M.publish(M.event.VuffersWindowOpened, payload)
 end
 
 return M

@@ -1,5 +1,4 @@
 ---@diagnostic disable: undefined-global
-local events = require("vuffers.events")
 local event_bus = require("vuffers.event-bus")
 
 describe("event-bus", function()
@@ -16,8 +15,8 @@ describe("event-bus", function()
         _arg = arg
       end
 
-      event_bus.subscribe(events.names.ActiveBufferChanged, f, { label = "test" })
-      event_bus.publish(events.names.ActiveBufferChanged)
+      event_bus.subscribe(event_bus.event.ActiveBufferChanged, f, { label = "test" })
+      event_bus.publish(event_bus.event.ActiveBufferChanged)
 
       assert.are.same(_called, true)
       assert.are.same(_arg, nil)
@@ -31,8 +30,8 @@ describe("event-bus", function()
         _arg = arg
       end
 
-      event_bus.subscribe(events.names.ActiveBufferChanged, f, { label = "test" })
-      event_bus.publish(events.names.ActiveBufferChanged, { test = true })
+      event_bus.subscribe(event_bus.event.ActiveBufferChanged, f, { label = "test" })
+      event_bus.publish(event_bus.event.ActiveBufferChanged, { test = true })
 
       assert.are.same(_called, true)
       assert.are.same(_arg, { test = true })
@@ -53,9 +52,9 @@ describe("event-bus", function()
         _g_arg = arg
       end
 
-      event_bus.subscribe(events.names.ActiveBufferChanged, f, { label = "test" })
-      event_bus.subscribe(events.names.ActiveBufferChanged, g, { label = "test2" })
-      event_bus.publish(events.names.ActiveBufferChanged, { test = true })
+      event_bus.subscribe(event_bus.event.ActiveBufferChanged, f, { label = "test" })
+      event_bus.subscribe(event_bus.event.ActiveBufferChanged, g, { label = "test2" })
+      event_bus.publish(event_bus.event.ActiveBufferChanged, { test = true })
 
       assert.are.same(_f_called, true)
       assert.are.same(_g_called, true)
@@ -64,7 +63,7 @@ describe("event-bus", function()
     end)
 
     it("should do break when event is published without subscription", function()
-      event_bus.publish(events.names.ActiveBufferChanged, { test = true })
+      event_bus.publish(event_bus.event.ActiveBufferChanged, { test = true })
     end)
   end)
 end)

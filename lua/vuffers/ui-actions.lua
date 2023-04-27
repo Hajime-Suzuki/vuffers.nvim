@@ -1,3 +1,5 @@
+-- actions triggered via UI window
+
 local buffers = require("vuffers.buffers")
 local config = require("vuffers.config")
 

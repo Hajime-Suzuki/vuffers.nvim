@@ -146,6 +146,7 @@ return {
 - sort by parents
   - for example `a/b/c.json` and `a/b/d.json` are grouped and sorted by `b`
 - toggle full path from cwd
+- filter by name
 - bookmark a buffer
 - (show Git signs)
 - (show LSP diagnostics)

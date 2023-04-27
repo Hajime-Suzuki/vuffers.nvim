@@ -30,21 +30,29 @@ local _buf_list = {}
 ---@type number | nil
 local _active_bufnr = nil
 
+local function _get_all_buffers()
+  return _buf_list
+end
+
+local function _get_active_bufnr()
+  return _active_bufnr
+end
+
 ---@return ActiveBufferChangedPayload
 local function _get_active_buf_changed_event_payload()
-  local index = M.get_active_buffer_index() or 1
+  local _, index = M.get_active_buffer()
 
   ---@type ActiveBufferChangedPayload
-  local payload = { index = index }
+  local payload = { index = index or 1 }
   return payload
 end
 
 ---@return BufferListChangedPayload
 local function _get_buffer_list_changed_event_payload()
-  local index = M.get_active_buffer_index() or 1
+  local _, index = M.get_active_buffer()
 
   ---@type BufferListChangedPayload
-  local payload = { buffers = _buf_list, active_buffer_index = index }
+  local payload = { buffers = _buf_list, active_buffer_index = index or 1 }
   return payload
 end
 
@@ -54,10 +62,6 @@ function M.set_active_bufnr(buffer)
 
   local event_payload = _get_active_buf_changed_event_payload()
   event_bus.publish_active_buffer_changed(event_payload)
-end
-
-local function _get_active_bufnr()
-  return _active_bufnr
 end
 
 local function reset_buffers()
@@ -208,20 +212,13 @@ function M.reload_all_buffers()
   _buf_list = _get_formatted_buffers()
   _sort_buffers()
 
-  -- local payload = _get_active_buf_changed_event_payload()
-  -- event_bus.publish_active_buffer_changed(payload)
-
   local payload = _get_buffer_list_changed_event_payload()
   event_bus.publish_buffer_list_changed(payload)
 end
 
-function M.get_all_buffers()
-  return _buf_list
-end
-
 ---@param index integer
 function M.get_buffer_by_index(index)
-  local buffers = M.get_all_buffers()
+  local buffers = _get_all_buffers()
 
   return buffers[index]
 end
@@ -229,7 +226,7 @@ end
 ---@param bufnr integer
 ---@return Buffer | nil buffer, integer | nil index
 function M.get_buffer_by_bufnr(bufnr)
-  local buffers = M.get_all_buffers()
+  local buffers = _get_all_buffers()
 
   local index = list.find_index(buffers, function(buf)
     return buf.buf == bufnr
@@ -250,21 +247,6 @@ function M.get_active_buffer()
   end
 
   return M.get_buffer_by_bufnr(bufnr)
-end
-
-function M.get_active_buffer_index()
-  local buffers = M.get_all_buffers()
-  local bufnr = _get_active_bufnr()
-
-  local i = list.find_index(buffers, function(buf)
-    return buf.buf == bufnr
-  end)
-
-  if not i then
-    logger.error("get_active_buffer_index: active buffer not found")
-  end
-
-  return i
 end
 
 function M.debug_buffers()

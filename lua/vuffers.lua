@@ -10,11 +10,13 @@ local subscriptions = require("vuffers.subscriptions")
 local M = {}
 
 function M.setup(opts)
+  logger.debug("setup start")
   config.setup(opts)
   logger.setup()
   highlights.setup()
   subscriptions.setup()
   auto_commands.create_auto_group()
+  logger.debug("setup end")
 end
 
 function M.toggle()

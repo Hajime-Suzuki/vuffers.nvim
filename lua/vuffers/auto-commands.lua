@@ -1,6 +1,5 @@
 local logger = require("utils.logger")
 local constants = require("vuffers.constants")
-local events = require("vuffers.events")
 local ui = require("vuffers.ui")
 local buffers = require("vuffers.buffers")
 local window = require("vuffers.window")
@@ -90,12 +89,6 @@ function M.create_auto_group()
       end
     end,
   })
-end
-
-function M.remove_auto_group()
-  pcall(function()
-    vim.api.nvim_del_augroup_by_name(constants.AUTO_CMD_GROUP)
-  end)
 end
 
 return M
