@@ -16,13 +16,12 @@ if not is_devicon_ok then
 end
 
 ---@param filename string
+---@param extension string
 ---@return string, string -- icon, highlight name
-local function _get_icon(filename)
+local function _get_icon(filename, extension)
   if not is_devicon_ok or not devicon.has_loaded() then
     return "", ""
   end
-
-  local extension = string.match(filename, "%.(%w+)$")
 
   local icon, color = devicon.get_icon(filename, extension, { default = true })
   return icon or " ", color or ""
@@ -36,9 +35,9 @@ end
 ---@param buffer Buffer
 ---@return Line
 local function _generate_line(buffer)
-  local icon = _get_icon(buffer.name)
+  local icon = _get_icon(buffer.name, buffer.ext)
 
-  local filename = icon .. " " .. string.gsub(buffer.name, "%.%w+$", "")
+  local filename = icon .. " " .. buffer.name
   local modified = vim.bo[buffer.buf].modified
   return { text = filename, icon = icon, modified = modified }
 end
@@ -62,7 +61,7 @@ end
 ---@param line_number integer
 ---@param buffer Buffer
 local function _highlight_file_icon(window_bufnr, line_number, buffer)
-  local _, icon_highlight = _get_icon(buffer.name)
+  local _, icon_highlight = _get_icon(buffer.name, buffer.ext)
   local ok = pcall(function()
     vim.api.nvim_buf_add_highlight(window_bufnr, icon_ns, icon_highlight, line_number, ICON_START_COL, ICON_END_COL)
   end)

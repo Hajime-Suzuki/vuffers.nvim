@@ -22,7 +22,7 @@ function M.get_file_names(buffers)
   end)
 
   --- @param ls {current_filename: string, remaining: string, buf: number, index: number, path: string}[]
-  local function loop(ls)
+  local function get_unique_names(ls)
     local grouped_by_filename = list.group_by(ls, function(item)
       return string.match(item.remaining, ".+/(.+)$") or item.remaining
     end)
@@ -46,7 +46,6 @@ function M.get_file_names(buffers)
           name = filename,
           buf = item.buf,
           path = item.path,
-          ext = item.ext,
         }
 
         table.insert(output, filename_with_index)
@@ -64,7 +63,6 @@ function M.get_file_names(buffers)
             name = filename,
             buf = item.buf,
             path = item.path,
-            ext = item.ext,
           })
         else
           table.insert(next_items, {
@@ -73,23 +71,22 @@ function M.get_file_names(buffers)
             index = item.index,
             buf = item.buf,
             path = item.path,
-            ext = item.ext,
           })
         end
       end
 
       if #next_items > 0 then
-        loop(next_items)
+        get_unique_names(next_items)
       end
 
       ::continue::
     end
   end
 
-  loop(input)
+  get_unique_names(input)
 
   return list.map(output, function(item)
-    local extension = string.match(item.name, "%.(.+)$")
+    local extension = string.match(item.name, "%.(%w+)$")
 
     local name_without_extension = extension and string.gsub(item.name, "." .. extension .. "$", "")
     if not name_without_extension or name_without_extension == "" then
