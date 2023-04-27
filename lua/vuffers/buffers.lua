@@ -11,6 +11,7 @@ local constants = require("vuffers.constants")
 ---@field buf number
 ---@field name string
 ---@field path string: full path of
+---@field ext string
 
 ---@class NativeBuffer
 ---@field buf number
@@ -68,30 +69,6 @@ local function reset_buffers()
   _buf_list = {}
 end
 
-local function _sort_buffers()
-  local sort = config.get_sort()
-
-  if sort.type == constants.SORT_TYPE.NONE then
-    table.sort(_buf_list, function(a, b)
-      return a.buf < b.buf
-    end)
-  elseif sort.type == constants.SORT_TYPE.FILENAME then
-    table.sort(_buf_list, function(a, b)
-      local n1 = a.name:match(".+/(.+)$") or a.name
-      local n2 = b.name:match(".+/(.+)$") or b.name
-      if sort.direction == constants.SORT_DIRECTION.ASC then
-        return n1 < n2
-      else
-        return n1 > n2
-      end
-    end)
-  else
-    logger.warn("sort_buffers: unknown sort type", sort)
-  end
-
-  logger.info("sort_buffers: buffers are sorted", sort)
-end
-
 local function _get_formatted_buffers()
   return utils.get_file_names(_buf_list)
 end
@@ -126,7 +103,7 @@ function M.add_buffer(buffer)
   })
 
   _buf_list = _get_formatted_buffers()
-  _sort_buffers()
+  utils.sort_buffers(_buf_list, config.get_sort())
 
   logger.debug("add_buffer: buffer is added", { file = buffer.file })
 
@@ -155,7 +132,7 @@ function M.remove_buffer(args)
   if target_index ~= _get_active_bufnr() then
     table.remove(_buf_list, target_index)
     _buf_list = _get_formatted_buffers()
-    _sort_buffers()
+    utils.sort_buffers(_buf_list, config.get_sort())
 
     logger.debug("remove_buffer: buffer is removed", args)
 
@@ -169,9 +146,7 @@ function M.remove_buffer(args)
 
   -- TODO: remove
   if next_active_buffer then
-    logger.warn("remove_buffer: found new active buffer " .. next_active_buffer.name, arg)
-
-    -- M.set_active_bufnr(next_active_buffer)
+    M.set_active_bufnr(next_active_buffer)
   else
     logger.warn("remove_buffer: can not delete the last buffer", args)
     return
@@ -185,7 +160,7 @@ function M.remove_buffer(args)
 end
 
 function M.change_sort()
-  _sort_buffers()
+  utils.sort_buffers(_buf_list, config.get_sort())
 
   local payload = _get_buffer_list_changed_event_payload()
   event_bus.publish_buffer_list_changed(payload)
@@ -210,7 +185,7 @@ function M.reload_all_buffers()
 
   _buf_list = bufs
   _buf_list = _get_formatted_buffers()
-  _sort_buffers()
+  utils.sort_buffers(_buf_list, config.get_sort())
 
   local payload = _get_buffer_list_changed_event_payload()
   event_bus.publish_buffer_list_changed(payload)
