@@ -3,7 +3,7 @@ local M = {}
 ---@enum Event
 M.names = {
   BufferListChanged = "BufferListChanged",
-  ActiveFileChanged = "ActiveFileChanged",
+  ActiveBufferChanged = "ActiveBufferChanged",
   SortChanged = "SortChanged",
 }
 

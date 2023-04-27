@@ -125,21 +125,15 @@ local function _delete_modified_icon(window_bufnr, bufnr)
   _ext[bufnr] = nil
 end
 
-function M.highlight_active_buffer()
+---@param payload ActiveBufferChangedPayload
+function M.highlight_active_buffer(payload)
   local window_nr = window.get_buffer_number()
 
   if not window.is_open() or not window_nr then
     return
   end
 
-  local active_line = bufs.get_active_buffer_index()
-  local active_buffer = bufs.get_active_buffer()
-
-  if active_line == nil or active_buffer == nil or not validations.is_valid_buf(active_buffer) then
-    return
-  end
-
-  _highlight_active_buffer(window_nr, active_line - 1)
+  _highlight_active_buffer(window_nr, payload.index - 1)
 end
 
 ---@param buffer NativeBuffer

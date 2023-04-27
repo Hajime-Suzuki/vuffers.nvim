@@ -1,4 +1,4 @@
-local eb = require("vuffers.event-bus")
+local event_bus = require("vuffers.event-bus")
 local logger = require("utils.logger")
 local utils = require("vuffers.buffer-utils")
 local list = require("utils.list")
@@ -25,21 +25,33 @@ local validations = require("vuffers.validations")
 --------------<<types ----------------
 
 local M = {}
----@type number | nil
-local active_bufnr = nil
-
----@param buffer {path: string, buf: integer}
-function M.set_active_bufnr(buffer)
-  active_bufnr = buffer.buf
-  eb.publish(events.names.ActiveFileChanged)
-end
-
-local function _get_active_bufnr()
-  return active_bufnr
-end
 
 ---@type Buffer[]
 local _buf_list = {}
+
+---@type number | nil
+local _active_bufnr = nil
+
+---@return ActiveBufferChangedPayload
+local function _get_active_buf_changed_event_payload()
+  local buffer, index = M.get_active_buffer()
+
+  ---@type ActiveBufferChangedPayload
+  local payload = { buffer = buffer, index = index or 1 }
+  return payload
+end
+
+---@param buffer {path: string, buf: integer}
+function M.set_active_bufnr(buffer)
+  _active_bufnr = buffer.buf
+
+  local event_payload = _get_active_buf_changed_event_payload()
+  event_bus.publish_active_buffer_changed(event_payload)
+end
+
+local function _get_active_bufnr()
+  return _active_bufnr
+end
 
 local function reset_buffers()
   _buf_list = {}
@@ -184,7 +196,8 @@ function M.reload_all_buffers()
   _sort_buffers()
 
   events.publish(events.names.BufferListChanged)
-  eb.publish(events.names.ActiveFileChanged)
+  local payload = _get_active_buf_changed_event_payload()
+  event_bus.publish_active_buffer_changed(payload)
 end
 
 function M.get_all_buffers()
@@ -199,7 +212,7 @@ function M.get_buffer_by_index(index)
 end
 
 ---@param bufnr integer
----@return Buffer | nil, integer | nil -- buffer, index
+---@return Buffer | nil buffer, integer | nil index
 function M.get_buffer_by_bufnr(bufnr)
   local buffers = M.get_all_buffers()
 
@@ -218,11 +231,10 @@ function M.get_active_buffer()
   local bufnr = _get_active_bufnr()
 
   if not bufnr then
-    return nil
+    return nil, nil
   end
 
-  local buffer = M.get_buffer_by_bufnr(bufnr)
-  return buffer
+  return M.get_buffer_by_bufnr(bufnr)
 end
 
 function M.get_active_buffer_index()
@@ -235,7 +247,7 @@ function M.get_active_buffer_index()
 end
 
 function M.debug_buffers()
-  print("active", active_bufnr)
+  print("active", _active_bufnr)
   print("buffers", vim.inspect(_buf_list))
 end
 

@@ -97,16 +97,7 @@ function M.create_auto_group()
     callback = function()
       logger.debug(events.names.BufferListChanged)
       ui.render_buffers()
-      ui.highlight_active_buffer()
-    end,
-  })
-
-  vim.api.nvim_create_autocmd("User", {
-    pattern = events.names.ActiveFileChanged,
-    group = constants.AUTO_CMD_GROUP,
-    callback = function()
-      logger.debug(events.names.ActiveFileChanged)
-      ui.highlight_active_buffer()
+      -- ui.highlight_active_buffer()
     end,
   })
 

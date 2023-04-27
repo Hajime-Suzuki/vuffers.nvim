@@ -1,10 +1,16 @@
 local logger = require("utils.logger")
 local list = require("utils.list")
+local events = require("vuffers.events")
 
 local M = {}
 
 ---@type table<string, {handler: function, label: string}[]>
 local _subscribers = {}
+
+--- only for testing
+function M._delete_all_subscriptions()
+  _subscribers = {}
+end
 
 ---@param event Event
 ---@param handler function
@@ -37,9 +43,13 @@ function M.publish(event, payload)
   end)
 end
 
---- only for testing
-function M._delete_all_subscriptions()
-  _subscribers = {}
+-- NOTE: for typing purpose, publish function is created per event type
+
+---@alias ActiveBufferChangedPayload { index: integer }
+
+---@param payload ActiveBufferChangedPayload
+function M.publish_active_buffer_changed(payload)
+  M.publish(events.names.ActiveBufferChanged, payload)
 end
 
 return M
