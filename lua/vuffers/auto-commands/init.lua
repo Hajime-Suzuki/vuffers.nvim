@@ -4,8 +4,7 @@ local events = require("vuffers.events")
 local ui = require("vuffers.ui")
 local buffers = require("vuffers.buffers")
 local window = require("vuffers.window")
-local validations = require("vuffers.validations")
-local keymaps = require("vuffers.key-bindings")
+local buf_utils = require("vuffers.buffer-utils")
 
 local M = {}
 
@@ -15,7 +14,7 @@ function M.create_auto_group()
     pattern = "*",
     group = constants.AUTO_CMD_GROUP,
     callback = function(buffer)
-      if not validations.is_valid_buf(buffer) then
+      if not buf_utils.is_valid_buf(buffer) then
         return
       end
 
@@ -40,7 +39,7 @@ function M.create_auto_group()
     pattern = "*",
     group = constants.AUTO_CMD_GROUP,
     callback = function(buffer)
-      if not validations.is_valid_buf(buffer) then
+      if not buf_utils.is_valid_buf(buffer) then
         return
       end
 
@@ -60,7 +59,7 @@ function M.create_auto_group()
     pattern = "*",
     group = constants.AUTO_CMD_GROUP,
     callback = function(buffer)
-      if not validations.is_valid_buf(buffer) then
+      if not buf_utils.is_valid_buf(buffer) then
         return
       end
 
@@ -72,7 +71,7 @@ function M.create_auto_group()
     pattern = "*",
     group = constants.AUTO_CMD_GROUP,
     callback = function(buffer)
-      if not validations.is_valid_buf(buffer) then
+      if not buf_utils.is_valid_buf(buffer) then
         return
       end
 

@@ -2,7 +2,6 @@ local config = require("vuffers.config")
 local logger = require("utils.logger")
 local constants = require("vuffers.constants")
 local event_bus = require("vuffers.event-bus")
-local events = require("vuffers.events")
 
 local M = {}
 
@@ -135,7 +134,7 @@ function M.close()
     return
   end
 
-  -- NOTE: delete all buffers, then window is closed. Otherwise, window is not closed and throws an error.
+  -- NOTE: delete buffer, then window is closed. Otherwise, an error is thrown.
   vim.api.nvim_buf_delete(view.bufnr, { force = true })
   _reset_view()
 end

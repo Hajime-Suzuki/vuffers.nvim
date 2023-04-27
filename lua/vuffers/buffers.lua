@@ -4,8 +4,6 @@ local utils = require("vuffers.buffer-utils")
 local list = require("utils.list")
 local config = require("vuffers.config")
 local constants = require("vuffers.constants")
-local events = require("vuffers.events")
-local validations = require("vuffers.validations")
 
 --------------types >>----------------
 
@@ -199,7 +197,7 @@ function M.reload_all_buffers()
     return { buf = buf, name = name, index = i, path = name, filetype = filetype }
   end)
   ---@diagnostic disable-next-line: cast-local-type
-  bufs = list.filter(bufs, validations.is_valid_buf)
+  bufs = list.filter(bufs, utils.is_valid_buf)
 
   if bufs == nil then
     logger.warn("reload_all_buffers: no buffers found")

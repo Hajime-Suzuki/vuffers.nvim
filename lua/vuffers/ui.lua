@@ -5,7 +5,6 @@ local is_devicon_ok, devicon = pcall(require, "nvim-web-devicons")
 local logger = require("utils.logger")
 local constants = require("vuffers.constants")
 local config = require("vuffers.config")
-local validations = require("vuffers.validations")
 
 local M = {}
 
