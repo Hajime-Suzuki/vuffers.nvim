@@ -55,7 +55,7 @@ end
 -- NOTE: for typing purpose, publish function is created per event type
 
 ---@alias ActiveBufferChangedPayload { index: integer }
----@alias BufferListChangedPayload { buffers: Buffer[], active_buffer_index: integer }
+---@alias BufferListChangedPayload { buffers: Buffer[], active_buffer_index?: integer }
 ---@alias VuffersWindowOpenedPayload {buffer_number: integer }
 
 ---@param payload ActiveBufferChangedPayload

@@ -53,7 +53,7 @@ local function _get_buffer_list_changed_event_payload()
   local _, index = M.get_active_buffer()
 
   ---@type BufferListChangedPayload
-  local payload = { buffers = _buf_list, active_buffer_index = index or 1 }
+  local payload = { buffers = _buf_list, active_buffer_index = index }
   return payload
 end
 
@@ -144,7 +144,6 @@ function M.remove_buffer(args)
   ---@type Buffer | nil
   local next_active_buffer = _buf_list[target_index + 1] or _buf_list[target_index - 1]
 
-  -- TODO: remove
   if next_active_buffer then
     M.set_active_bufnr(next_active_buffer)
   else

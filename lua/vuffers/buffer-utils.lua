@@ -2,6 +2,7 @@ local list = require("utils.list")
 local logger = require("utils.logger")
 local config = require("vuffers.config")
 local constants = require("vuffers.constants")
+local plenary = require("plenary")
 
 local M = {}
 
@@ -97,7 +98,7 @@ function M.get_file_names(buffers)
       buf = item.buf,
       name = name_without_extension,
       path = item.path,
-      ext = extension,
+      ext = extension or "",
     }
   end)
 end
@@ -139,8 +140,6 @@ function M.is_valid_buf(buffer)
   end
 
   local filename = buffer.file or buffer.name
-  local filetype = vim.bo[buffer.buf].filetype
-
   if filename == "" or filename == "/" or filename == " " then
     return false
   end
@@ -153,7 +152,8 @@ function M.is_valid_buf(buffer)
     end
   end
 
-  if filetype then
+  local filetype = vim.api.nvim_buf_get_option(buffer.buf, "filetype")
+  if filetype and filetype ~= "" then
     if string.match(filetype, constants.VUFFERS_FILE_TYPE) then
       return false
     end

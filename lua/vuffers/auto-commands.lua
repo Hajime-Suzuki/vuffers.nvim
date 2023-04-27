@@ -17,6 +17,8 @@ function M.create_auto_group()
         return
       end
 
+      logger.debug("BufEnter", { buffer = buffer })
+
       -- when buffer is open on the vuffer window, open it in another window
       if window.is_open() then
         local current_win = vim.api.nvim_get_current_win()
@@ -41,6 +43,7 @@ function M.create_auto_group()
       if not buf_utils.is_valid_buf(buffer) then
         return
       end
+      logger.debug("BufAdd", { buffer = buffer })
 
       buffers.add_buffer(buffer)
     end,
@@ -50,6 +53,8 @@ function M.create_auto_group()
     pattern = "*",
     group = constants.AUTO_CMD_GROUP,
     callback = function(buffer)
+      logger.debug("BufDelete", { buffer = buffer })
+
       buffers.remove_buffer({ bufnr = buffer.buf })
     end,
   })
@@ -61,6 +66,7 @@ function M.create_auto_group()
       if not buf_utils.is_valid_buf(buffer) then
         return
       end
+      logger.debug("BufModifiedSet", { buffer = buffer })
 
       ui.update_modified_icon(buffer)
     end,
@@ -73,6 +79,7 @@ function M.create_auto_group()
       if not buf_utils.is_valid_buf(buffer) then
         return
       end
+      logger.debug("BufWritePost", { buffer = buffer })
 
       ui.update_modified_icon(buffer)
     end,

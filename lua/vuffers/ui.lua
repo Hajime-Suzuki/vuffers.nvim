@@ -200,7 +200,9 @@ function M.render_buffers(payload)
 
   logger.debug("Rendered buffers")
 
-  M.highlight_active_buffer({ index = payload.active_buffer_index })
+  if payload.active_buffer_index then
+    M.highlight_active_buffer({ index = payload.active_buffer_index })
+  end
 end
 
 return M
