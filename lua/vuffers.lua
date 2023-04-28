@@ -19,6 +19,11 @@ function M.setup(opts)
   logger.debug("setup end")
 end
 
+---@return boolean
+function M.is_open()
+  return window.is_open()
+end
+
 function M.toggle()
   if window.is_open() then
     M.close()
