@@ -26,54 +26,39 @@ function M.get_file_names(buffers)
   local input = list.map(buffers, function(buffer, i)
     return {
       buf = buffer.buf,
-      index = i,
       path = buffer.path,
       default_level = 1,
+      path_fragments = str.split(buffer.path, "/"),
     }
   end)
 
-  --- @param ls {current_filename: string, remaining: string, buf: number, index: number, path: string}[]
+  --- @param ls {  buf: number, path: string, default_level: string, path_fragments: string[]}[]
   local function get_unique_names(ls)
     local grouped_by_filename = list.group_by(ls, function(item)
-      local s = str.split(item.path, "/")
-      return s[#s - item.default_level + 1]
+      return item.path_fragments[#item.path_fragments - item.default_level + 1]
     end)
 
     for _, items in pairs(grouped_by_filename) do
       local next_items = {}
 
-      if #items == 1 then -- this is unique item of the group. item should be used without further processing
-        local item = items[1]
+      local is_unique = #items == 1 -- if the group has only one item then it is unique
 
-        local filename_with_index = {
-          index = item.index,
-          buf = item.buf,
-          path = item.path,
-          default_level = item.default_level,
-        }
-
-        table.insert(output, filename_with_index)
-
+      if is_unique then
+        table.insert(output, items[1])
         goto continue
       end
 
       for _, item in ipairs(items) do
-        local s = str.split(item.path, "/")
-        local parent = s[#s - item.default_level]
+        local parent = item.path_fragments[#item.path_fragments - item.default_level]
 
         if parent == nil then -- when there is no parent, use the item as it is
-          table.insert(output, {
-            index = item.index,
-            buf = item.buf,
-            path = item.path,
-            default_level = item.default_level,
-          })
+          table.insert(output, item)
         else
           table.insert(next_items, {
-            index = item.index,
             buf = item.buf,
             path = item.path,
             default_level = item.default_level + 1,
+            path_fragments = item.path_fragments,
           })
         end
       end
