@@ -2,9 +2,20 @@ local list = require("utils.list")
 local logger = require("utils.logger")
 local config = require("vuffers.config")
 local constants = require("vuffers.constants")
-local plenary = require("plenary")
+local str = require("utils.string")
 
 local M = {}
+
+function M.get_name_by_level(filename, level)
+  local items = str.split(filename, "/")
+
+  if #items <= level then
+    return filename
+  end
+
+  local filenames = list.slice(items, #items - level + 1, #items)
+  return table.concat(filenames, "/")
+end
 
 --- @param buffers { buf:integer, name: string, path: string }[]
 --- @return Buffer[]
@@ -19,6 +30,7 @@ function M.get_file_names(buffers)
       buf = buffer.buf,
       index = i,
       path = buffer.path,
+      level = 0,
     }
   end)
 
@@ -47,6 +59,7 @@ function M.get_file_names(buffers)
           name = filename,
           buf = item.buf,
           path = item.path,
+          -- level = item.level + 1,
         }
 
         table.insert(output, filename_with_index)

@@ -60,7 +60,7 @@ function M.find_index(arr, predicate)
   return nil
 end
 
-function M.slice_array(arr, start_index, end_index)
+function M.slice(arr, start_index, end_index)
   local sliced_arr = {}
   for i = start_index, end_index do
     table.insert(sliced_arr, arr[i])

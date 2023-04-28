@@ -4,6 +4,72 @@ local list = require("utils.list")
 local constants = require("vuffers.constants")
 
 describe("utils", function()
+  describe("get_file_name_by_level", function()
+    it("get filename when level = 1", function()
+      local file = "a/b/c/d.test.ts"
+      local level = 1
+
+      local res = utils.get_name_by_level(file, level)
+
+      assert.equals("d.test.ts", res)
+    end)
+
+    it("get filename when level = 1 and file does not have extention", function()
+      local file = "a/b/c/Dockerfile"
+      local level = 1
+
+      local res = utils.get_name_by_level(file, level)
+
+      assert.equals("Dockerfile", res)
+    end)
+
+    it("get filename when level = 1 and file starts with dot (.)", function()
+      local file = "a/b/c/.eslintrc"
+      local level = 1
+
+      local res = utils.get_name_by_level(file, level)
+
+      assert.equals(".eslintrc", res)
+    end)
+
+    it("get filename when level = 2", function()
+      local file = "a/b/c/d.test.ts"
+      local level = 2
+
+      local res = utils.get_name_by_level(file, level)
+
+      print(res)
+      assert.equals("c/d.test.ts", res)
+    end)
+
+    it("get filename when level = 2 and file does not have extention", function()
+      local file = "a/b/c/Dockerfile"
+      local level = 2
+
+      local res = utils.get_name_by_level(file, level)
+
+      assert.equals("c/Dockerfile", res)
+    end)
+
+    it("get filename when level = 2 and file starts with dot (.)", function()
+      local file = "a/b/c/.eslintrc"
+      local level = 2
+
+      local res = utils.get_name_by_level(file, level)
+
+      assert.equals("c/.eslintrc", res)
+    end)
+
+    it("get the original filename when level is greater than the actual filename", function()
+      local file = "d.test.ts"
+      local level = 2
+
+      local res = utils.get_name_by_level(file, level)
+
+      assert.equals("d.test.ts", res)
+    end)
+  end)
+
   describe("get_file_names", function()
     it("returns correct extension #only", function()
       local res = utils.get_file_names({
