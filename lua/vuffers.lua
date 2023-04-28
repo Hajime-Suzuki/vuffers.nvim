@@ -95,4 +95,9 @@ function M.resize(width)
   window.resize(width)
 end
 
+---@param value integer
+function M.change_level(value)
+  bufs.change_level(value)
+end
+
 return M

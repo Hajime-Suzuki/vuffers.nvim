@@ -166,6 +166,37 @@ function M.change_sort()
   event_bus.publish_buffer_list_changed(payload)
 end
 
+---@type number | nil How many more parents the UI shows. This can not go below 0
+local _level = 0
+
+---@param num integer
+function M.change_level(num)
+  local new_level = math.max(_level + num, 0)
+
+  if new_level == _level then
+    logger.debug("change_level: level is not changed")
+    return
+  end
+
+  _level = new_level
+
+  local bufs = list.map(_get_formatted_buffers(), function(buf)
+    local target_level = new_level + 1
+    if target_level > buf.default_level then
+      buf.name = utils.get_name_by_level(buf.path, target_level)
+    end
+    return buf
+  end)
+
+  utils.sort_buffers(bufs, config.get_sort())
+  _buf_list = bufs
+
+  local payload = _get_buffer_list_changed_event_payload()
+  logger.debug("change_level: level changed", { new_level = new_level })
+
+  event_bus.publish_buffer_list_changed(payload)
+end
+
 function M.reload_all_buffers()
   reset_buffers()
 
