@@ -5,6 +5,26 @@ local constants = require("vuffers.constants")
 
 describe("utils", function()
   describe("get_file_names", function()
+    it("returns correct extension #only", function()
+      local res = utils.get_file_names({
+        { path = "a/hi.ts", buf = 1 },
+        { path = "a/b/c/d.lua", buf = 2 },
+        { path = "test.json", buf = 3 },
+        { path = ".eslintrc", buf = 4 },
+        { path = "Dockerfile", buf = 5 },
+      })
+
+      table.sort(res, function(a, b)
+        return a.buf < b.buf
+      end)
+
+      local extensions = list.map(res, function(item)
+        return item.ext
+      end)
+
+      assert.are.same({ "ts", "lua", "json", "eslintrc", "" }, extensions)
+    end)
+
     it("returns correct filenames when the filenames of the input is unique", function()
       local res = utils.get_file_names({
         { path = "a/hi.ts", buf = 1 },
@@ -24,12 +44,7 @@ describe("utils", function()
         return item.name
       end)
 
-      local extensions = list.map(res, function(item)
-        return item.ext
-      end)
-
       assert.are.same({ "hi", "user", "user.test", "test", "test", ".eslintrc", "Dockerfile" }, filenames)
-      assert.are.same({ "ts", "ts", "ts", "js", "json", "eslintrc", nil }, extensions)
     end)
 
     it("returns correct filenames when the filenames of the input has duplicate. case 1", function()
