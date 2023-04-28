@@ -71,7 +71,27 @@ describe("utils", function()
   end)
 
   describe("get_file_names", function()
-    it("returns correct extension #only", function()
+    it("returns correct level", function()
+      local res = utils.get_file_names({
+        { path = "a/some.ts", buf = 1 },
+        { path = "a/b/c/some.ts", buf = 2 },
+        { path = "test.json", buf = 3 },
+        { path = ".eslintrc", buf = 4 },
+        { path = "Dockerfile", buf = 5 },
+      })
+
+      table.sort(res, function(a, b)
+        return a.buf < b.buf
+      end)
+
+      local extensions = list.map(res, function(item)
+        return item.default_level
+      end)
+
+      assert.are.same({ 2, 2, 1, 1, 1 }, extensions)
+    end)
+
+    it("returns correct extension", function()
       local res = utils.get_file_names({
         { path = "a/hi.ts", buf = 1 },
         { path = "a/b/c/d.lua", buf = 2 },

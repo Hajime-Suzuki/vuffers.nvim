@@ -12,6 +12,7 @@ local constants = require("vuffers.constants")
 ---@field name string
 ---@field path string: full path of
 ---@field ext string
+---@field default_level number
 
 ---@class NativeBuffer
 ---@field buf number

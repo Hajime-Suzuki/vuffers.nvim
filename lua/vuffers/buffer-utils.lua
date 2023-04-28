@@ -30,7 +30,7 @@ function M.get_file_names(buffers)
       buf = buffer.buf,
       index = i,
       path = buffer.path,
-      level = 0,
+      default_level = 0,
     }
   end)
 
@@ -59,7 +59,7 @@ function M.get_file_names(buffers)
           name = filename,
           buf = item.buf,
           path = item.path,
-          -- level = item.level + 1,
+          default_level = item.default_level + 1,
         }
 
         table.insert(output, filename_with_index)
@@ -77,6 +77,7 @@ function M.get_file_names(buffers)
             name = filename,
             buf = item.buf,
             path = item.path,
+            default_level = item.default_level + 1,
           })
         else
           table.insert(next_items, {
@@ -85,6 +86,7 @@ function M.get_file_names(buffers)
             index = item.index,
             buf = item.buf,
             path = item.path,
+            default_level = item.default_level + 1,
           })
         end
       end
@@ -112,6 +114,7 @@ function M.get_file_names(buffers)
       name = name_without_extension,
       path = item.path,
       ext = extension or "",
+      default_level = item.default_level,
     }
   end)
 end
