@@ -78,6 +78,9 @@ describe("utils", function()
         { path = "test.json", buf = 3 },
         { path = ".eslintrc", buf = 4 },
         { path = "Dockerfile", buf = 5 },
+        { path = "a/b/c/d", buf = 6 },
+        { path = "x/b/c/d", buf = 7 },
+        { path = "b/c/d", buf = 8 },
       })
 
       table.sort(res, function(a, b)
@@ -88,7 +91,7 @@ describe("utils", function()
         return item.default_level
       end)
 
-      assert.are.same({ 2, 2, 1, 1, 1 }, extensions)
+      assert.are.same({ 2, 2, 1, 1, 1, 4, 4, 3 }, extensions)
     end)
 
     it("returns correct extension", function()

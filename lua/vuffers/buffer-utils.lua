@@ -25,41 +25,31 @@ function M.get_file_names(buffers)
   -- preparing the input. adding extra data
   local input = list.map(buffers, function(buffer, i)
     return {
-      current_filename = "",
-      remaining = buffer.path,
       buf = buffer.buf,
       index = i,
       path = buffer.path,
-      default_level = 0,
+      default_level = 1,
     }
   end)
 
   --- @param ls {current_filename: string, remaining: string, buf: number, index: number, path: string}[]
   local function get_unique_names(ls)
     local grouped_by_filename = list.group_by(ls, function(item)
-      return string.match(item.remaining, ".+/(.+)$") or item.remaining
+      local s = str.split(item.path, "/")
+      return s[#s - item.default_level + 1]
     end)
 
-    for grouped_name, items in pairs(grouped_by_filename) do
+    for _, items in pairs(grouped_by_filename) do
       local next_items = {}
 
       if #items == 1 then -- this is unique item of the group. item should be used without further processing
         local item = items[1]
 
-        -- item.remaining can be empty if file name is like "data.json". if so, use it as it is
-        -- cut the the remaining parent folders
-        local filename = string.gsub(
-          (string.match(item.remaining, ".+/(.+)$") or item.remaining) .. "/" .. item.current_filename,
-          "/$",
-          ""
-        )
-
         local filename_with_index = {
           index = item.index,
-          name = filename,
           buf = item.buf,
           path = item.path,
-          default_level = item.default_level + 1,
+          default_level = item.default_level,
         }
 
         table.insert(output, filename_with_index)
@@ -68,21 +58,18 @@ function M.get_file_names(buffers)
       end
 
       for _, item in ipairs(items) do
-        local parent = string.match(item.remaining, "(.+)/.+$")
+        local s = str.split(item.path, "/")
+        local parent = s[#s - item.default_level]
 
         if parent == nil then -- when there is no parent, use the item as it is
-          local filename = string.gsub(item.remaining .. "/" .. item.current_filename, "/$", "")
           table.insert(output, {
             index = item.index,
-            name = filename,
             buf = item.buf,
             path = item.path,
-            default_level = item.default_level + 1,
+            default_level = item.default_level,
           })
         else
           table.insert(next_items, {
-            current_filename = grouped_name .. "/" .. item.current_filename,
-            remaining = parent,
             index = item.index,
             buf = item.buf,
             path = item.path,
@@ -102,11 +89,12 @@ function M.get_file_names(buffers)
   get_unique_names(input)
 
   return list.map(output, function(item)
-    local extension = string.match(item.name, "%.(%w+)$")
+    local name = M.get_name_by_level(item.path, item.default_level)
+    local extension = string.match(name, "%.(%w+)$")
 
-    local name_without_extension = extension and string.gsub(item.name, "." .. extension .. "$", "")
+    local name_without_extension = extension and string.gsub(name, "." .. extension .. "$", "")
     if not name_without_extension or name_without_extension == "" then
-      name_without_extension = item.name
+      name_without_extension = name
     end
 
     return {
@@ -128,12 +116,10 @@ function M.sort_buffers(buffers, sort)
     end)
   elseif sort.type == constants.SORT_TYPE.FILENAME then
     table.sort(buffers, function(a, b)
-      local n1 = a.name:match(".+/(.+)$") or a.name
-      local n2 = b.name:match(".+/(.+)$") or b.name
       if sort.direction == constants.SORT_DIRECTION.ASC then
-        return n1 < n2
+        return a.name < b.name
       else
-        return n1 > n2
+        return a.name > b.name
       end
     end)
   else
