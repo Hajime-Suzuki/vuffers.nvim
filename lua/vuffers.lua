@@ -96,13 +96,15 @@ function M.resize(width)
 end
 
 function M.increment_additional_folder_depth()
-  logger.debug("increment_additional_folder_depth")
+  logger.debug("increment_additional_folder_depth: start")
   bufs.increment_additional_folder_depth()
+  logger.info("increment_additional_folder_depth: done")
 end
 
 function M.decrement_additional_folder_depth()
-  logger.debug("decrement_additional_folder_depth")
+  logger.debug("decrement_additional_folder_depth: start")
   bufs.decrement_additional_folder_depth()
+  logger.info("decrement_additional_folder_depth: done")
 end
 
 return M

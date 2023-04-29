@@ -15,6 +15,7 @@ local constants = require("vuffers.constants")
 ---@field _unique_name string unique name to be used for sorting
 ---@field _default_folder_depth number
 ---@field _additional_folder_depth number
+---@field _max_folder_depth number
 
 ---@class NativeBuffer
 ---@field buf number
@@ -194,7 +195,11 @@ local function _change_additional_folder_depth(new_level)
 end
 
 function M.increment_additional_folder_depth()
-  local new_level = math.max(_global_additional_folder_depth + 1, 0)
+  local max_folder_depths = list.map(_buf_list, function(buf)
+    return buf._max_folder_depth
+  end)
+  local max_additional_folder_depth = math.max(unpack(max_folder_depths)) - 1
+  local new_level = math.min(_global_additional_folder_depth + 1, max_additional_folder_depth)
   _change_additional_folder_depth(new_level)
 end
 

@@ -86,24 +86,27 @@ local function _format_buffer(item)
     _unique_name = unique_name_without_extension,
     _additional_folder_depth = item.additional_folder_depth,
     _default_folder_depth = item.level,
+    _max_folder_depth = #item.path_fragments,
   }
 
   return b
 end
 
 --- @param buffers { buf:integer,  path: string, _additional_folder_depth?: integer }[]
---- @return Buffer[]
+--- @return Buffer[] buffers
 function M.get_formatted_buffers(buffers)
   local cwd = vim.loop.cwd()
   local output = {}
 
   -- preparing the input. adding extra data
   local input = list.map(buffers, function(buffer, i)
+    local path_from_cwd = str.replace(buffer.path, (cwd or "") .. "/", "")
+    local path_fragments = str.split(path_from_cwd, "/")
     return {
       buf = buffer.buf,
       path = str.replace(buffer.path, (cwd or "") .. "/", ""),
       level = 1,
-      path_fragments = str.split(buffer.path, "/"),
+      path_fragments = path_fragments,
       additional_folder_depth = buffer._additional_folder_depth,
     }
   end)
