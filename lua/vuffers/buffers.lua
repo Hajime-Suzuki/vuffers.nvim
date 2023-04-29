@@ -9,10 +9,12 @@ local constants = require("vuffers.constants")
 
 ---@class Buffer
 ---@field buf number
----@field name string
----@field path string: full path of
+---@field name string name that will be shown in the buffer list
+---@field path string full path
 ---@field ext string
----@field default_level number
+---@field _unique_name string unique name to be used for sorting
+---@field _default_folder_depth number
+---@field _additional_folder_depth number
 
 ---@class NativeBuffer
 ---@field buf number
@@ -70,10 +72,6 @@ local function reset_buffers()
   _buf_list = {}
 end
 
-local function _get_formatted_buffers()
-  return utils.get_file_names(_buf_list)
-end
-
 ---@param buf_or_filename integer | string
 ---@return boolean
 -- `buf_or_filename` can be buffer number of filename
@@ -103,8 +101,9 @@ function M.add_buffer(buffer)
     path = buffer.file,
   })
 
-  _buf_list = _get_formatted_buffers()
-  utils.sort_buffers(_buf_list, config.get_sort())
+  local buffers = utils.get_formatted_buffers(_buf_list)
+  utils.sort_buffers(buffers, config.get_sort())
+  _buf_list = buffers
 
   logger.debug("add_buffer: buffer is added", { file = buffer.file })
 
@@ -132,8 +131,9 @@ function M.remove_buffer(args)
 
   if target_index ~= _get_active_bufnr() then
     table.remove(_buf_list, target_index)
-    _buf_list = _get_formatted_buffers()
-    utils.sort_buffers(_buf_list, config.get_sort())
+    local buffers = utils.get_formatted_buffers(_buf_list)
+    utils.sort_buffers(buffers, config.get_sort())
+    _buf_list = buffers
 
     logger.debug("remove_buffer: buffer is removed", args)
 
@@ -178,7 +178,7 @@ local function _change_additional_folder_depth(new_level)
 
   _additional_folder_depth = new_level
 
-  local bufs = list.map(_get_formatted_buffers(), function(buf)
+  local bufs = list.map(utils.get_formatted_buffers(_buf_list), function(buf)
     local target_level = new_level + 1
     if target_level > buf.default_level then
       buf.name = utils.get_name_by_level(buf.path, target_level)
@@ -222,9 +222,9 @@ function M.reload_all_buffers()
     return
   end
 
+  bufs = utils.get_formatted_buffers(bufs)
+  utils.sort_buffers(bufs, config.get_sort())
   _buf_list = bufs
-  _buf_list = _get_formatted_buffers()
-  utils.sort_buffers(_buf_list, config.get_sort())
 
   local payload = _get_buffer_list_changed_event_payload()
   event_bus.publish_buffer_list_changed(payload)

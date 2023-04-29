@@ -17,9 +17,44 @@ function M.get_name_by_level(filename, level)
   return table.concat(filenames, "/")
 end
 
---- @param buffers { buf:integer, name: string, path: string }[]
+--- @param buffers {  buf: number, path: string, level: string, path_fragments: string[]}[]
+local function _get_unique_folder_depth(buffers, output)
+  local grouped_by_filename = list.group_by(buffers, function(item)
+    return item.path_fragments[#item.path_fragments - item.level + 1]
+  end)
+
+  for _, items in pairs(grouped_by_filename) do
+    local next_items = {}
+
+    local is_unique = #items == 1 -- if the group has only one item then it is unique
+
+    if is_unique then
+      table.insert(output, items[1])
+      goto continue
+    end
+
+    for _, item in ipairs(items) do
+      local parent = item.path_fragments[#item.path_fragments - item.level]
+
+      if parent == nil then -- when there is no parent, use the item as it is
+        table.insert(output, item)
+      else
+        item.level = item.level + 1
+        table.insert(next_items, item)
+      end
+    end
+
+    if #next_items > 0 then
+      _get_unique_folder_depth(next_items, output)
+    end
+
+    ::continue::
+  end
+end
+
+--- @param buffers { buf:integer, name: string, path: string, additional_folder_depth?: integer }[]
 --- @return Buffer[]
-function M.get_file_names(buffers)
+function M.get_formatted_buffers(buffers)
   local output = {}
 
   -- preparing the input. adding extra data
@@ -27,54 +62,17 @@ function M.get_file_names(buffers)
     return {
       buf = buffer.buf,
       path = buffer.path,
-      default_level = 1,
+      level = 1,
       path_fragments = str.split(buffer.path, "/"),
+      additional_folder_depth = buffer.additional_folder_depth,
     }
   end)
 
-  --- @param ls {  buf: number, path: string, default_level: string, path_fragments: string[]}[]
-  local function get_unique_names(ls)
-    local grouped_by_filename = list.group_by(ls, function(item)
-      return item.path_fragments[#item.path_fragments - item.default_level + 1]
-    end)
-
-    for _, items in pairs(grouped_by_filename) do
-      local next_items = {}
-
-      local is_unique = #items == 1 -- if the group has only one item then it is unique
-
-      if is_unique then
-        table.insert(output, items[1])
-        goto continue
-      end
-
-      for _, item in ipairs(items) do
-        local parent = item.path_fragments[#item.path_fragments - item.default_level]
-
-        if parent == nil then -- when there is no parent, use the item as it is
-          table.insert(output, item)
-        else
-          table.insert(next_items, {
-            buf = item.buf,
-            path = item.path,
-            default_level = item.default_level + 1,
-            path_fragments = item.path_fragments,
-          })
-        end
-      end
-
-      if #next_items > 0 then
-        get_unique_names(next_items)
-      end
-
-      ::continue::
-    end
-  end
-
-  get_unique_names(input)
+  --- getting the unique folder depths, which is used to calculate the unique names
+  _get_unique_folder_depth(input, output)
 
   return list.map(output, function(item)
-    local name = M.get_name_by_level(item.path, item.default_level)
+    local name = M.get_name_by_level(item.path, item.level)
     local extension = string.match(name, "%.(%w+)$")
 
     local name_without_extension = extension and string.gsub(name, "." .. extension .. "$", "")
@@ -82,13 +80,18 @@ function M.get_file_names(buffers)
       name_without_extension = name
     end
 
-    return {
+    ---@type Buffer
+    local b = {
       buf = item.buf,
       name = name_without_extension,
       path = item.path,
       ext = extension or "",
-      default_level = item.default_level,
+      _unique_name = name_without_extension,
+      _additional_folder_depth = item.additional_folder_depth,
+      _default_folder_depth = item.level,
     }
+
+    return b
   end)
 end
 
@@ -102,9 +105,9 @@ function M.sort_buffers(buffers, sort)
   elseif sort.type == constants.SORT_TYPE.FILENAME then
     table.sort(buffers, function(a, b)
       if sort.direction == constants.SORT_DIRECTION.ASC then
-        return a.name < b.name
+        return a._unique_name < b._unique_name
       else
-        return a.name > b.name
+        return a._unique_name > b._unique_name
       end
     end)
   else

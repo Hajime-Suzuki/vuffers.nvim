@@ -14,7 +14,7 @@ describe("utils", function()
       assert.equals("d.test.ts", res)
     end)
 
-    it("get filename when level = 1 and file does not have extention", function()
+    it("get filename when level = 1 and file does not have extension", function()
       local file = "a/b/c/Dockerfile"
       local level = 1
 
@@ -71,8 +71,8 @@ describe("utils", function()
   end)
 
   describe("get_file_names", function()
-    it("returns correct level", function()
-      local res = utils.get_file_names({
+    it("returns correct folder depth", function()
+      local res = utils.get_formatted_buffers({
         { path = "a/some.ts", buf = 1 },
         { path = "a/b/c/some.ts", buf = 2 },
         { path = "test.json", buf = 3 },
@@ -88,14 +88,14 @@ describe("utils", function()
       end)
 
       local extensions = list.map(res, function(item)
-        return item.default_level
+        return item._default_folder_depth
       end)
 
       assert.are.same({ 2, 2, 1, 1, 1, 4, 4, 3 }, extensions)
     end)
 
     it("returns correct extension", function()
-      local res = utils.get_file_names({
+      local res = utils.get_formatted_buffers({
         { path = "a/hi.ts", buf = 1 },
         { path = "a/b/c/d.lua", buf = 2 },
         { path = "test.json", buf = 3 },
@@ -115,7 +115,7 @@ describe("utils", function()
     end)
 
     it("returns correct filenames when the filenames of the input is unique", function()
-      local res = utils.get_file_names({
+      local res = utils.get_formatted_buffers({
         { path = "a/hi.ts", buf = 1 },
         { path = "b/user.ts", buf = 2 },
         { path = "b/user.test.ts", buf = 3 },
@@ -137,7 +137,7 @@ describe("utils", function()
     end)
 
     it("returns correct filenames when the filenames of the input has duplicate. case 1", function()
-      local res = utils.get_file_names({
+      local res = utils.get_formatted_buffers({
         { path = "hi.ts", buf = 1 },
         { path = "b/user.ts", buf = 2 },
         { path = "a/test.ts", buf = 3 },
@@ -157,7 +157,7 @@ describe("utils", function()
     end)
 
     it("returns correct filenames when the filenames of the input has duplicate. case 2", function()
-      local res = utils.get_file_names({
+      local res = utils.get_formatted_buffers({
         { path = "b/user.ts", buf = 1 },
         { path = "user.ts", buf = 2 },
       })
@@ -174,7 +174,7 @@ describe("utils", function()
     end)
 
     it("returns correct filenames when the filenames of the input has duplicate. case 3", function()
-      local res = utils.get_file_names({
+      local res = utils.get_formatted_buffers({
         { path = "user.ts", buf = 1 },
         { path = "b/user.ts", buf = 2 },
       })
@@ -191,7 +191,7 @@ describe("utils", function()
     end)
 
     it("returns correct filenames when the filenames of the input has multiple duplicate. case 4", function()
-      local res = utils.get_file_names({
+      local res = utils.get_formatted_buffers({
         { path = "a/user.ts", buf = 1 },
         { path = "b/user.ts", buf = 2 },
         { path = "x/a/test.ts", buf = 3 },
@@ -209,7 +209,7 @@ describe("utils", function()
     end)
 
     it("returns correct filenames when the filenames of the input has multiple duplicate. case 5", function()
-      local res = utils.get_file_names({
+      local res = utils.get_formatted_buffers({
         { path = "a/b.ts", buf = 1 },
         { path = "x/a/b.ts", buf = 2 },
         { path = "m/n/b.ts", buf = 3 },
@@ -230,20 +230,21 @@ describe("utils", function()
 
   describe("sort_buffers", function()
     it("should sort by filename", function()
+      ---@type Buffer[]
       local bufs = {
         {
           buf = 4,
-          name = "some.test",
+          _unique_name = "some.test",
           ext = "ts",
         },
         {
           buf = 6,
-          name = "main",
+          _unique_name = "main",
           ext = "ts",
         },
         {
           buf = 5,
-          name = "some",
+          _unique_name = "some",
           ext = "ts",
         },
       }
@@ -252,7 +253,7 @@ describe("utils", function()
         utils.sort_buffers(bufs, { type = constants.SORT_TYPE.FILENAME, direction = constants.SORT_DIRECTION.ASC })
 
       res = list.map(bufs, function(item)
-        return item.name
+        return item._unique_name
       end)
 
       assert.are.same(res, { "main", "some", "some.test" })
