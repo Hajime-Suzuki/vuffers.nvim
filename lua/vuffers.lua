@@ -95,9 +95,14 @@ function M.resize(width)
   window.resize(width)
 end
 
----@param value integer
-function M.change_level(value)
-  bufs.change_level(value)
+function M.increment_additional_folder_depth()
+  logger.debug("increment_additional_folder_depth")
+  bufs.increment_additional_folder_depth()
+end
+
+function M.decrement_additional_folder_depth()
+  logger.debug("decrement_additional_folder_depth")
+  bufs.decrement_additional_folder_depth()
 end
 
 return M
