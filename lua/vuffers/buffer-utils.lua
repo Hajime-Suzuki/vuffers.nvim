@@ -6,14 +6,14 @@ local str = require("utils.string")
 
 local M = {}
 
-function M.get_name_by_level(filename, level)
-  local items = str.split(filename, "/")
-
-  if #items <= level then
-    return filename
+---@param path_fragments string[]
+---@param level integer
+function M._get_name_by_level(path_fragments, level)
+  if #path_fragments <= level then
+    return table.concat(path_fragments, "/")
   end
 
-  local filenames = list.slice(items, #items - level + 1, #items)
+  local filenames = list.slice(path_fragments, #path_fragments - level + 1, #path_fragments)
   return table.concat(filenames, "/")
 end
 
@@ -51,27 +51,31 @@ local function _get_unique_folder_depth(buffers, output)
     ::continue::
   end
 end
+---@param file_name string
+---@return string filename, string extension
+local function _get_filename_and_extension(file_name)
+  local extension = string.match(file_name, "%.(%w+)$")
+
+  local filename_without_extension = extension and string.gsub(file_name, "." .. extension .. "$", "")
+  if not filename_without_extension or filename_without_extension == "" then
+    filename_without_extension = file_name
+  end
+
+  return filename_without_extension, extension
+end
 
 --- @param item { buf: integer, path: string, level: integer, path_fragments: string[], additional_folder_depth?: integer }
 --- @return Buffer
 local function _format_buffer(item)
-  local unique_name = M.get_name_by_level(item.path, item.level)
-  local extension = string.match(unique_name, "%.(%w+)$")
-
-  local unique_name_without_extension = extension and string.gsub(unique_name, "." .. extension .. "$", "")
-  if not unique_name_without_extension or unique_name_without_extension == "" then
-    unique_name_without_extension = unique_name
-  end
+  local unique_name = M._get_name_by_level(item.path_fragments, item.level)
+  local unique_name_without_extension, extension = _get_filename_and_extension(unique_name)
 
   local additional_depth = item.additional_folder_depth
 
   local display_name = (additional_depth and additional_depth > 0)
-      and M.get_name_by_level(item.path, item.level + additional_depth)
+      and M._get_name_by_level(item.path_fragments, item.level + additional_depth)
     or unique_name
-  local display_name_without_extension = extension and string.gsub(display_name, "." .. extension .. "$", "")
-  if not display_name_without_extension or display_name_without_extension == "" then
-    display_name_without_extension = unique_name
-  end
+  local display_name_without_extension = _get_filename_and_extension(display_name)
 
   ---@type Buffer
   local b = {
@@ -90,13 +94,14 @@ end
 --- @param buffers { buf:integer,  path: string, _additional_folder_depth?: integer }[]
 --- @return Buffer[]
 function M.get_formatted_buffers(buffers)
+  local cwd = vim.loop.cwd()
   local output = {}
 
   -- preparing the input. adding extra data
   local input = list.map(buffers, function(buffer, i)
     return {
       buf = buffer.buf,
-      path = buffer.path,
+      path = str.replace(buffer.path, (cwd or "") .. "/", ""),
       level = 1,
       path_fragments = str.split(buffer.path, "/"),
       additional_folder_depth = buffer._additional_folder_depth,
