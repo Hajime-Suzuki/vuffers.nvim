@@ -9,9 +9,13 @@ local constants = require("vuffers.constants")
 
 ---@class Buffer
 ---@field buf number
----@field name string
----@field path string: full path of
+---@field name string name that will be shown in the buffer list
+---@field path string full path
 ---@field ext string
+---@field _unique_name string unique name to be used for sorting
+---@field _default_folder_depth number
+---@field _additional_folder_depth number
+---@field _max_folder_depth number
 
 ---@class NativeBuffer
 ---@field buf number
@@ -38,6 +42,9 @@ end
 local function _get_active_bufnr()
   return _active_bufnr
 end
+
+---@type number | nil How many more parents the UI shows. This can not go below 0
+local _global_additional_folder_depth = 0
 
 ---@return ActiveBufferChangedPayload
 local function _get_active_buf_changed_event_payload()
@@ -69,10 +76,6 @@ local function reset_buffers()
   _buf_list = {}
 end
 
-local function _get_formatted_buffers()
-  return utils.get_file_names(_buf_list)
-end
-
 ---@param buf_or_filename integer | string
 ---@return boolean
 -- `buf_or_filename` can be buffer number of filename
@@ -100,10 +103,12 @@ function M.add_buffer(buffer)
     buf = buffer.buf,
     name = buffer.file,
     path = buffer.file,
+    _additional_folder_depth = _global_additional_folder_depth,
   })
 
-  _buf_list = _get_formatted_buffers()
-  utils.sort_buffers(_buf_list, config.get_sort())
+  local buffers = utils.get_formatted_buffers(_buf_list)
+  utils.sort_buffers(buffers, config.get_sort())
+  _buf_list = buffers
 
   logger.debug("add_buffer: buffer is added", { file = buffer.file })
 
@@ -131,8 +136,9 @@ function M.remove_buffer(args)
 
   if target_index ~= _get_active_bufnr() then
     table.remove(_buf_list, target_index)
-    _buf_list = _get_formatted_buffers()
-    utils.sort_buffers(_buf_list, config.get_sort())
+    local buffers = utils.get_formatted_buffers(_buf_list)
+    utils.sort_buffers(buffers, config.get_sort())
+    _buf_list = buffers
 
     logger.debug("remove_buffer: buffer is removed", args)
 
@@ -165,14 +171,57 @@ function M.change_sort()
   event_bus.publish_buffer_list_changed(payload)
 end
 
+---@param new_level integer
+local function _change_additional_folder_depth(new_level)
+  if new_level == _global_additional_folder_depth then
+    logger.debug("change_level: level is not changed")
+    return
+  end
+
+  local bufs = list.map(_buf_list, function(buf)
+    buf._additional_folder_depth = new_level
+    return buf
+  end)
+  bufs = utils.get_formatted_buffers(bufs)
+  utils.sort_buffers(bufs, config.get_sort())
+  _buf_list = bufs
+
+  local payload = _get_buffer_list_changed_event_payload()
+
+  _global_additional_folder_depth = new_level
+  logger.debug("change_level: level changed", { new_level = new_level })
+
+  event_bus.publish_buffer_list_changed(payload)
+end
+
+function M.increment_additional_folder_depth()
+  local max_folder_depths = list.map(_buf_list, function(buf)
+    return buf._max_folder_depth
+  end)
+  local max_additional_folder_depth = math.max(unpack(max_folder_depths)) - 1
+  local new_level = math.min(_global_additional_folder_depth + 1, max_additional_folder_depth)
+  _change_additional_folder_depth(new_level)
+end
+
+function M.decrement_additional_folder_depth()
+  local new_level = math.max(_global_additional_folder_depth - 1, 0)
+  _change_additional_folder_depth(new_level)
+end
+
 function M.reload_all_buffers()
   reset_buffers()
 
   local bufs = vim.api.nvim_list_bufs()
-  bufs = list.map(bufs, function(buf, i)
+  bufs = list.map(bufs, function(buf)
     local name = vim.api.nvim_buf_get_name(buf)
     local filetype = vim.api.nvim_buf_get_option(buf, "filetype")
-    return { buf = buf, name = name, index = i, path = name, filetype = filetype }
+    return {
+      buf = buf,
+      name = name,
+      path = name,
+      filetype = filetype,
+      _additional_folder_depth = _global_additional_folder_depth,
+    }
   end)
   ---@diagnostic disable-next-line: cast-local-type
   bufs = list.filter(bufs, utils.is_valid_buf)
@@ -182,9 +231,9 @@ function M.reload_all_buffers()
     return
   end
 
+  bufs = utils.get_formatted_buffers(bufs)
+  utils.sort_buffers(bufs, config.get_sort())
   _buf_list = bufs
-  _buf_list = _get_formatted_buffers()
-  utils.sort_buffers(_buf_list, config.get_sort())
 
   local payload = _get_buffer_list_changed_event_payload()
   event_bus.publish_buffer_list_changed(payload)

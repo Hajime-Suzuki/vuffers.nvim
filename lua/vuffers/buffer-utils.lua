@@ -2,105 +2,118 @@ local list = require("utils.list")
 local logger = require("utils.logger")
 local config = require("vuffers.config")
 local constants = require("vuffers.constants")
-local plenary = require("plenary")
+local str = require("utils.string")
 
 local M = {}
 
---- @param buffers { buf:integer, name: string, path: string }[]
---- @return Buffer[]
-function M.get_file_names(buffers)
+---@param path_fragments string[]
+---@param level integer
+function M._get_name_by_level(path_fragments, level)
+  if #path_fragments <= level then
+    return table.concat(path_fragments, "/")
+  end
+
+  local filenames = list.slice(path_fragments, #path_fragments - level + 1, #path_fragments)
+  return table.concat(filenames, "/")
+end
+
+--- @param buffers {  buf: number, path: string, level: string, path_fragments: string[]}[]
+local function _get_unique_folder_depth(buffers, output)
+  local grouped_by_filename = list.group_by(buffers, function(item)
+    return item.path_fragments[#item.path_fragments - item.level + 1]
+  end)
+
+  for _, items in pairs(grouped_by_filename) do
+    local next_items = {}
+
+    local is_unique = #items == 1 -- if the group has only one item then it is unique
+
+    if is_unique then
+      table.insert(output, items[1])
+      goto continue
+    end
+
+    for _, item in ipairs(items) do
+      local parent = item.path_fragments[#item.path_fragments - item.level]
+
+      if parent == nil then -- when there is no parent, use the item as it is
+        table.insert(output, item)
+      else
+        item.level = item.level + 1
+        table.insert(next_items, item)
+      end
+    end
+
+    if #next_items > 0 then
+      _get_unique_folder_depth(next_items, output)
+    end
+
+    ::continue::
+  end
+end
+---@param file_name string
+---@return string filename, string extension
+local function _get_filename_and_extension(file_name)
+  local extension = string.match(file_name, "%.(%w+)$")
+
+  local filename_without_extension = extension and string.gsub(file_name, "." .. extension .. "$", "")
+  if not filename_without_extension or filename_without_extension == "" then
+    filename_without_extension = file_name
+  end
+
+  return filename_without_extension, extension
+end
+
+--- @param item { buf: integer, path: string, level: integer, path_fragments: string[], additional_folder_depth?: integer }
+--- @return Buffer
+local function _format_buffer(item)
+  local unique_name = M._get_name_by_level(item.path_fragments, item.level)
+  local unique_name_without_extension, extension = _get_filename_and_extension(unique_name)
+
+  local additional_depth = item.additional_folder_depth
+
+  local display_name = (additional_depth and additional_depth > 0)
+      and M._get_name_by_level(item.path_fragments, item.level + additional_depth)
+    or unique_name
+  local display_name_without_extension = _get_filename_and_extension(display_name)
+
+  ---@type Buffer
+  local b = {
+    buf = item.buf,
+    name = display_name_without_extension,
+    path = item.path,
+    ext = extension or "",
+    _unique_name = unique_name_without_extension,
+    _additional_folder_depth = item.additional_folder_depth,
+    _default_folder_depth = item.level,
+    _max_folder_depth = #item.path_fragments,
+  }
+
+  return b
+end
+
+--- @param buffers { buf:integer,  path: string, _additional_folder_depth?: integer }[]
+--- @return Buffer[] buffers
+function M.get_formatted_buffers(buffers)
+  local cwd = vim.loop.cwd()
   local output = {}
 
   -- preparing the input. adding extra data
   local input = list.map(buffers, function(buffer, i)
+    local path_from_cwd = str.replace(buffer.path, (cwd or "") .. "/", "")
+    local path_fragments = str.split(path_from_cwd, "/")
     return {
-      current_filename = "",
-      remaining = buffer.path,
       buf = buffer.buf,
-      index = i,
-      path = buffer.path,
+      path = str.replace(buffer.path, (cwd or "") .. "/", ""),
+      level = 1,
+      path_fragments = path_fragments,
+      additional_folder_depth = buffer._additional_folder_depth,
     }
   end)
 
-  --- @param ls {current_filename: string, remaining: string, buf: number, index: number, path: string}[]
-  local function get_unique_names(ls)
-    local grouped_by_filename = list.group_by(ls, function(item)
-      return string.match(item.remaining, ".+/(.+)$") or item.remaining
-    end)
-
-    for grouped_name, items in pairs(grouped_by_filename) do
-      local next_items = {}
-
-      if #items == 1 then -- this is unique item of the group. item should be used without further processing
-        local item = items[1]
-
-        -- item.remaining can be empty if file name is like "data.json". if so, use it as it is
-        -- cut the the remaining parent folders
-        local filename = string.gsub(
-          (string.match(item.remaining, ".+/(.+)$") or item.remaining) .. "/" .. item.current_filename,
-          "/$",
-          ""
-        )
-
-        local filename_with_index = {
-          index = item.index,
-          name = filename,
-          buf = item.buf,
-          path = item.path,
-        }
-
-        table.insert(output, filename_with_index)
-
-        goto continue
-      end
-
-      for _, item in ipairs(items) do
-        local parent = string.match(item.remaining, "(.+)/.+$")
-
-        if parent == nil then -- when there is no parent, use the item as it is
-          local filename = string.gsub(item.remaining .. "/" .. item.current_filename, "/$", "")
-          table.insert(output, {
-            index = item.index,
-            name = filename,
-            buf = item.buf,
-            path = item.path,
-          })
-        else
-          table.insert(next_items, {
-            current_filename = grouped_name .. "/" .. item.current_filename,
-            remaining = parent,
-            index = item.index,
-            buf = item.buf,
-            path = item.path,
-          })
-        end
-      end
-
-      if #next_items > 0 then
-        get_unique_names(next_items)
-      end
-
-      ::continue::
-    end
-  end
-
-  get_unique_names(input)
-
-  return list.map(output, function(item)
-    local extension = string.match(item.name, "%.(%w+)$")
-
-    local name_without_extension = extension and string.gsub(item.name, "." .. extension .. "$", "")
-    if not name_without_extension or name_without_extension == "" then
-      name_without_extension = item.name
-    end
-
-    return {
-      buf = item.buf,
-      name = name_without_extension,
-      path = item.path,
-      ext = extension or "",
-    }
-  end)
+  --- getting the unique folder depths, which is used to calculate the unique names
+  _get_unique_folder_depth(input, output)
+  return list.map(output, _format_buffer)
 end
 
 --- @param buffers Buffer[]
@@ -112,12 +125,10 @@ function M.sort_buffers(buffers, sort)
     end)
   elseif sort.type == constants.SORT_TYPE.FILENAME then
     table.sort(buffers, function(a, b)
-      local n1 = a.name:match(".+/(.+)$") or a.name
-      local n2 = b.name:match(".+/(.+)$") or b.name
       if sort.direction == constants.SORT_DIRECTION.ASC then
-        return n1 < n2
+        return a._unique_name < b._unique_name
       else
-        return n1 > n2
+        return a._unique_name > b._unique_name
       end
     end)
   else

@@ -1,12 +1,143 @@
 ---@diagnostic disable: undefined-global
 local utils = require("vuffers.buffer-utils")
+local str = require("utils.string")
 local list = require("utils.list")
 local constants = require("vuffers.constants")
 
 describe("utils", function()
-  describe("get_file_names", function()
+  describe("get_file_name_by_level", function()
+    it("get filename when level = 1", function()
+      local file = str.split("a/b/c/d.test.ts", "/")
+      local level = 1
+
+      local res = utils._get_name_by_level(file, level)
+
+      assert.equals("d.test.ts", res)
+    end)
+
+    it("get filename when level = 1 and file does not have extension", function()
+      local file = str.split("a/b/c/Dockerfile", "/")
+      local level = 1
+
+      local res = utils._get_name_by_level(file, level)
+
+      assert.equals("Dockerfile", res)
+    end)
+
+    it("get filename when level = 1 and file starts with dot (.)", function()
+      local file = str.split("a/b/c/.eslintrc", "/")
+      local level = 1
+
+      local res = utils._get_name_by_level(file, level)
+
+      assert.equals(".eslintrc", res)
+    end)
+
+    it("get filename when level = 2", function()
+      local file = str.split("a/b/c/d.test.ts", "/")
+      local level = 2
+
+      local res = utils._get_name_by_level(file, level)
+
+      print(res)
+      assert.equals("c/d.test.ts", res)
+    end)
+
+    it("get filename when level = 2 and file does not have extention", function()
+      local file = str.split("a/b/c/Dockerfile", "/")
+      local level = 2
+
+      local res = utils._get_name_by_level(file, level)
+
+      assert.equals("c/Dockerfile", res)
+    end)
+
+    it("get filename when level = 2 and file starts with dot (.)", function()
+      local file = str.split("a/b/c/.eslintrc", "/")
+      local level = 2
+
+      local res = utils._get_name_by_level(file, level)
+
+      assert.equals("c/.eslintrc", res)
+    end)
+
+    it("get the original filename when level is greater than the actual filename", function()
+      local file = str.split("d.test.ts", "/")
+      local level = 2
+
+      local res = utils._get_name_by_level(file, level)
+
+      assert.equals("d.test.ts", res)
+    end)
+  end)
+
+  describe("get_formatted_buffers", function()
+    it("returns correct default folder depth", function()
+      local res = utils.get_formatted_buffers({
+        { path = "a/some.ts", buf = 1 },
+        { path = "a/b/c/some.ts", buf = 2 },
+        { path = "test.json", buf = 3 },
+        { path = ".eslintrc", buf = 4 },
+        { path = "Dockerfile", buf = 5 },
+        { path = "a/b/c/d", buf = 6 },
+        { path = "x/b/c/d", buf = 7 },
+        { path = "b/c/d", buf = 8 },
+      })
+
+      table.sort(res, function(a, b)
+        return a.buf < b.buf
+      end)
+
+      local extensions = list.map(res, function(item)
+        return item._default_folder_depth
+      end)
+
+      assert.are.same({ 2, 2, 1, 1, 1, 4, 4, 3 }, extensions)
+    end)
+
+    it("returns correct extension", function()
+      local res = utils.get_formatted_buffers({
+        { path = "a/hi.ts", buf = 1 },
+        { path = "a/b/c/d.lua", buf = 2 },
+        { path = "test.json", buf = 3 },
+        { path = ".eslintrc", buf = 4 },
+        { path = "Dockerfile", buf = 5 },
+      })
+
+      table.sort(res, function(a, b)
+        return a.buf < b.buf
+      end)
+
+      local extensions = list.map(res, function(item)
+        return item.ext
+      end)
+
+      assert.are.same({ "ts", "lua", "json", "eslintrc", "" }, extensions)
+    end)
+
+    it("returns correct filenames when additional folder depth is specified", function()
+      local res = utils.get_formatted_buffers({
+        { path = "a/hi.ts", _additional_folder_depth = 100, buf = 1 },
+        { path = "a/test.ts", _additional_folder_depth = -100, buf = 2 },
+        { path = "a/b/c/d.lua", _additional_folder_depth = 3, buf = 3 },
+        { path = "test.json", _additional_folder_depth = 1, buf = 4 },
+        { path = ".eslintrc", _additional_folder_depth = 1, buf = 5 },
+        { path = "Dockerfile", _additional_folder_depth = 1, buf = 6 },
+      })
+
+      table.sort(res, function(a, b)
+        return a.buf < b.buf
+      end)
+
+      local extensions = list.map(res, function(item)
+        return item.name
+      end)
+
+      assert.are.same({ "a/hi", "test", "a/b/c/d", "test", ".eslintrc", "Dockerfile" }, extensions)
+    end)
+
     it("returns correct filenames when the filenames of the input is unique", function()
-      local res = utils.get_file_names({
+      local res = utils.get_formatted_buffers({
         { path = "a/hi.ts", buf = 1 },
         { path = "b/user.ts", buf = 2 },
         { path = "b/user.test.ts", buf = 3 },
@@ -24,16 +155,11 @@ describe("utils", function()
         return item.name
       end)
 
-      local extensions = list.map(res, function(item)
-        return item.ext
-      end)
-
       assert.are.same({ "hi", "user", "user.test", "test", "test", ".eslintrc", "Dockerfile" }, filenames)
-      assert.are.same({ "ts", "ts", "ts", "js", "json", "eslintrc", nil }, extensions)
     end)
 
     it("returns correct filenames when the filenames of the input has duplicate. case 1", function()
-      local res = utils.get_file_names({
+      local res = utils.get_formatted_buffers({
         { path = "hi.ts", buf = 1 },
         { path = "b/user.ts", buf = 2 },
         { path = "a/test.ts", buf = 3 },
@@ -53,7 +179,7 @@ describe("utils", function()
     end)
 
     it("returns correct filenames when the filenames of the input has duplicate. case 2", function()
-      local res = utils.get_file_names({
+      local res = utils.get_formatted_buffers({
         { path = "b/user.ts", buf = 1 },
         { path = "user.ts", buf = 2 },
       })
@@ -70,7 +196,7 @@ describe("utils", function()
     end)
 
     it("returns correct filenames when the filenames of the input has duplicate. case 3", function()
-      local res = utils.get_file_names({
+      local res = utils.get_formatted_buffers({
         { path = "user.ts", buf = 1 },
         { path = "b/user.ts", buf = 2 },
       })
@@ -87,7 +213,7 @@ describe("utils", function()
     end)
 
     it("returns correct filenames when the filenames of the input has multiple duplicate. case 4", function()
-      local res = utils.get_file_names({
+      local res = utils.get_formatted_buffers({
         { path = "a/user.ts", buf = 1 },
         { path = "b/user.ts", buf = 2 },
         { path = "x/a/test.ts", buf = 3 },
@@ -105,7 +231,7 @@ describe("utils", function()
     end)
 
     it("returns correct filenames when the filenames of the input has multiple duplicate. case 5", function()
-      local res = utils.get_file_names({
+      local res = utils.get_formatted_buffers({
         { path = "a/b.ts", buf = 1 },
         { path = "x/a/b.ts", buf = 2 },
         { path = "m/n/b.ts", buf = 3 },
@@ -126,20 +252,21 @@ describe("utils", function()
 
   describe("sort_buffers", function()
     it("should sort by filename", function()
+      ---@type Buffer[]
       local bufs = {
         {
           buf = 4,
-          name = "some.test",
+          _unique_name = "some.test",
           ext = "ts",
         },
         {
           buf = 6,
-          name = "main",
+          _unique_name = "main",
           ext = "ts",
         },
         {
           buf = 5,
-          name = "some",
+          _unique_name = "some",
           ext = "ts",
         },
       }
@@ -148,7 +275,7 @@ describe("utils", function()
         utils.sort_buffers(bufs, { type = constants.SORT_TYPE.FILENAME, direction = constants.SORT_DIRECTION.ASC })
 
       res = list.map(bufs, function(item)
-        return item.name
+        return item._unique_name
       end)
 
       assert.are.same(res, { "main", "some", "some.test" })

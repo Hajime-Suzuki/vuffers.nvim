@@ -19,6 +19,11 @@ function M.setup(opts)
   logger.debug("setup end")
 end
 
+---@return boolean
+function M.is_open()
+  return window.is_open()
+end
+
 function M.toggle()
   if window.is_open() then
     M.close()
@@ -88,6 +93,18 @@ end
 --width: string such as "+10" or "-10", or number
 function M.resize(width)
   window.resize(width)
+end
+
+function M.increment_additional_folder_depth()
+  logger.debug("increment_additional_folder_depth: start")
+  bufs.increment_additional_folder_depth()
+  logger.info("increment_additional_folder_depth: done")
+end
+
+function M.decrement_additional_folder_depth()
+  logger.debug("decrement_additional_folder_depth: start")
+  bufs.decrement_additional_folder_depth()
+  logger.info("decrement_additional_folder_depth: done")
 end
 
 return M

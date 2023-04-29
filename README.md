@@ -120,13 +120,15 @@ return {
 
 ## 🔫 Usage
 
-| function              | param                                                       | description                                                                                                                |
-| --------------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| go_to_buffer_by_count | {direction: 'next' \| 'prev', count?: integer }             | open the next or previous buffer in the vuffers list. works with v count                                                   |
-| go_to_buffer_by_line  | line_number?: integer                                       | open the buffer on the specified line. works with line number                                                              |
-| sort                  | {type: 'none' \| 'filename', direction: 'asc' \| 'desc' }   | sort the vuffers list                                                                                                      |
-| resize                | width: string \| number                                     | resize vuffers list window. If string such as "+10" or "-10" passed, the window size is increased or decreased accordingly |
-| set_log_level         | level: 'error' \| 'warning' \| 'info' \| 'debug' \| 'trace' | update log level                                                                                                           |
+| function                            | param                                                         | description                                                                                                                |
+| ----------------------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `go_to_buffer_by_count`             | `{direction: 'next' \| 'prev', count?: integer }`             | open the next or previous buffer in the vuffers list. works with v count                                                   |
+| `go_to_buffer_by_line`              | `line_number?: integer`                                       | open the buffer on the specified line. works with line number                                                              |
+| `sort`                              | `{type: 'none' \| 'filename', direction: 'asc' \| 'desc' }`   | sort the vuffers list                                                                                                      |
+| `resize`                            | `width: string \| number`                                     | resize vuffers list window. If string such as "+10" or "-10" passed, the window size is increased or decreased accordingly |
+| `increment_additional_folder_depth` |                                                               | show extra parent folder. however, sorting is still based on the filename (e.g. "something" for "a/b/c/something.json")    |
+| `decrement_additional_folder_depth` |                                                               | opposite of `increment_additional_folder_depth`                                                                            |
+| `set_log_level`                     | `level: 'error' \| 'warning' \| 'info' \| 'debug' \| 'trace'` | update log level                                                                                                           |
 
 <br>
 
@@ -147,6 +149,6 @@ return {
   - for example `a/b/c.json` and `a/b/d.json` are grouped and sorted by `b`
 - toggle full path from cwd
 - filter by name
-- bookmark a buffer
+- pin a buffer
 - (show Git signs)
 - (show LSP diagnostics)
