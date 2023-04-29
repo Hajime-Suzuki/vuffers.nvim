@@ -87,7 +87,7 @@ local function _format_buffer(item)
   return b
 end
 
---- @param buffers { buf:integer, name: string, path: string, _additional_folder_depth?: integer }[]
+--- @param buffers { buf:integer,  path: string, _additional_folder_depth?: integer }[]
 --- @return Buffer[]
 function M.get_formatted_buffers(buffers)
   local output = {}

@@ -42,6 +42,9 @@ local function _get_active_bufnr()
   return _active_bufnr
 end
 
+---@type number | nil How many more parents the UI shows. This can not go below 0
+local _global_additional_folder_depth = 0
+
 ---@return ActiveBufferChangedPayload
 local function _get_active_buf_changed_event_payload()
   local _, index = M.get_active_buffer()
@@ -99,6 +102,7 @@ function M.add_buffer(buffer)
     buf = buffer.buf,
     name = buffer.file,
     path = buffer.file,
+    _additional_folder_depth = _global_additional_folder_depth,
   })
 
   local buffers = utils.get_formatted_buffers(_buf_list)
@@ -166,9 +170,6 @@ function M.change_sort()
   event_bus.publish_buffer_list_changed(payload)
 end
 
----@type number | nil How many more parents the UI shows. This can not go below 0
-local _global_additional_folder_depth = 0
-
 ---@param new_level integer
 local function _change_additional_folder_depth(new_level)
   if new_level == _global_additional_folder_depth then
@@ -206,10 +207,16 @@ function M.reload_all_buffers()
   reset_buffers()
 
   local bufs = vim.api.nvim_list_bufs()
-  bufs = list.map(bufs, function(buf, i)
+  bufs = list.map(bufs, function(buf)
     local name = vim.api.nvim_buf_get_name(buf)
     local filetype = vim.api.nvim_buf_get_option(buf, "filetype")
-    return { buf = buf, name = name, index = i, path = name, filetype = filetype }
+    return {
+      buf = buf,
+      name = name,
+      path = name,
+      filetype = filetype,
+      _additional_folder_depth = _global_additional_folder_depth,
+    }
   end)
   ---@diagnostic disable-next-line: cast-local-type
   bufs = list.filter(bufs, utils.is_valid_buf)

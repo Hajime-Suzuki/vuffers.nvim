@@ -116,11 +116,11 @@ describe("utils", function()
 
     it("returns correct filenames when additional folder depth is specified", function()
       local res = utils.get_formatted_buffers({
-        { path = "a/hi.ts", additional_folder_depth = 1, buf = 1 },
-        { path = "a/b/c/d.lua", additional_folder_depth = 1, buf = 2 },
-        { path = "test.json", additional_folder_depth = 1, buf = 3 },
-        { path = ".eslintrc", additional_folder_depth = 1, buf = 4 },
-        { path = "Dockerfile", additional_folder_depth = 1, buf = 5 },
+        { path = "a/hi.ts", _additional_folder_depth = 1, buf = 1 },
+        { path = "a/b/c/d.lua", _additional_folder_depth = 1, buf = 2 },
+        { path = "test.json", _additional_folder_depth = 1, buf = 3 },
+        { path = ".eslintrc", _additional_folder_depth = 1, buf = 4 },
+        { path = "Dockerfile", _additional_folder_depth = 1, buf = 5 },
       })
 
       table.sort(res, function(a, b)
