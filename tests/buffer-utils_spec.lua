@@ -114,6 +114,26 @@ describe("utils", function()
       assert.are.same({ "ts", "lua", "json", "eslintrc", "" }, extensions)
     end)
 
+    it("returns correct filenames when additional folder depth is specified", function()
+      local res = utils.get_formatted_buffers({
+        { path = "a/hi.ts", additional_folder_depth = 1, buf = 1 },
+        { path = "a/b/c/d.lua", additional_folder_depth = 1, buf = 2 },
+        { path = "test.json", additional_folder_depth = 1, buf = 3 },
+        { path = ".eslintrc", additional_folder_depth = 1, buf = 4 },
+        { path = "Dockerfile", additional_folder_depth = 1, buf = 5 },
+      })
+
+      table.sort(res, function(a, b)
+        return a.buf < b.buf
+      end)
+
+      local extensions = list.map(res, function(item)
+        return item.name
+      end)
+
+      assert.are.same({ "a/hi", "c/d", "test", ".eslintrc", "Dockerfile" }, extensions)
+    end)
+
     it("returns correct filenames when the filenames of the input is unique", function()
       local res = utils.get_formatted_buffers({
         { path = "a/hi.ts", buf = 1 },

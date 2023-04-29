@@ -52,6 +52,41 @@ local function _get_unique_folder_depth(buffers, output)
   end
 end
 
+--- @param item { buf: integer, path: string, level: integer, path_fragments: string[], additional_folder_depth?: integer }
+--- @return Buffer
+local function _format_buffer(item)
+  local unique_name = M.get_name_by_level(item.path, item.level)
+  local extension = string.match(unique_name, "%.(%w+)$")
+
+  local unique_name_without_extension = extension and string.gsub(unique_name, "." .. extension .. "$", "")
+  if not unique_name_without_extension or unique_name_without_extension == "" then
+    unique_name_without_extension = unique_name
+  end
+
+  local additional_depth = item.additional_folder_depth
+
+  local display_name = (additional_depth and additional_depth > 0)
+      and M.get_name_by_level(item.path, item.level + additional_depth)
+    or unique_name
+  local display_name_without_extension = extension and string.gsub(display_name, "." .. extension .. "$", "")
+  if not display_name_without_extension or display_name_without_extension == "" then
+    display_name_without_extension = unique_name
+  end
+
+  ---@type Buffer
+  local b = {
+    buf = item.buf,
+    name = display_name_without_extension,
+    path = item.path,
+    ext = extension or "",
+    _unique_name = unique_name_without_extension,
+    _additional_folder_depth = item.additional_folder_depth,
+    _default_folder_depth = item.level,
+  }
+
+  return b
+end
+
 --- @param buffers { buf:integer, name: string, path: string, additional_folder_depth?: integer }[]
 --- @return Buffer[]
 function M.get_formatted_buffers(buffers)
@@ -70,29 +105,7 @@ function M.get_formatted_buffers(buffers)
 
   --- getting the unique folder depths, which is used to calculate the unique names
   _get_unique_folder_depth(input, output)
-
-  return list.map(output, function(item)
-    local name = M.get_name_by_level(item.path, item.level)
-    local extension = string.match(name, "%.(%w+)$")
-
-    local name_without_extension = extension and string.gsub(name, "." .. extension .. "$", "")
-    if not name_without_extension or name_without_extension == "" then
-      name_without_extension = name
-    end
-
-    ---@type Buffer
-    local b = {
-      buf = item.buf,
-      name = name_without_extension,
-      path = item.path,
-      ext = extension or "",
-      _unique_name = name_without_extension,
-      _additional_folder_depth = item.additional_folder_depth,
-      _default_folder_depth = item.level,
-    }
-
-    return b
-  end)
+  return list.map(output, _format_buffer)
 end
 
 --- @param buffers Buffer[]
