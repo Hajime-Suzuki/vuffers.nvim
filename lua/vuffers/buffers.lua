@@ -167,41 +167,38 @@ function M.change_sort()
 end
 
 ---@type number | nil How many more parents the UI shows. This can not go below 0
-local _additional_folder_depth = 0
+local _global_additional_folder_depth = 0
 
 ---@param new_level integer
 local function _change_additional_folder_depth(new_level)
-  if new_level == _additional_folder_depth then
+  if new_level == _global_additional_folder_depth then
     logger.debug("change_level: level is not changed")
     return
   end
 
-  _additional_folder_depth = new_level
-
-  local bufs = list.map(utils.get_formatted_buffers(_buf_list), function(buf)
-    local target_level = new_level + 1
-    if target_level > buf.default_level then
-      buf.name = utils.get_name_by_level(buf.path, target_level)
-    end
+  local bufs = list.map(_buf_list, function(buf)
+    buf._additional_folder_depth = new_level
     return buf
   end)
-
+  bufs = utils.get_formatted_buffers(bufs)
   utils.sort_buffers(bufs, config.get_sort())
   _buf_list = bufs
 
   local payload = _get_buffer_list_changed_event_payload()
+
+  _global_additional_folder_depth = new_level
   logger.debug("change_level: level changed", { new_level = new_level })
 
   event_bus.publish_buffer_list_changed(payload)
 end
 
 function M.increment_additional_folder_depth()
-  local new_level = math.max(_additional_folder_depth + 1, 0)
+  local new_level = math.max(_global_additional_folder_depth + 1, 0)
   _change_additional_folder_depth(new_level)
 end
 
 function M.decrement_additional_folder_depth()
-  local new_level = math.max(_additional_folder_depth - 1, 0)
+  local new_level = math.max(_global_additional_folder_depth - 1, 0)
   _change_additional_folder_depth(new_level)
 end
 

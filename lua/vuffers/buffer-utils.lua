@@ -87,7 +87,7 @@ local function _format_buffer(item)
   return b
 end
 
---- @param buffers { buf:integer, name: string, path: string, additional_folder_depth?: integer }[]
+--- @param buffers { buf:integer, name: string, path: string, _additional_folder_depth?: integer }[]
 --- @return Buffer[]
 function M.get_formatted_buffers(buffers)
   local output = {}
@@ -99,7 +99,7 @@ function M.get_formatted_buffers(buffers)
       path = buffer.path,
       level = 1,
       path_fragments = str.split(buffer.path, "/"),
-      additional_folder_depth = buffer.additional_folder_depth,
+      additional_folder_depth = buffer._additional_folder_depth,
     }
   end)
 
