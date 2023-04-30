@@ -1,6 +1,7 @@
 ---@diagnostic disable: undefined-global
 local buffers = require("vuffers.buffers")
 local event_bus = require("vuffers.event-bus")
+local config = require("vuffers.config")
 local str = require("utils.string")
 local list = require("utils.list")
 local constants = require("vuffers.constants")
@@ -12,6 +13,13 @@ local function create_buffer(buf)
   }, buf)
 end
 
+config.setup({
+  sort = {
+    type = constants.SORT_TYPE.NONE,
+    direction = constants.SORT_DIRECTION.ASC,
+  },
+})
+
 describe("buffers", function()
   describe("pin_buffer", function()
     before_each(function()
@@ -19,21 +27,23 @@ describe("buffers", function()
     end)
 
     it("should pin buffer", function()
+      ---@type BufferListChangedPayload
       local _updated_bufs = {}
       local f = function(bufs)
         _updated_bufs = bufs
       end
 
       -- given there are buffers
+      buffers.add_buffer(create_buffer({ file = "a/b/c/test.json", buf = 1 }))
+      buffers.add_buffer(create_buffer({ file = "foo.lua", buf = 2 }))
+
       event_bus.subscribe(event_bus.event.BufferListChanged, f, { label = "test" })
-      buffers.add_buffer(create_buffer({ file = "a/b/c/test.json" }))
-      buffers.add_buffer(create_buffer({ file = "foo.lua" }))
 
       -- when buffer is pinned
       buffers.pin_buffer(1)
 
       -- then is_pinned is true
-      asserts.are.same(true, _updated_bufs[1].is_pinned)
+      assert.are.same(true, _updated_bufs.buffers[1].is_pinned)
     end)
   end)
 end)

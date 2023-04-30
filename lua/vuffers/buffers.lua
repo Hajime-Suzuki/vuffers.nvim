@@ -12,6 +12,7 @@ local constants = require("vuffers.constants")
 ---@field name string name that will be displayed in the buffer list, which considers additional folder depth
 ---@field path string full path
 ---@field ext string
+---@field is_pinned? boolean
 ---@field _unique_name string unique name
 ---@field _filename string filename ("test" in "test.txt")
 ---@field _default_folder_depth number
@@ -211,7 +212,12 @@ end
 
 ---@param index integer
 function M.pin_buffer(index)
-  error("implement")
+  local target = _buf_list[index]
+  target.is_pinned = true
+  utils.sort_buffers(target, config.get_sort())
+
+  local payload = _get_buffer_list_changed_event_payload()
+  event_bus.publish_buffer_list_changed(payload)
 end
 
 function M.reload_all_buffers()
