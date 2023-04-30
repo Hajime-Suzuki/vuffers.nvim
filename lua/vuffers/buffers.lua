@@ -208,6 +208,11 @@ function M.decrement_additional_folder_depth()
   _change_additional_folder_depth(new_level)
 end
 
+---@param index integer
+function M.pin_buffer(index)
+  error("implement")
+end
+
 function M.reload_all_buffers()
   reset_buffers()
 
