@@ -24,6 +24,7 @@ end
 --- @param arr TItem[]
 --- @param predicate fun(item: TItem, index: number): boolean
 --- @return TItem[] | nil
+--- returns non empty list
 function M.filter(arr, predicate)
   local filtered = {}
   for i, v in ipairs(arr) do

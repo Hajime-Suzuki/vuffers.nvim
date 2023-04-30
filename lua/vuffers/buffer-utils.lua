@@ -53,7 +53,7 @@ local function _get_unique_folder_depth(buffers, output)
 end
 ---@param file_name string
 ---@return string filename, string extension
-local function _get_filename_and_extension(file_name)
+local function _split_filename_and_extension(file_name)
   local extension = string.match(file_name, "%.(%w+)$")
 
   local filename_without_extension = extension and string.gsub(file_name, "." .. extension .. "$", "")
@@ -68,14 +68,15 @@ end
 --- @return Buffer
 local function _format_buffer(item)
   local unique_name = M._get_name_by_level(item.path_fragments, item.level)
-  local unique_name_without_extension, extension = _get_filename_and_extension(unique_name)
+  local unique_name_without_extension, extension = _split_filename_and_extension(unique_name)
 
   local additional_depth = item.additional_folder_depth
 
   local display_name = (additional_depth and additional_depth > 0)
       and M._get_name_by_level(item.path_fragments, item.level + additional_depth)
     or unique_name
-  local display_name_without_extension = _get_filename_and_extension(display_name)
+  local display_name_without_extension = _split_filename_and_extension(display_name)
+  local filename_without_extension = _split_filename_and_extension(item.path_fragments[#item.path_fragments])
 
   ---@type Buffer
   local b = {
@@ -84,6 +85,7 @@ local function _format_buffer(item)
     path = item.path,
     ext = extension or "",
     _unique_name = unique_name_without_extension,
+    _filename = filename_without_extension,
     _additional_folder_depth = item.additional_folder_depth,
     _default_folder_depth = item.level,
     _max_folder_depth = #item.path_fragments,
@@ -124,6 +126,14 @@ function M.sort_buffers(buffers, sort)
       return a.buf < b.buf
     end)
   elseif sort.type == constants.SORT_TYPE.FILENAME then
+    table.sort(buffers, function(a, b)
+      if sort.direction == constants.SORT_DIRECTION.ASC then
+        return a._filename < b._filename
+      else
+        return a._filename > b._filename
+      end
+    end)
+  elseif sort.type == constants.SORT_TYPE.UNIQUE_NAME then
     table.sort(buffers, function(a, b)
       if sort.direction == constants.SORT_DIRECTION.ASC then
         return a._unique_name < b._unique_name

@@ -7,6 +7,7 @@ M.VUFFERS_FILE_TYPE = "vuffers"
 M.SORT_TYPE = {
   NONE = "none",
   FILENAME = "filename",
+  UNIQUE_NAME = "unique-name",
 }
 
 ---@enum SortDirection
