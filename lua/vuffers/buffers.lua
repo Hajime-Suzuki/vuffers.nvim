@@ -9,10 +9,11 @@ local constants = require("vuffers.constants")
 
 ---@class Buffer
 ---@field buf number
----@field name string name that will be shown in the buffer list
+---@field name string name that will be displayed in the buffer list, which considers additional folder depth
 ---@field path string full path
 ---@field ext string
----@field _unique_name string unique name to be used for sorting
+---@field _unique_name string unique name
+---@field _filename string filename ("test" in "test.txt")
 ---@field _default_folder_depth number
 ---@field _additional_folder_depth number
 ---@field _max_folder_depth number
