@@ -74,7 +74,7 @@ function M.set_active_bufnr(buffer)
   event_bus.publish_active_buffer_changed(event_payload)
 end
 
-local function reset_buffers()
+function M._reset_buffers()
   _buf_list = {}
 end
 
@@ -213,15 +213,29 @@ end
 ---@param index integer
 function M.pin_buffer(index)
   local target = _buf_list[index]
+  if not target then
+    return
+  end
   target.is_pinned = true
-  utils.sort_buffers(target, config.get_sort())
+
+  local pinned = list.filter(_buf_list, function(buf)
+    return buf.is_pinned
+  end)
+  pinned = pinned and utils.sort_buffers(pinned, config.get_sort()) or {}
+
+  local unpinned = list.filter(_buf_list, function(buf)
+    return not buf.is_pinned
+  end)
+  unpinned = unpinned and utils.sort_buffers(unpinned, config.get_sort()) or {}
+
+  _buf_list = list.merge(pinned, unpinned)
 
   local payload = _get_buffer_list_changed_event_payload()
   event_bus.publish_buffer_list_changed(payload)
 end
 
 function M.reload_all_buffers()
-  reset_buffers()
+  M._reset_buffers()
 
   local bufs = vim.api.nvim_list_bufs()
   bufs = list.map(bufs, function(buf)

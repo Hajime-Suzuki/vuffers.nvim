@@ -146,6 +146,7 @@ function M.sort_buffers(buffers, sort)
   end
 
   logger.info("sort_buffers: buffers are sorted", sort)
+  return buffers
 end
 
 ---@param buffer NativeBuffer | Buffer

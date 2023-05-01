@@ -24,6 +24,7 @@ describe("buffers", function()
   describe("pin_buffer", function()
     before_each(function()
       event_bus._delete_all_subscriptions()
+      buffers._reset_buffers()
     end)
 
     it("should pin buffer", function()
@@ -44,6 +45,36 @@ describe("buffers", function()
 
       -- then is_pinned is true
       assert.are.same(true, _updated_bufs.buffers[1].is_pinned)
+    end)
+
+    it("should place pinned buffers on the top of the list", function()
+      ---@type BufferListChangedPayload
+      local _updated_bufs = {}
+      local f = function(bufs)
+        _updated_bufs = bufs
+      end
+
+      -- given there are buffers
+      buffers.add_buffer(create_buffer({ file = "a/b/c/test.json", buf = 1 }))
+      buffers.add_buffer(create_buffer({ file = "foo.lua", buf = 2 }))
+      buffers.add_buffer(create_buffer({ file = "bar.lua", buf = 3 }))
+
+      event_bus.subscribe(event_bus.event.BufferListChanged, f, { label = "test" })
+
+      -- when buffer is pinned
+      buffers.pin_buffer(2)
+      buffers.pin_buffer(3)
+
+      local bufs = list.map(_updated_bufs.buffers, function(buf)
+        return { iis_pinned = buf.is_pinned, buf = buf.buf }
+      end)
+
+      -- then buffers are sorted correctly
+      assert.are.same({
+        { iis_pinned = true, buf = 2 },
+        { iis_pinned = true, buf = 3 },
+        { iis_pinned = nil, buf = 1 },
+      }, bufs)
     end)
   end)
 end)
