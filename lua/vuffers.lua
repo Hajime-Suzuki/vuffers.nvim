@@ -108,10 +108,17 @@ function M.decrement_additional_folder_depth()
 end
 
 ---@param arg {index: integer}
-function M.pin_buffehighlightsr(arg)
+function M.pin_buffer(arg)
   logger.debug("pin_buffer: start")
   bufs.pin_buffer(arg.index)
   logger.info("pin_buffer: done")
+end
+
+---@param arg {index: integer}
+function M.unpin_buffer(arg)
+  logger.debug("unpin_buffer: start")
+  bufs.unpin_buffer(arg.index)
+  logger.info("unpin_buffer: done")
 end
 
 return M

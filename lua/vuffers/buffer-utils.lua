@@ -64,7 +64,7 @@ local function _split_filename_and_extension(file_name)
   return filename_without_extension, extension
 end
 
---- @param item { buf: integer, path: string, level: integer, path_fragments: string[], additional_folder_depth?: integer }
+--- @param item { buf: integer, path: string, level: integer, path_fragments: string[], additional_folder_depth?: integer, is_pinned?: boolean }
 --- @return Buffer
 local function _format_buffer(item)
   local unique_name = M._get_name_by_level(item.path_fragments, item.level)
@@ -84,6 +84,7 @@ local function _format_buffer(item)
     name = display_name_without_extension,
     path = item.path,
     ext = extension or "",
+    is_pinned = item.is_pinned,
     _unique_name = unique_name_without_extension,
     _filename = filename_without_extension,
     _additional_folder_depth = item.additional_folder_depth,
@@ -94,7 +95,7 @@ local function _format_buffer(item)
   return b
 end
 
---- @param buffers { buf:integer,  path: string, _additional_folder_depth?: integer }[]
+--- @param buffers { buf:integer,  path: string, _additional_folder_depth?: integer , is_pinned?: boolean}[]
 --- @return Buffer[] buffers
 function M.get_formatted_buffers(buffers)
   local cwd = vim.loop.cwd()
@@ -110,6 +111,7 @@ function M.get_formatted_buffers(buffers)
       level = 1,
       path_fragments = path_fragments,
       additional_folder_depth = buffer._additional_folder_depth,
+      is_pinned = buffer.is_pinned or false,
     }
   end)
 
@@ -120,7 +122,7 @@ end
 
 --- @param buffers Buffer[]
 --- @param sort SortOrder
-function M.sort_buffers(buffers, sort)
+local function _sort_buffers(buffers, sort)
   if sort.type == constants.SORT_TYPE.NONE then
     table.sort(buffers, function(a, b)
       return a.buf < b.buf
@@ -147,6 +149,23 @@ function M.sort_buffers(buffers, sort)
 
   logger.info("sort_buffers: buffers are sorted", sort)
   return buffers
+end
+
+--- @param buffers Buffer[]
+--- @param sort SortOrder
+function M.sort_buffers(buffers, sort)
+  -- pinned buffers are always on top
+  local pinned = list.filter(buffers, function(buf)
+    return buf.is_pinned
+  end)
+  pinned = pinned and _sort_buffers(pinned, sort) or {}
+
+  local unpinned = list.filter(buffers, function(buf)
+    return not buf.is_pinned
+  end)
+  unpinned = unpinned and _sort_buffers(unpinned, sort) or {}
+
+  return list.merge(pinned, unpinned)
 end
 
 ---@param buffer NativeBuffer | Buffer
