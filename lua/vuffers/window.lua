@@ -150,7 +150,7 @@ end
 ---@param width string | number
 --width: string such as "+10" or "-10", or number
 function M.resize(width)
-  logger.trace("M.resize")
+  logger.debug("M.resize")
   local view = _get_view()
   if not M.is_open or not view then
     logger.warn("resize only works when vuffers window is open")

@@ -239,7 +239,18 @@ function M.unpin_buffer(index)
   event_bus.publish_buffer_list_changed(payload)
 end
 
-function M.reload_all_buffers()
+function M.reload_buffers()
+  if #_buf_list == 0 then
+    logger.debug("reload_buffers: buffer list is empty. reload all buffers")
+    return M.reset_buffers()
+  end
+
+  logger.debug("reload_buffers: reloading buffers", { buf_list = _buf_list })
+  local payload = _get_buffer_list_changed_event_payload()
+  event_bus.publish_buffer_list_changed(payload)
+end
+
+function M.reset_buffers()
   M._reset_buffers()
 
   local bufs = vim.api.nvim_list_bufs()
