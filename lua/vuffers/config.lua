@@ -22,7 +22,7 @@ local M = {}
 
 ---@class Keymaps
 ---@field use_default boolean
----@field view { open: string, delete: string  }
+---@field view { open: string, delete: string, pin: string, unpin: string }
 
 ---@class Config
 ---@field debug DebugConfig
@@ -97,6 +97,8 @@ function M.setup(user_config)
       view = {
         open = "<CR>",
         delete = "d",
+        pin = "p",
+        unpin = "P",
       },
     },
     sort = {
