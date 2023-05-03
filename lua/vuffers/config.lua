@@ -17,6 +17,7 @@ local M = {}
 
 ---@class View
 ---@field modified_icon string
+---@field pinned_icon boolean
 ---@field window {width: number, focus_on_open: boolean }
 
 ---@class Keymaps
@@ -104,6 +105,7 @@ function M.setup(user_config)
     },
     view = {
       modified_icon = "󰛿", -- when a buffer is modified, this icon will be shown
+      pinned_icon = "󰐾",
       window = {
         width = 35,
         focus_on_open = false,
