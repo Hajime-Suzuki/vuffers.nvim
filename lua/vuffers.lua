@@ -104,24 +104,32 @@ function M.decrement_additional_folder_depth()
   logger.info("decrement_additional_folder_depth: done")
 end
 
----@param arg {index: integer}
-function M.pin_buffer(arg)
+function M.pin_current_buffer()
   logger.debug("pin_buffer: start")
-  bufs.pin_buffer(arg.index)
+  buffer_actions.pin_buffer()
   logger.info("pin_buffer: done")
 end
 
----@param arg {index: integer}
-function M.unpin_buffer(arg)
+function M.unpin_current_buffer()
   logger.debug("unpin_buffer: start")
-  bufs.unpin_buffer(arg.index)
+  local _, current_index = bufs.get_active_buffer()
+  if not current_index then
+    return
+  end
+
+  bufs.unpin_buffer(current_index)
   logger.info("unpin_buffer: done")
 end
 
 --- rest buffers and reload buffers from scratch
 function M.reset_buffers()
   logger.debug("reset_buffers: start")
-  bufs.reset_buffers()
+  local _, current_index = bufs.get_active_buffer()
+  if not current_index then
+    return
+  end
+
+  bufs.unpin_buffer(current_index)
   logger.info("reset_buffers: done")
 end
 
