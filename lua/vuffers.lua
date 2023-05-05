@@ -106,7 +106,11 @@ end
 
 function M.pin_current_buffer()
   logger.debug("pin_buffer: start")
-  buffer_actions.pin_buffer()
+  local _, current_index = bufs.get_active_buffer()
+  if not current_index then
+    return
+  end
+  bufs.pin_buffer(current_index)
   logger.info("pin_buffer: done")
 end
 
@@ -129,7 +133,7 @@ function M.reset_buffers()
     return
   end
 
-  bufs.unpin_buffer(current_index)
+  bufs.reload_buffers()
   logger.info("reset_buffers: done")
 end
 

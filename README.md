@@ -98,6 +98,8 @@ return {
         view = {
           open = "<CR>",
           delete = "d",
+          pin = "p",
+          unpin = "P",
         },
       },
       sort = {
@@ -106,6 +108,7 @@ return {
       },
       view = {
         modified_icon = "󰛿", -- when a buffer is modified, this icon will be shown
+        pinned_icon = "󰐾",
         window = {
           width = 35,
           focus_on_open = false,
@@ -128,6 +131,8 @@ return {
 | `resize`                            | `width: string \| number`                                     | resize vuffers list window. If string such as "+10" or "-10" passed, the window size is increased or decreased accordingly |
 | `increment_additional_folder_depth` |                                                               | show extra parent folder. however, sorting is still based on the filename (e.g. "something" for "a/b/c/something.json")    |
 | `decrement_additional_folder_depth` |                                                               | opposite of `increment_additional_folder_depth`                                                                            |
+| `pin_current_buffer`                |                                                               | pin current buffer. pinned buffer is placed on the top of the list                                                         |
+| `unpin_current_buffer`              |                                                               | opposite of `pin_current_buffer`                                                                                           |
 | `set_log_level`                     | `level: 'error' \| 'warning' \| 'info' \| 'debug' \| 'trace'` | update log level                                                                                                           |
 
 <br>
@@ -149,6 +154,5 @@ return {
   - for example `a/b/c.json` and `a/b/d.json` are grouped and sorted by `b`
 - toggle full path from cwd
 - filter by name
-- pin a buffer
 - (show Git signs)
 - (show LSP diagnostics)

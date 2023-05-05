@@ -17,7 +17,7 @@ local M = {}
 
 ---@class View
 ---@field modified_icon string
----@field pinned_icon boolean
+---@field pinned_icon string
 ---@field window {width: number, focus_on_open: boolean }
 
 ---@class Keymaps

@@ -376,7 +376,6 @@ describe("utils", function()
 
       local failed = false
       for _ = 1, 20 do
-        print(_)
         local data = shuffle(bufs)
         local input = vim.deepcopy(data)
 
