@@ -8,6 +8,7 @@ M.event = {
   -- Events into UI
   BufferListChanged = "BufferListChanged",
   ActiveBufferChanged = "ActiveBufferChanged",
+  UnpinnedBuffersRemoved = "UnpinnedBufferRemoved",
 
   -- Events from UI
   VuffersWindowOpened = "VuffersWindowOpened",
@@ -56,6 +57,7 @@ end
 
 ---@alias ActiveBufferChangedPayload { index: integer }
 ---@alias BufferListChangedPayload { buffers: Buffer[], active_buffer_index?: integer }
+---@alias UnpinnedBuffersRemovedPayload {buffers: Buffer[], active_buffer_index?: integer, removed_buffers: Buffer[] }
 ---@alias VuffersWindowOpenedPayload {buffer_number: integer }
 
 ---@param payload ActiveBufferChangedPayload
@@ -71,6 +73,11 @@ end
 ---@param payload VuffersWindowOpenedPayload
 function M.publish_vuffers_window_opened(payload)
   M.publish(M.event.VuffersWindowOpened, payload)
+end
+
+---@param payload UnpinnedBuffersRemovedPayload
+function M.publish_unpinned_buffers_removed(payload)
+  M.publish(M.event.UnpinnedBuffersRemoved, payload)
 end
 
 return M

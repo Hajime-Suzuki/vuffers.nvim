@@ -66,6 +66,16 @@ local function _get_buffer_list_changed_event_payload()
   return payload
 end
 
+---@param removed_buffers Buffer[]
+---@return UnpinnedBuffersRemovedPayload
+local function _get_unpinned_buffers_removed_event_payload(removed_buffers)
+  local _, index = M.get_active_buffer()
+
+  ---@type UnpinnedBuffersRemovedPayload
+  local payload = { buffers = _buf_list, active_buffer_index = index, removed_buffers = removed_buffers }
+  return payload
+end
+
 ---@param buffer {path: string, buf: integer}
 function M.set_active_bufnr(buffer)
   _active_bufnr = buffer.buf
@@ -237,6 +247,37 @@ function M.unpin_buffer(index)
 
   local payload = _get_buffer_list_changed_event_payload()
   event_bus.publish_buffer_list_changed(payload)
+end
+
+function M.remove_unpinned_buffers()
+  local to_remove = list.filter(_buf_list, function(buf)
+    return not buf.is_pinned
+  end)
+
+  local new_bufs = list.filter(_buf_list, function(buf)
+    return buf.is_pinned
+  end)
+
+  if not to_remove then
+    return
+  end
+
+  local active = _get_active_bufnr()
+
+  local should_get_new_active_buf = not list.find_index(to_remove or {}, function(buf)
+    return buf.buf == active
+  end)
+
+  if should_get_new_active_buf then
+    _active_bufnr = list.find_index(_buf_list, function(buf)
+      return buf.is_pinned
+    end)
+  end
+
+  _buf_list = utils.sort_buffers(new_bufs or {}, config.get_sort())
+
+  local payload = _get_unpinned_buffers_removed_event_payload(to_remove)
+  event_bus.publish_unpinned_buffers_removed(payload)
 end
 
 function M.reload_buffers()

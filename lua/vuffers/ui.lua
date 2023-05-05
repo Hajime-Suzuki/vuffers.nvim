@@ -109,14 +109,7 @@ end
 local function _highlight_active_buffer(window_bufnr, line_number)
   local ok = pcall(function()
     vim.api.nvim_buf_clear_namespace(window_bufnr, active_buffer_ns, 0, -1)
-    vim.api.nvim_buf_add_highlight(
-      window_bufnr,
-      active_buffer_ns,
-      constants.HIGHLIGHTS.ACTIVE,
-      line_number,
-      ICON_END_COL,
-      -1
-    )
+    vim.api.nvim_buf_add_highlight(window_bufnr, active_buffer_ns, constants.HIGHLIGHTS.ACTIVE, line_number, 0, -1)
   end)
 
   if not ok then
