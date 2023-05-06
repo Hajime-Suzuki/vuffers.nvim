@@ -29,6 +29,7 @@ M.HIGHLIGHTS = {
   WINDOW_BG = "VuffersWindowBackground",
   ACTIVE = "VuffersActiveBuffer",
   MODIFIED_ICON = "VuffersModifiedIcon",
+  PINNED_ICON = "VuffersPinnedIcon",
 }
 
 return M

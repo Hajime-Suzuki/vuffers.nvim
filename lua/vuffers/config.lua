@@ -17,11 +17,12 @@ local M = {}
 
 ---@class View
 ---@field modified_icon string
+---@field pinned_icon string
 ---@field window {width: number, focus_on_open: boolean }
 
 ---@class Keymaps
 ---@field use_default boolean
----@field view { open: string, delete: string  }
+---@field view { open: string, delete: string, pin: string, unpin: string }
 
 ---@class Config
 ---@field debug DebugConfig
@@ -96,6 +97,8 @@ function M.setup(user_config)
       view = {
         open = "<CR>",
         delete = "d",
+        pin = "p",
+        unpin = "P",
       },
     },
     sort = {
@@ -104,6 +107,7 @@ function M.setup(user_config)
     },
     view = {
       modified_icon = "󰛿", -- when a buffer is modified, this icon will be shown
+      pinned_icon = "󰐾",
       window = {
         width = 35,
         focus_on_open = false,

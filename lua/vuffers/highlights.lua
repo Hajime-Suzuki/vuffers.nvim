@@ -6,6 +6,7 @@ local highlights = {
   [hl.WINDOW_BG] = "TabLineFill",
   [hl.ACTIVE] = "Identifier",
   [hl.MODIFIED_ICON] = "Identifier",
+  [hl.PINNED_ICON] = "Identifier",
 }
 
 function M.setup()

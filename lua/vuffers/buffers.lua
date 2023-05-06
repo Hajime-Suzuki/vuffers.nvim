@@ -12,6 +12,7 @@ local constants = require("vuffers.constants")
 ---@field name string name that will be displayed in the buffer list, which considers additional folder depth
 ---@field path string full path
 ---@field ext string
+---@field is_pinned boolean
 ---@field _unique_name string unique name
 ---@field _filename string filename ("test" in "test.txt")
 ---@field _default_folder_depth number
@@ -73,7 +74,7 @@ function M.set_active_bufnr(buffer)
   event_bus.publish_active_buffer_changed(event_payload)
 end
 
-local function reset_buffers()
+function M._reset_buffers()
   _buf_list = {}
 end
 
@@ -108,7 +109,7 @@ function M.add_buffer(buffer)
   })
 
   local buffers = utils.get_formatted_buffers(_buf_list)
-  utils.sort_buffers(buffers, config.get_sort())
+  buffers = utils.sort_buffers(buffers, config.get_sort())
   _buf_list = buffers
 
   logger.debug("add_buffer: buffer is added", { file = buffer.file })
@@ -138,7 +139,7 @@ function M.remove_buffer(args)
   if target_index ~= _get_active_bufnr() then
     table.remove(_buf_list, target_index)
     local buffers = utils.get_formatted_buffers(_buf_list)
-    utils.sort_buffers(buffers, config.get_sort())
+    buffers = utils.sort_buffers(buffers, config.get_sort())
     _buf_list = buffers
 
     logger.debug("remove_buffer: buffer is removed", args)
@@ -166,7 +167,7 @@ function M.remove_buffer(args)
 end
 
 function M.change_sort()
-  utils.sort_buffers(_buf_list, config.get_sort())
+  _buf_list = utils.sort_buffers(_buf_list, config.get_sort())
 
   local payload = _get_buffer_list_changed_event_payload()
   event_bus.publish_buffer_list_changed(payload)
@@ -184,7 +185,7 @@ local function _change_additional_folder_depth(new_level)
     return buf
   end)
   bufs = utils.get_formatted_buffers(bufs)
-  utils.sort_buffers(bufs, config.get_sort())
+  bufs = utils.sort_buffers(bufs, config.get_sort())
   _buf_list = bufs
 
   local payload = _get_buffer_list_changed_event_payload()
@@ -209,8 +210,48 @@ function M.decrement_additional_folder_depth()
   _change_additional_folder_depth(new_level)
 end
 
-function M.reload_all_buffers()
-  reset_buffers()
+---@param index integer
+function M.pin_buffer(index)
+  local target = _buf_list[index]
+  if not target or target.is_pinned then
+    return
+  end
+  target.is_pinned = true
+
+  _buf_list = utils.sort_buffers(_buf_list, config.get_sort())
+
+  local payload = _get_buffer_list_changed_event_payload()
+  event_bus.publish_buffer_list_changed(payload)
+end
+
+---@param index integer
+function M.unpin_buffer(index)
+  local target = _buf_list[index]
+
+  if not target or not target.is_pinned then
+    return
+  end
+  target.is_pinned = false
+
+  _buf_list = utils.sort_buffers(_buf_list, config.get_sort())
+
+  local payload = _get_buffer_list_changed_event_payload()
+  event_bus.publish_buffer_list_changed(payload)
+end
+
+function M.reload_buffers()
+  if #_buf_list == 0 then
+    logger.debug("reload_buffers: buffer list is empty. reload all buffers")
+    return M.reset_buffers()
+  end
+
+  logger.debug("reload_buffers: reloading buffers", { buf_list = _buf_list })
+  local payload = _get_buffer_list_changed_event_payload()
+  event_bus.publish_buffer_list_changed(payload)
+end
+
+function M.reset_buffers()
+  M._reset_buffers()
 
   local bufs = vim.api.nvim_list_bufs()
   bufs = list.map(bufs, function(buf)
@@ -233,7 +274,7 @@ function M.reload_all_buffers()
   end
 
   bufs = utils.get_formatted_buffers(bufs)
-  utils.sort_buffers(bufs, config.get_sort())
+  bufs = utils.sort_buffers(bufs, config.get_sort())
   _buf_list = bufs
 
   local payload = _get_buffer_list_changed_event_payload()

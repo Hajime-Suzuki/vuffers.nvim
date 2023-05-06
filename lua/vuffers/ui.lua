@@ -29,19 +29,39 @@ local function _get_icon(buffer)
   return icon or " ", color or ""
 end
 
+---@class Highlight
+---@field color string
+---@field size integer
+
 ---@class Line
 ---@field text string
----@field icon string
 ---@field modified boolean
+---@field highlights Highlight[]
 
 ---@param buffer Buffer
 ---@return Line
 local function _generate_line(buffer)
-  local icon = _get_icon(buffer)
+  local icon, icon_color = _get_icon(buffer)
+  local pinned_icon = config.get_view_config().pinned_icon
+  local pinned_icon_text = buffer.is_pinned and pinned_icon .. " " or ""
+  local icon_text = icon ~= "" and icon .. " " or "  "
+  local text = pinned_icon_text .. icon_text .. buffer.name
 
-  local filename = icon .. " " .. buffer.name
+  -- icon: length, color, icon
+  local highlights = {}
+
+  if buffer.is_pinned then
+    table.insert(highlights, { color = constants.HIGHLIGHTS.PINNED_ICON, size = string.len(pinned_icon) })
+  end
+  if icon ~= "" then
+    table.insert(highlights, { color = icon_color, size = string.len(icon) })
+  end
+
   local modified = vim.bo[buffer.buf].modified
-  return { text = filename, icon = icon, modified = modified }
+
+  -- TODO: set icon start and end col, then use it as highlight location
+  -- return { text = filename, icon = icon_text, modified = modified, is_pinned = buffer.is_pinned }
+  return { text = text, modified = modified, highlights = highlights }
 end
 
 local active_buffer_ns = vim.api.nvim_create_namespace("VuffersActiveFileNamespace") -- namespace id
@@ -61,18 +81,29 @@ end
 
 ---@param window_bufnr integer
 ---@param line_number integer
----@param buffer Buffer
-local function _highlight_file_icon(window_bufnr, line_number, buffer)
-  local _, icon_highlight = _get_icon(buffer)
-  local ok = pcall(function()
-    vim.api.nvim_buf_add_highlight(window_bufnr, icon_ns, icon_highlight, line_number, ICON_START_COL, ICON_END_COL)
-  end)
+---@return fun(highlight: Highlight)
+local function create_icon_highlighter(window_bufnr, line_number)
+  local last_end_col = 0
 
-  if not ok then
-    logger.error("Error: Could not set highlight for file icon " .. window_bufnr)
+  ---@param highlight Highlight
+  return function(highlight)
+    local SPACE = 1
+    local start = last_end_col + SPACE
+    local finish = start + highlight.size
+
+    logger.debug("highlight", { start = start, finish = finish, line_number = line_number })
+
+    local ok = pcall(function()
+      vim.api.nvim_buf_add_highlight(window_bufnr, icon_ns, highlight.color, line_number, start, finish)
+    end)
+
+    last_end_col = finish
+
+    if not ok then
+      logger.error("Error: Could not set highlight for file icon " .. window_bufnr)
+    end
   end
 end
-
 ---@param window_bufnr integer
 ---@param line_number integer
 local function _highlight_active_buffer(window_bufnr, line_number)
@@ -193,8 +224,12 @@ function M.render_buffers(payload)
       _delete_modified_icon(window_nr, buf_nr)
     end
 
-    if line.icon ~= "" then
-      _highlight_file_icon(window_nr, i - 1, buffers[i])
+    logger.debug("highlights", line.highlights)
+
+    local highlight_icon = create_icon_highlighter(window_nr, i - 1)
+
+    for _, highlight in ipairs(line.highlights) do
+      highlight_icon(highlight)
     end
   end
 

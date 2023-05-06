@@ -21,6 +21,21 @@ function M.for_each(arr, callback)
 end
 
 --- @generic TItem
+--- @param arr1 TItem[]
+--- @param arr2 TItem[]
+--- @return TItem[]
+function M.merge(arr1, arr2)
+  local merged = {}
+  for _, v in ipairs(arr1) do
+    table.insert(merged, v)
+  end
+  for _, v in ipairs(arr2) do
+    table.insert(merged, v)
+  end
+  return merged
+end
+
+--- @generic TItem
 --- @param arr TItem[]
 --- @param predicate fun(item: TItem, index: number): boolean
 --- @return TItem[] | nil

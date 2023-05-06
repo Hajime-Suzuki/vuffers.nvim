@@ -4,6 +4,17 @@ local str = require("utils.string")
 local list = require("utils.list")
 local constants = require("vuffers.constants")
 
+local function shuffle(tbl)
+  local output = vim.deepcopy(tbl)
+
+  for i = #output, 2, -1 do
+    local j = math.random(i)
+    output[i], output[j] = output[j], output[i]
+  end
+
+  return output
+end
+
 describe("utils", function()
   describe("get_file_name_by_level", function()
     it("get filename when level = 1", function()
@@ -321,6 +332,75 @@ describe("utils", function()
       end)
 
       assert.are.same(res, { "main", "some", "some.test" })
+    end)
+
+    it("should sort pinned buffers first", function()
+      ---@type Buffer[]
+      local bufs = {
+        {
+          buf = 4,
+          _filename = "some.test",
+          _unique_name = "a/some.test",
+          ext = "ts",
+          is_pinned = false,
+        },
+        {
+          buf = 6,
+          _filename = "some",
+          _unique_name = "c/d/main",
+          ext = "ts",
+          is_pinned = true,
+        },
+        {
+          buf = 2,
+          _filename = "foo",
+          _unique_name = "b/foo.ts",
+          ext = "ts",
+          is_pinned = false,
+        },
+        {
+          buf = 3,
+          _filename = "another",
+          _unique_name = "a/another.ts",
+          ext = "ts",
+          is_pinned = false,
+        },
+        {
+          buf = 5,
+          _filename = "main",
+          _unique_name = "z/some",
+          ext = "ts",
+          is_pinned = true,
+        },
+      }
+
+      local failed = false
+      for _ = 1, 20 do
+        local data = shuffle(bufs)
+        local input = vim.deepcopy(data)
+
+        local res =
+          utils.sort_buffers(data, { type = constants.SORT_TYPE.FILENAME, direction = constants.SORT_DIRECTION.ASC })
+
+        res = list.map(res, function(item)
+          return item.buf
+        end)
+
+        local ok, err = pcall(function()
+          assert.are.same({ 5, 6, 3, 2, 4 }, res)
+        end)
+
+        if not ok then
+          failed = true
+          print(err)
+          print("input: ", vim.inspect(input))
+          break
+        end
+      end
+
+      if failed then
+        assert.fail("failed")
+      end
     end)
   end)
 end)

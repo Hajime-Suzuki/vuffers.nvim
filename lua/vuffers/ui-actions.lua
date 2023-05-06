@@ -41,4 +41,16 @@ function M.delete_buffer()
   config.get_handlers().on_delete_buffer(buf.buf)
 end
 
+function M.pin_buffer()
+  local pos = vim.api.nvim_win_get_cursor(0)
+  local row = pos[1]
+  buffers.pin_buffer(row)
+end
+
+function M.unpin_buffer()
+  local pos = vim.api.nvim_win_get_cursor(0)
+  local row = pos[1]
+  buffers.unpin_buffer(row)
+end
+
 return M

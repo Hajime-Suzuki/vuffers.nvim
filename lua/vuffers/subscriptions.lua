@@ -11,7 +11,7 @@ function M.setup()
   eb.subscribe(eb.event.BufferListChanged, ui.render_buffers, { label = "UI - render buffers" })
 
   eb.subscribe(eb.event.VuffersWindowOpened, keymaps.setup, { label = "Keymaps - set up keymaps" })
-  eb.subscribe(eb.event.VuffersWindowOpened, buffers.reload_all_buffers, { label = "Buffers - reload all buffers" })
+  eb.subscribe(eb.event.VuffersWindowOpened, buffers.reload_buffers, { label = "Buffers - reload all buffers" })
 end
 
 return M

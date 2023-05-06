@@ -19,6 +19,10 @@ function M.setup(opts)
   logger.debug("setup end")
 end
 
+------------------------------------
+-- UI WINDOW                    --
+------------------------------------
+
 ---@return boolean
 function M.is_open()
   return window.is_open()
@@ -37,11 +41,11 @@ function M.open()
     return
   end
 
-  logger.trace("M.open: start")
+  logger.debug("M.open: start")
 
   window.open()
 
-  logger.trace("M.open: end")
+  logger.debug("M.open: end")
 end
 
 function M.close()
@@ -49,7 +53,7 @@ function M.close()
     return
   end
 
-  logger.trace("M.close: start")
+  logger.debug("M.close: start")
 
   local bufnr = window.get_buffer_number()
   if bufnr == nil then
@@ -58,12 +62,18 @@ function M.close()
   end
 
   window.close()
-  logger.trace("M.close: end")
+  logger.debug("M.close: end")
 end
 
-function M.debug_buffers()
-  bufs.debug_buffers()
+---@param width number | string
+--width: string such as "+10" or "-10", or number
+function M.resize(width)
+  window.resize(width)
 end
+
+------------------------------------
+--   BUFFERS                    --
+------------------------------------
 
 ---@param line_number? integer
 function M.go_to_buffer_by_line(line_number)
@@ -82,19 +92,6 @@ function M.sort(sort)
   bufs.change_sort()
 end
 
----@param level LogLevel
-function M.set_log_level(level)
-  print("log level is set to " .. level)
-  config.set_log_level(level)
-  logger.setup()
-end
-
----@param width number | string
---width: string such as "+10" or "-10", or number
-function M.resize(width)
-  window.resize(width)
-end
-
 function M.increment_additional_folder_depth()
   logger.debug("increment_additional_folder_depth: start")
   bufs.increment_additional_folder_depth()
@@ -105,6 +102,54 @@ function M.decrement_additional_folder_depth()
   logger.debug("decrement_additional_folder_depth: start")
   bufs.decrement_additional_folder_depth()
   logger.info("decrement_additional_folder_depth: done")
+end
+
+function M.pin_current_buffer()
+  logger.debug("pin_buffer: start")
+  local _, current_index = bufs.get_active_buffer()
+  if not current_index then
+    return
+  end
+  bufs.pin_buffer(current_index)
+  logger.info("pin_buffer: done")
+end
+
+function M.unpin_current_buffer()
+  logger.debug("unpin_buffer: start")
+  local _, current_index = bufs.get_active_buffer()
+  if not current_index then
+    return
+  end
+
+  bufs.unpin_buffer(current_index)
+  logger.info("unpin_buffer: done")
+end
+
+--- rest buffers and reload buffers from scratch
+function M.reset_buffers()
+  logger.debug("reset_buffers: start")
+  local _, current_index = bufs.get_active_buffer()
+  if not current_index then
+    return
+  end
+
+  bufs.reload_buffers()
+  logger.info("reset_buffers: done")
+end
+
+------------------------------------
+-- MISC                         --
+------------------------------------
+
+function M.debug_buffers()
+  bufs.debug_buffers()
+end
+
+---@param level LogLevel
+function M.set_log_level(level)
+  print("log level is set to " .. level)
+  config.set_log_level(level)
+  logger.setup()
 end
 
 return M

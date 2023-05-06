@@ -28,6 +28,20 @@ function M.setup(payload)
     actions.delete_buffer,
     { noremap = true, silent = true, nowait = true, buffer = bufnr }
   )
+
+  vim.keymap.set(
+    "n",
+    keymaps.view.pin,
+    actions.pin_buffer,
+    { noremap = true, silent = true, nowait = true, buffer = bufnr }
+  )
+
+  vim.keymap.set(
+    "n",
+    keymaps.view.unpin,
+    actions.unpin_buffer,
+    { noremap = true, silent = true, nowait = true, buffer = bufnr }
+  )
 end
 
 return M

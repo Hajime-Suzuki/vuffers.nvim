@@ -64,7 +64,7 @@ local function _split_filename_and_extension(file_name)
   return filename_without_extension, extension
 end
 
---- @param item { buf: integer, path: string, level: integer, path_fragments: string[], additional_folder_depth?: integer }
+--- @param item { buf: integer, path: string, level: integer, path_fragments: string[], additional_folder_depth?: integer, is_pinned?: boolean }
 --- @return Buffer
 local function _format_buffer(item)
   local unique_name = M._get_name_by_level(item.path_fragments, item.level)
@@ -84,6 +84,7 @@ local function _format_buffer(item)
     name = display_name_without_extension,
     path = item.path,
     ext = extension or "",
+    is_pinned = item.is_pinned,
     _unique_name = unique_name_without_extension,
     _filename = filename_without_extension,
     _additional_folder_depth = item.additional_folder_depth,
@@ -94,7 +95,7 @@ local function _format_buffer(item)
   return b
 end
 
---- @param buffers { buf:integer,  path: string, _additional_folder_depth?: integer }[]
+--- @param buffers { buf:integer,  path: string, _additional_folder_depth?: integer , is_pinned?: boolean}[]
 --- @return Buffer[] buffers
 function M.get_formatted_buffers(buffers)
   local cwd = vim.loop.cwd()
@@ -110,6 +111,7 @@ function M.get_formatted_buffers(buffers)
       level = 1,
       path_fragments = path_fragments,
       additional_folder_depth = buffer._additional_folder_depth,
+      is_pinned = buffer.is_pinned or false,
     }
   end)
 
@@ -119,33 +121,53 @@ function M.get_formatted_buffers(buffers)
 end
 
 --- @param buffers Buffer[]
---- @param sort SortOrder
-function M.sort_buffers(buffers, sort)
-  if sort.type == constants.SORT_TYPE.NONE then
-    table.sort(buffers, function(a, b)
-      return a.buf < b.buf
-    end)
-  elseif sort.type == constants.SORT_TYPE.FILENAME then
-    table.sort(buffers, function(a, b)
-      if sort.direction == constants.SORT_DIRECTION.ASC then
-        return a._filename < b._filename
-      else
-        return a._filename > b._filename
-      end
-    end)
-  elseif sort.type == constants.SORT_TYPE.UNIQUE_NAME then
-    table.sort(buffers, function(a, b)
-      if sort.direction == constants.SORT_DIRECTION.ASC then
-        return a._unique_name < b._unique_name
-      else
-        return a._unique_name > b._unique_name
-      end
-    end)
-  else
-    logger.warn("sort_buffers: unknown sort type", sort)
+--- @param fx (fun(buffer: Buffer): string | number)[]
+--- @param directions SortDirection[]
+local function order_by(buffers, fx, directions)
+  if #buffers == 0 or #fx == 0 then
+    return buffers
   end
 
-  logger.info("sort_buffers: buffers are sorted", sort)
+  table.sort(buffers, function(a, b)
+    for i, f in ipairs(fx) do
+      local direction = directions[i] or constants.SORT_DIRECTION.ASC
+
+      local a_value = f(a)
+      local b_value = f(b)
+
+      if a_value == b_value then
+        goto continue
+      end
+
+      if direction == constants.SORT_DIRECTION.ASC then
+        return a_value < b_value
+      else
+        return a_value > b_value
+      end
+
+      ::continue::
+    end
+
+    return false
+  end)
+
+  return buffers
+end
+
+--- @param buffers Buffer[]
+--- @param sort SortOrder
+function M.sort_buffers(buffers, sort)
+  return order_by(buffers, {
+    function(buf)
+      return buf.is_pinned and 1 or 0
+    end,
+    function(buf)
+      local type = buf.buf
+      type = sort.type == constants.SORT_TYPE.FILENAME and buf._filename or type
+      type = sort.type == constants.SORT_TYPE.UNIQUE_NAME and buf._unique_name or type
+      return type
+    end,
+  }, { constants.SORT_DIRECTION.DESC, sort.direction })
 end
 
 ---@param buffer NativeBuffer | Buffer
