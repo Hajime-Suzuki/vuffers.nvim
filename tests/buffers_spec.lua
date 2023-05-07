@@ -136,4 +136,143 @@ describe("buffers >>", function()
       }, bufs)
     end)
   end)
+
+  describe("remove_unpinned_buffers >>", function()
+    before_each(function()
+      event_bus._delete_all_subscriptions()
+      buffers._reset_buffers()
+    end)
+
+    it("should remove unpinned buffers when active buffer is pinned", function()
+      ---@type UnpinnedBuffersRemovedPayload
+      local _updated_bufs = {}
+      local f = function(bufs)
+        _updated_bufs = bufs
+      end
+
+      -- GIVEN there are buffers
+      buffers.add_buffer(create_buffer({ file = "a/b/c/test.json", buf = 1 }))
+      buffers.add_buffer(create_buffer({ file = "foo.lua", buf = 2 }))
+      buffers.add_buffer(create_buffer({ file = "bar.lua", buf = 3 }))
+      buffers.add_buffer(create_buffer({ file = "test/something.ts", buf = 4 }))
+
+      event_bus.subscribe(event_bus.event.BufferListChanged, f, { label = "test" })
+
+      -- AND there are pinned buffers
+      -- (pin buf4 and buf3)
+      buffers.pin_buffer(4)
+      buffers.pin_buffer(4)
+
+      -- active buffer is buf 4
+      buffers.set_active_bufnr({ buf = 4 })
+
+      local pinned = list.filter(_updated_bufs.buffers, function(buf)
+        return buf.is_pinned
+      end)
+
+      pinned = list.map(pinned or {}, function(buf)
+        return buf.buf
+      end)
+
+      -- there are pinned buffers
+      assert.are.same({ 3, 4 }, pinned)
+
+      event_bus.subscribe(event_bus.event.UnpinnedBuffersRemoved, f, { label = "test" })
+
+      -- WHEN remove unpinned buffers
+      buffers.remove_unpinned_buffers()
+
+      local unpinned = list.filter(_updated_bufs.buffers, function(buf)
+        return not buf.is_pinned
+      end)
+
+      pinned = list.filter(_updated_bufs.buffers, function(buf)
+        return buf.is_pinned
+      end)
+      pinned = list.map(pinned or {}, function(buf)
+        return buf.buf
+      end)
+      local removed = list.map(_updated_bufs.removed_buffers, function(buf)
+        return buf.buf
+      end)
+
+      -- THEN there are no unpinned buffers
+      assert.are.same({}, unpinned)
+
+      -- AND pinned buffers are kept
+      assert.are.same({ 3, 4 }, pinned)
+
+      -- AND unpinned buffers are removed buffers
+      assert.are.same({ 1, 2 }, removed)
+
+      -- AND active buffer is still buf 4 (index 2)
+      assert.are.same(2, _updated_bufs.active_buffer_index)
+    end)
+
+    it("should remove unpinned buffers when active buffer is not pinned", function()
+      ---@type UnpinnedBuffersRemovedPayload
+      local _updated_bufs = {}
+      local f = function(bufs)
+        _updated_bufs = bufs
+      end
+
+      -- GIVEN there are buffers
+      buffers.add_buffer(create_buffer({ file = "a/b/c/test.json", buf = 1 }))
+      buffers.add_buffer(create_buffer({ file = "foo.lua", buf = 2 }))
+      buffers.add_buffer(create_buffer({ file = "bar.lua", buf = 3 }))
+      buffers.add_buffer(create_buffer({ file = "test/something.ts", buf = 4 }))
+
+      event_bus.subscribe(event_bus.event.BufferListChanged, f, { label = "test" })
+
+      -- AND there are pinned buffers
+      -- (pin buf4 and buf3)
+      buffers.pin_buffer(4)
+      buffers.pin_buffer(4)
+
+      -- active buffer is buf 2
+      buffers.set_active_bufnr({ buf = 2 })
+
+      local pinned = list.filter(_updated_bufs.buffers, function(buf)
+        return buf.is_pinned
+      end)
+
+      pinned = list.map(pinned or {}, function(buf)
+        return buf.buf
+      end)
+
+      -- there are pinned buffers
+      assert.are.same({ 3, 4 }, pinned)
+
+      event_bus.subscribe(event_bus.event.UnpinnedBuffersRemoved, f, { label = "test" })
+
+      -- WHEN remove unpinned buffers
+      buffers.remove_unpinned_buffers()
+
+      local unpinned = list.filter(_updated_bufs.buffers, function(buf)
+        return not buf.is_pinned
+      end)
+
+      pinned = list.filter(_updated_bufs.buffers, function(buf)
+        return buf.is_pinned
+      end)
+      pinned = list.map(pinned or {}, function(buf)
+        return buf.buf
+      end)
+      local removed = list.map(_updated_bufs.removed_buffers, function(buf)
+        return buf.buf
+      end)
+
+      -- THEN there are no unpinned buffers
+      assert.are.same({}, unpinned)
+
+      -- AND pinned buffers are kept
+      assert.are.same({ 3, 4 }, pinned)
+
+      -- AND unpinned buffers are removed buffers
+      assert.are.same({ 1, 2 }, removed)
+
+      -- AND active buffer is still buf 3 (index 1)
+      assert.are.same(1, _updated_bufs.active_buffer_index)
+    end)
+  end)
 end)

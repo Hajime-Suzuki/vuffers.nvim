@@ -34,6 +34,10 @@ local M = {}
 ---@type Buffer[]
 local _buf_list = {}
 
+function M._get_buf_list()
+  return _buf_list
+end
+
 ---@type number | nil
 local _active_bufnr = nil
 
@@ -254,24 +258,25 @@ function M.remove_unpinned_buffers()
     return not buf.is_pinned
   end)
 
-  local new_bufs = list.filter(_buf_list, function(buf)
-    return buf.is_pinned
-  end)
-
   if not to_remove then
     return
   end
 
+  local new_bufs = list.filter(_buf_list, function(buf)
+    return buf.is_pinned
+  end)
+
   local active = _get_active_bufnr()
 
-  local should_get_new_active_buf = not list.find_index(to_remove or {}, function(buf)
+  local is_active_buffer_removed = list.find_index(to_remove or {}, function(buf)
     return buf.buf == active
   end)
 
-  if should_get_new_active_buf then
-    _active_bufnr = list.find_index(_buf_list, function(buf)
+  if is_active_buffer_removed then
+    local new_active_buf = list.find(_buf_list, function(buf)
       return buf.is_pinned
     end)
+    _active_bufnr = new_active_buf and new_active_buf.buf or nil
   end
 
   _buf_list = utils.sort_buffers(new_bufs or {}, config.get_sort())
