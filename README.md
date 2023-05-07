@@ -133,6 +133,7 @@ return {
 | `decrement_additional_folder_depth` |                                                               | opposite of `increment_additional_folder_depth`                                                                            |
 | `pin_current_buffer`                |                                                               | pin current buffer. pinned buffer is placed on the top of the list                                                         |
 | `unpin_current_buffer`              |                                                               | opposite of `pin_current_buffer`                                                                                           |
+| `close_unpinned_buffers`            |                                                               | close all unpinned buffers. `config.handlers.on_delete_buffer` is called for each unpinned buffer.                         |
 | `set_log_level`                     | `level: 'error' \| 'warning' \| 'info' \| 'debug' \| 'trace'` | update log level                                                                                                           |
 
 <br>

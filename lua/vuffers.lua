@@ -9,6 +9,7 @@ local subscriptions = require("vuffers.subscriptions")
 
 local M = {}
 
+---@param opts Config
 function M.setup(opts)
   logger.debug("setup start")
   config.setup(opts)
@@ -123,6 +124,10 @@ function M.unpin_current_buffer()
 
   bufs.unpin_buffer(current_index)
   logger.info("unpin_buffer: done")
+end
+
+function M.close_unpinned_buffers()
+  bufs.remove_unpinned_buffers()
 end
 
 --- rest buffers and reload buffers from scratch
