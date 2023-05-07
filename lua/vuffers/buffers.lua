@@ -8,7 +8,7 @@ local constants = require("vuffers.constants")
 --------------types >>----------------
 
 ---@class Buffer
----@field buf number
+---@field buf bufnr
 ---@field name string name that will be displayed in the buffer list, which considers additional folder depth
 ---@field path string full path
 ---@field ext string
@@ -409,9 +409,7 @@ function M.get_next_or_prev_pinned_buffer(type)
   end
 
   local target_buf_index = currently_pinned_buf_index + (type == "next" and 1 or -1)
-  local target_buf = pinned_buffers[target_buf_index]
-
-  return target_buf and target_buf.buf or nil
+  return pinned_buffers[target_buf_index]
 end
 
 function M.debug_buffers()
