@@ -34,10 +34,6 @@ local M = {}
 ---@type Buffer[]
 local _buf_list = {}
 
-function M._get_buf_list()
-  return _buf_list
-end
-
 ---@type number | nil
 local _active_bufnr = nil
 
