@@ -126,7 +126,7 @@ function M.unpin_current_buffer()
   logger.info("unpin_buffer: done")
 end
 
-function M.remove_unpinned_buffers()
+function M.close_unpinned_buffers()
   bufs.remove_unpinned_buffers()
 end
 

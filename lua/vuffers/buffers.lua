@@ -258,14 +258,10 @@ function M.remove_unpinned_buffers()
     return
   end
 
-  local new_bufs = list.filter(_buf_list, function(buf)
-    return buf.is_pinned
-  end)
-
-  local active = _get_active_bufnr()
+  local active_bufnr = _get_active_bufnr()
 
   local is_active_buffer_removed = list.find_index(to_remove or {}, function(buf)
-    return buf.buf == active
+    return buf.buf == active_bufnr
   end)
 
   if is_active_buffer_removed then
@@ -275,6 +271,9 @@ function M.remove_unpinned_buffers()
     _active_bufnr = new_active_buf and new_active_buf.buf or nil
   end
 
+  local new_bufs = list.filter(_buf_list, function(buf)
+    return buf.is_pinned
+  end)
   _buf_list = utils.sort_buffers(new_bufs or {}, config.get_sort())
 
   local payload = _get_unpinned_buffers_removed_event_payload(to_remove)
