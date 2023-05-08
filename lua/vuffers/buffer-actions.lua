@@ -75,4 +75,13 @@ function M.go_to_next_pinned_buffer()
   vim.api.nvim_command(":b " .. next_pinned_buf.buf)
 end
 
+function M.go_to_prev_pinned_buffer()
+  local prev_pinned_buf = buffers.get_next_or_prev_pinned_buffer("prev")
+  if not prev_pinned_buf then
+    return
+  end
+
+  vim.api.nvim_command(":b " .. prev_pinned_buf.buf)
+end
+
 return M

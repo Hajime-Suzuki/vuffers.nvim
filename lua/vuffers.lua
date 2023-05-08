@@ -136,6 +136,12 @@ function M.go_to_next_pinned_buffer()
   logger.info("go_to_next_pinned_buffer: done")
 end
 
+function M.go_to_prev_pinned_buffer()
+  logger.debug("go_to_next_pinned_buffer: start")
+  buffer_actions.go_to_prev_pinned_buffer()
+  logger.info("go_to_next_pinned_buffer: done")
+end
+
 --- rest buffers and reload buffers from scratch
 function M.reset_buffers()
   logger.debug("reset_buffers: start")

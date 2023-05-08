@@ -8,7 +8,7 @@ local constants = require("vuffers.constants")
 --------------types >>----------------
 
 ---@class Buffer
----@field buf bufnr
+---@field buf Bufnr
 ---@field name string name that will be displayed in the buffer list, which considers additional folder depth
 ---@field path string full path
 ---@field ext string
@@ -27,7 +27,7 @@ local constants = require("vuffers.constants")
 ---@field id number
 ---@field match string
 
----@alias bufnr integer
+---@alias Bufnr integer
 --------------<<types ----------------
 
 local M = {}
@@ -49,21 +49,33 @@ local function _get_active_bufnr()
   return _active_bufnr
 end
 
----@return bufnr integer
+---@param bufnr Bufnr
 function M.set_currently_pinned_buf(bufnr)
   local prev_idx = 1
   local current_idx = 2
+
+  local is_buf_pinned = list.find_index(_buf_list, function(b)
+    return b.is_pinned and b.buf == bufnr
+  end) ~= nil
+
+  if not is_buf_pinned then
+    return
+  end
 
   _pinned_bufnrs[prev_idx] = _pinned_bufnrs[current_idx] or bufnr
   _pinned_bufnrs[current_idx] = bufnr
 end
 
----@return bufnr | nil
+function _reset_currently_pinned_bufs()
+  _pinned_bufnrs = {}
+end
+
+---@return Bufnr | nil
 local function _get_last_visited_pinned_bufnr()
   return _pinned_bufnrs[1]
 end
 
----@return bufnr | nil
+---@return Bufnr | nil
 local function _get_currently_pinned_bufnr()
   return _pinned_bufnrs[2]
 end
@@ -264,6 +276,19 @@ function M.unpin_buffer(index)
   if not target or not target.is_pinned then
     return
   end
+
+  local target_index = list.find_index(_buf_list, function(buf)
+    return buf.is_pinned and buf.buf == target.buf
+  end)
+
+  -- pinned buffers are always next to each other
+  local next_pinned = _buf_list[target_index + 1] or _buf_list[target_index - 1]
+  if not next_pinned then
+    _reset_currently_pinned_bufs()
+  else
+    M.set_currently_pinned_buf(next_pinned.buf)
+  end
+
   target.is_pinned = false
 
   _buf_list = utils.sort_buffers(_buf_list, config.get_sort())
