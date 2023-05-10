@@ -50,7 +50,8 @@ local function _get_active_bufnr()
 end
 
 ---@param bufnr Bufnr
-function M.set_currently_pinned_buf(bufnr)
+---@param opts? { only_current_buf: boolean } -- when only_current_buf is true, it will only change the current pinned buffer
+function M.set_currently_pinned_buf(bufnr, opts)
   local prev_idx = 1
   local current_idx = 2
 
@@ -62,12 +63,13 @@ function M.set_currently_pinned_buf(bufnr)
     return
   end
 
+  if opts and opts.only_current_buf then
+    _pinned_bufnrs[current_idx] = bufnr
+    return
+  end
+
   _pinned_bufnrs[prev_idx] = _pinned_bufnrs[current_idx] or bufnr
   _pinned_bufnrs[current_idx] = bufnr
-end
-
-function _reset_currently_pinned_bufs()
-  _pinned_bufnrs = {}
 end
 
 ---@return Bufnr | nil
@@ -284,9 +286,11 @@ function M.unpin_buffer(index)
   -- pinned buffers are always next to each other
   local next_pinned = _buf_list[target_index + 1] or _buf_list[target_index - 1]
   if not next_pinned then
-    _reset_currently_pinned_bufs()
+    -- there is no pinned buffer any more
+    M._reset_currently_pinned_bufs()
   else
-    M.set_currently_pinned_buf(next_pinned.buf)
+    logger.debug("unpin_buffer: next pinned buffer found", { next_pinned = next_pinned })
+    M.set_currently_pinned_buf(next_pinned.buf, { only_current_buf = true })
   end
 
   target.is_pinned = false
