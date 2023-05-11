@@ -30,6 +30,7 @@ M.HIGHLIGHTS = {
   ACTIVE = "VuffersActiveBuffer",
   MODIFIED_ICON = "VuffersModifiedIcon",
   PINNED_ICON = "VuffersPinnedIcon",
+  ACTIVE_PINNED_ICON = "VuffersActivePinnedIcon",
 }
 
 return M

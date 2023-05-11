@@ -8,6 +8,7 @@ M.event = {
   -- Events into UI
   BufferListChanged = "BufferListChanged",
   ActiveBufferChanged = "ActiveBufferChanged",
+  ActivePinnedBufferChanged = "ActivePinnedBufferChanged",
   UnpinnedBuffersRemoved = "UnpinnedBufferRemoved",
 
   -- Events from UI
@@ -56,7 +57,7 @@ end
 -- NOTE: for typing purpose, publish function is created per event type
 
 ---@alias ActiveBufferChangedPayload { index: integer }
----@alias BufferListChangedPayload { buffers: Buffer[], active_buffer_index?: integer }
+---@alias BufferListChangedPayload { buffers: Buffer[], active_buffer_index?: integer, active_pinned_buffer_index?: integer}
 ---@alias UnpinnedBuffersRemovedPayload {buffers: Buffer[], active_buffer_index?: integer, removed_buffers: Buffer[] }
 ---@alias VuffersWindowOpenedPayload {buffer_number: integer }
 

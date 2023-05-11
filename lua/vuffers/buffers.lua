@@ -51,7 +51,7 @@ end
 
 ---@param bufnr Bufnr
 ---@param opts? { only_current_buf: boolean } -- when only_current_buf is true, it will only change the current pinned buffer
-function M.set_currently_pinned_buf(bufnr, opts)
+function M.set_active_pinned_bufnr(bufnr, opts)
   local prev_idx = 1
   local current_idx = 2
 
@@ -70,6 +70,8 @@ function M.set_currently_pinned_buf(bufnr, opts)
 
   _pinned_bufnrs[prev_idx] = _pinned_bufnrs[current_idx] or bufnr
   _pinned_bufnrs[current_idx] = bufnr
+
+  -- TODO: publish event
 end
 
 ---@return Bufnr | nil
@@ -78,7 +80,7 @@ local function _get_last_visited_pinned_bufnr()
 end
 
 ---@return Bufnr | nil
-local function _get_currently_pinned_bufnr()
+local function _get_active_pinned_bufnr()
   return _pinned_bufnrs[2]
 end
 
@@ -96,10 +98,12 @@ end
 
 ---@return BufferListChangedPayload
 local function _get_buffer_list_changed_event_payload()
-  local _, index = M.get_active_buffer()
+  local _, active_index = M.get_active_buffer()
+  local _, active_pinned_index = M.get_active_pinned_buffer()
 
   ---@type BufferListChangedPayload
-  local payload = { buffers = _buf_list, active_buffer_index = index }
+  local payload =
+    { buffers = _buf_list, active_buffer_index = active_index, active_pinned_buffer_index = active_pinned_index }
   return payload
 end
 
@@ -290,7 +294,7 @@ function M.unpin_buffer(index)
     M._reset_currently_pinned_bufs()
   else
     logger.debug("unpin_buffer: next pinned buffer found", { next_pinned = next_pinned })
-    M.set_currently_pinned_buf(next_pinned.buf, { only_current_buf = true })
+    M.set_active_pinned_bufnr(next_pinned.buf, { only_current_buf = true })
   end
 
   target.is_pinned = false
@@ -415,9 +419,19 @@ function M.get_active_buffer()
   return M.get_buffer_by_bufnr(bufnr)
 end
 
+function M.get_active_pinned_buffer()
+  local bufnr = _get_active_pinned_bufnr()
+
+  if not bufnr then
+    return nil, nil
+  end
+
+  return M.get_buffer_by_bufnr(bufnr)
+end
+
 ---@param type 'next' | 'prev'
 function M.get_next_or_prev_pinned_buffer(type)
-  local currently_pinned_bufnr = _get_currently_pinned_bufnr()
+  local currently_pinned_bufnr = _get_active_pinned_bufnr()
 
   if not currently_pinned_bufnr then
     return
@@ -442,7 +456,10 @@ function M.get_next_or_prev_pinned_buffer(type)
 end
 
 function M.debug_buffers()
-  print("active", _active_bufnr)
+  local active = M.get_active_buffer()
+  local active_pinned = M.get_active_pinned_buffer()
+  print("active", active and active.name or "none")
+  print("active_pinned", active_pinned and active_pinned.name or "none")
   print("buffers", vim.inspect(_buf_list))
   print("pinned", vim.inspect({ prev = _pinned_bufnrs[1], current = _pinned_bufnrs[2] }))
 end
