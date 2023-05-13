@@ -70,13 +70,29 @@ local function _get_active_buf_changed_event_payload()
   return payload
 end
 
----@return ActivePinnedBufferChangedPayload
+---@return ActivePinnedBufferChangedPayload | nil
 local function _get_active_pinned_buf_changed_event_payload()
-  local _, index = M.get_active_pinned_buffer()
-  local _, prev_index = M.get_buffer_by_bufnr(_get_last_visited_pinned_bufnr[1])
+  local prev_bufnr = _get_last_visited_pinned_bufnr()
+  local current_bufnr = _get_active_pinned_bufnr()
+
+  local prev_index
+  if prev_bufnr then
+    local _, i = M.get_buffer_by_bufnr(prev_bufnr)
+    prev_index = i
+  end
+
+  local current_index
+  if current_bufnr then
+    local _, i = M.get_buffer_by_bufnr(current_bufnr)
+    current_index = i
+  end
+
+  if not current_index and not prev_index then
+    return
+  end
 
   ---@type ActivePinnedBufferChangedPayload
-  local payload = { current_index = index or 1, prev_index = prev_index or 1 }
+  local payload = { current_index = current_index, prev_index = prev_index }
   return payload
 end
 
@@ -131,19 +147,11 @@ function M.set_active_pinned_bufnr(bufnr, opts)
   _pinned_bufnrs[prev_pos] = _pinned_bufnrs[current_pos] or bufnr
   _pinned_bufnrs[current_pos] = bufnr
 
-  local _, prev_index = M.get_buffer_by_bufnr(_pinned_bufnrs[prev_pos])
-  local _, current_index = M.get_buffer_by_bufnr(_pinned_bufnrs[current_pos])
-
-  if not prev_index or not current_index then
-    logger.error(
-      "set_active_pinned_bufnr: could not find the buffer index",
-      { prev_index = prev_index, current_index = current_index }
-    )
+  local payload = _get_active_pinned_buf_changed_event_payload()
+  if not payload then
+    logger.error("set_active_pinned_bufnr: could not find the buffer index")
     return
   end
-
-  ---@type ActivePinnedBufferChangedPayload
-  local payload = { current_index = current_index, prev_index = prev_index }
   event_bus.publish_active_pinned_buffer_changed(payload)
 end
 
@@ -310,10 +318,14 @@ function M.unpin_buffer(index)
   end)
 
   -- pinned buffers are always next to each other
-  local next_pinned = _buf_list[target_index + 1] or _buf_list[target_index - 1]
+  local next_pinned = list.find({ _buf_list[target_index + 1] or {}, _buf_list[target_index - 1] or {} }, function(item)
+    return item.is_pinned
+  end)
+
+  logger.debug("unpin_buffer: next pinned buffer", next_pinned)
   if not next_pinned then
     -- there is no pinned buffer any more
-    M._reset_currently_pinned_bufs()
+    _pinned_bufnrs = {}
   else
     logger.debug("unpin_buffer: next pinned buffer found", { next_pinned = next_pinned })
     M.set_active_pinned_bufnr(next_pinned.buf, { only_current_buf = true })
