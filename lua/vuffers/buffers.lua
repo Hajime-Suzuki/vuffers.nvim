@@ -3,7 +3,6 @@ local logger = require("utils.logger")
 local utils = require("vuffers.buffer-utils")
 local list = require("utils.list")
 local config = require("vuffers.config")
-local constants = require("vuffers.constants")
 
 --------------types >>----------------
 
@@ -49,31 +48,6 @@ local function _get_active_bufnr()
   return _active_bufnr
 end
 
----@param bufnr Bufnr
----@param opts? { only_current_buf: boolean } -- when only_current_buf is true, it will only change the current pinned buffer
-function M.set_active_pinned_bufnr(bufnr, opts)
-  local prev_idx = 1
-  local current_idx = 2
-
-  local is_buf_pinned = list.find_index(_buf_list, function(b)
-    return b.is_pinned and b.buf == bufnr
-  end) ~= nil
-
-  if not is_buf_pinned then
-    return
-  end
-
-  if opts and opts.only_current_buf then
-    _pinned_bufnrs[current_idx] = bufnr
-    return
-  end
-
-  _pinned_bufnrs[prev_idx] = _pinned_bufnrs[current_idx] or bufnr
-  _pinned_bufnrs[current_idx] = bufnr
-
-  -- TODO: publish event
-end
-
 ---@return Bufnr | nil
 local function _get_last_visited_pinned_bufnr()
   return _pinned_bufnrs[1]
@@ -93,6 +67,16 @@ local function _get_active_buf_changed_event_payload()
 
   ---@type ActiveBufferChangedPayload
   local payload = { index = index or 1 }
+  return payload
+end
+
+---@return ActivePinnedBufferChangedPayload
+local function _get_active_pinned_buf_changed_event_payload()
+  local _, index = M.get_active_pinned_buffer()
+  local _, prev_index = M.get_buffer_by_bufnr(_get_last_visited_pinned_bufnr[1])
+
+  ---@type ActivePinnedBufferChangedPayload
+  local payload = { current_index = index or 1, prev_index = prev_index or 1 }
   return payload
 end
 
@@ -123,6 +107,44 @@ function M.set_active_bufnr(buffer)
 
   local event_payload = _get_active_buf_changed_event_payload()
   event_bus.publish_active_buffer_changed(event_payload)
+end
+
+---@param bufnr Bufnr
+---@param opts? { only_current_buf: boolean } -- when only_current_buf is true, it will only change the current pinned buffer
+function M.set_active_pinned_bufnr(bufnr, opts)
+  local prev_pos = 1
+  local current_pos = 2
+
+  local is_buf_pinned = list.find_index(_buf_list, function(b)
+    return b.is_pinned and b.buf == bufnr
+  end) ~= nil
+
+  if not is_buf_pinned then
+    return
+  end
+
+  if opts and opts.only_current_buf then
+    _pinned_bufnrs[current_pos] = bufnr
+    return
+  end
+
+  _pinned_bufnrs[prev_pos] = _pinned_bufnrs[current_pos] or bufnr
+  _pinned_bufnrs[current_pos] = bufnr
+
+  local _, prev_index = M.get_buffer_by_bufnr(_pinned_bufnrs[prev_pos])
+  local _, current_index = M.get_buffer_by_bufnr(_pinned_bufnrs[current_pos])
+
+  if not prev_index or not current_index then
+    logger.error(
+      "set_active_pinned_bufnr: could not find the buffer index",
+      { prev_index = prev_index, current_index = current_index }
+    )
+    return
+  end
+
+  ---@type ActivePinnedBufferChangedPayload
+  local payload = { current_index = current_index, prev_index = prev_index }
+  event_bus.publish_active_pinned_buffer_changed(payload)
 end
 
 function M._reset_buffers()

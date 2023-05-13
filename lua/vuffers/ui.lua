@@ -161,7 +161,7 @@ function M.highlight_active_buffer(payload)
   _highlight_active_buffer(window_nr, payload.index - 1)
 end
 
----@param payload {index: integer}
+---@param payload {current_index: integer, prev_index?: integer}
 function M.highlight_active_pinned_buffer(payload)
   local window_nr = window.get_buffer_number()
 
@@ -169,14 +169,24 @@ function M.highlight_active_pinned_buffer(payload)
     return
   end
 
-  vim.api.nvim_buf_clear_namespace(window_nr, active_pinned_buffer_ns, 0, -1)
-  vim.api.nvim_buf_clear_namespace(window_nr, pinned_icon_ns, payload.index - 1, payload.index)
+  if payload.prev_index then
+    vim.api.nvim_buf_clear_namespace(window_nr, active_pinned_buffer_ns, payload.prev_index - 1, payload.prev_index)
+    vim.api.nvim_buf_add_highlight(
+      window_nr,
+      pinned_icon_ns,
+      constants.HIGHLIGHTS.PINNED_ICON,
+      payload.prev_index - 1,
+      0,
+      string.len(config.get_view_config().pinned_icon) + 1
+    )
+  end
 
+  vim.api.nvim_buf_clear_namespace(window_nr, pinned_icon_ns, payload.current_index - 1, payload.current_index)
   vim.api.nvim_buf_add_highlight(
     window_nr,
     active_pinned_buffer_ns,
     constants.HIGHLIGHTS.ACTIVE_PINNED_ICON,
-    payload.index - 1,
+    payload.current_index - 1,
     0,
     string.len(config.get_view_config().pinned_icon) + 1
   )
@@ -257,7 +267,7 @@ function M.render_buffers(payload)
 
   --- TODO:move into _generate_line
   if payload.active_pinned_buffer_index then
-    M.highlight_active_pinned_buffer({ index = payload.active_pinned_buffer_index })
+    M.highlight_active_pinned_buffer({ current_index = payload.active_pinned_buffer_index })
   end
 end
 

@@ -11,6 +11,11 @@ local M = {}
 
 function M.setup()
   eb.subscribe(eb.event.ActiveBufferChanged, ui.highlight_active_buffer, { label = "UI - highlight active buffers" })
+  eb.subscribe(
+    eb.event.ActivePinnedBufferChanged,
+    ui.highlight_active_pinned_buffer,
+    { label = "UI - highlight active pinned buffers" }
+  )
 
   eb.subscribe(eb.event.BufferListChanged, ui.render_buffers, { label = "UI - render buffers" })
 
