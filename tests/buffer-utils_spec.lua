@@ -1,5 +1,5 @@
 ---@diagnostic disable: undefined-global
-local utils = require("vuffers.buffer-utils")
+local utils = require("vuffers.buffers.buffer-utils")
 local str = require("utils.string")
 local list = require("utils.list")
 local constants = require("vuffers.constants")
