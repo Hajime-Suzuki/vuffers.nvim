@@ -3,12 +3,11 @@ local logger = require("utils.logger")
 local utils = require("vuffers.buffer-utils")
 local list = require("utils.list")
 local config = require("vuffers.config")
-local constants = require("vuffers.constants")
 
 --------------types >>----------------
 
 ---@class Buffer
----@field buf number
+---@field buf Bufnr
 ---@field name string name that will be displayed in the buffer list, which considers additional folder depth
 ---@field path string full path
 ---@field ext string
@@ -27,6 +26,7 @@ local constants = require("vuffers.constants")
 ---@field id number
 ---@field match string
 
+---@alias Bufnr integer
 --------------<<types ----------------
 
 local M = {}
@@ -37,6 +37,9 @@ local _buf_list = {}
 ---@type number | nil
 local _active_bufnr = nil
 
+---@type integer[] first one is last, and the second one is current
+local _pinned_bufnrs = {}
+
 local function _get_all_buffers()
   return _buf_list
 end
@@ -45,7 +48,17 @@ local function _get_active_bufnr()
   return _active_bufnr
 end
 
----@type number | nil How many more parents the UI shows. This can not go below 0
+---@return Bufnr | nil
+local function _get_last_visited_pinned_bufnr()
+  return _pinned_bufnrs[1]
+end
+
+---@return Bufnr | nil
+function M.get_active_pinned_bufnr()
+  return _pinned_bufnrs[2]
+end
+
+---@type integer | nil How many more parents the UI shows. This can not go below 0
 local _global_additional_folder_depth = 0
 
 ---@return ActiveBufferChangedPayload
@@ -57,12 +70,40 @@ local function _get_active_buf_changed_event_payload()
   return payload
 end
 
+---@return ActivePinnedBufferChangedPayload | nil
+local function _get_active_pinned_buf_changed_event_payload()
+  local prev_bufnr = _get_last_visited_pinned_bufnr()
+  local current_bufnr = M.get_active_pinned_bufnr()
+
+  local prev_index
+  if prev_bufnr then
+    local _, i = M.get_buffer_by_bufnr(prev_bufnr)
+    prev_index = i
+  end
+
+  local current_index
+  if current_bufnr then
+    local _, i = M.get_buffer_by_bufnr(current_bufnr)
+    current_index = i
+  end
+
+  if not current_index and not prev_index then
+    return
+  end
+
+  ---@type ActivePinnedBufferChangedPayload
+  local payload = { current_index = current_index, prev_index = prev_index }
+  return payload
+end
+
 ---@return BufferListChangedPayload
 local function _get_buffer_list_changed_event_payload()
-  local _, index = M.get_active_buffer()
+  local _, active_index = M.get_active_buffer()
+  local _, active_pinned_index = M.get_active_pinned_buffer()
 
   ---@type BufferListChangedPayload
-  local payload = { buffers = _buf_list, active_buffer_index = index }
+  local payload =
+    { buffers = _buf_list, active_buffer_index = active_index, active_pinned_buffer_index = active_pinned_index }
   return payload
 end
 
@@ -82,6 +123,36 @@ function M.set_active_bufnr(buffer)
 
   local event_payload = _get_active_buf_changed_event_payload()
   event_bus.publish_active_buffer_changed(event_payload)
+end
+
+---@param bufnr Bufnr
+---@param opts? { only_current_buf: boolean } -- when only_current_buf is true, it will only change the current pinned buffer
+function M.set_active_pinned_bufnr(bufnr, opts)
+  local prev_pos = 1
+  local current_pos = 2
+
+  local is_buf_pinned = list.find_index(_buf_list, function(b)
+    return b.is_pinned and b.buf == bufnr
+  end) ~= nil
+
+  if not is_buf_pinned then
+    return
+  end
+
+  if opts and opts.only_current_buf then
+    _pinned_bufnrs[current_pos] = bufnr
+    return
+  end
+
+  _pinned_bufnrs[prev_pos] = _pinned_bufnrs[current_pos] or bufnr
+  _pinned_bufnrs[current_pos] = bufnr
+
+  local payload = _get_active_pinned_buf_changed_event_payload()
+  if not payload then
+    logger.error("set_active_pinned_bufnr: could not find the buffer index")
+    return
+  end
+  event_bus.publish_active_pinned_buffer_changed(payload)
 end
 
 function M._reset_buffers()
@@ -227,6 +298,7 @@ function M.pin_buffer(index)
     return
   end
   target.is_pinned = true
+  M.set_active_pinned_bufnr(target.buf)
 
   _buf_list = utils.sort_buffers(_buf_list, config.get_sort())
 
@@ -241,6 +313,25 @@ function M.unpin_buffer(index)
   if not target or not target.is_pinned then
     return
   end
+
+  local target_index = list.find_index(_buf_list, function(buf)
+    return buf.is_pinned and buf.buf == target.buf
+  end)
+
+  -- pinned buffers are always next to each other
+  local next_pinned = list.find({ _buf_list[target_index + 1] or {}, _buf_list[target_index - 1] or {} }, function(item)
+    return item.is_pinned
+  end)
+
+  logger.debug("unpin_buffer: next pinned buffer", next_pinned)
+  if not next_pinned then
+    -- there is no pinned buffer any more
+    _pinned_bufnrs = {}
+  else
+    logger.debug("unpin_buffer: next pinned buffer found", { next_pinned = next_pinned })
+    M.set_active_pinned_bufnr(next_pinned.buf, { only_current_buf = true })
+  end
+
   target.is_pinned = false
 
   _buf_list = utils.sort_buffers(_buf_list, config.get_sort())
@@ -249,10 +340,20 @@ function M.unpin_buffer(index)
   event_bus.publish_buffer_list_changed(payload)
 end
 
-function M.remove_unpinned_buffers()
-  local to_remove = list.filter(_buf_list, function(buf)
+local function _get_pinned_bufs()
+  return list.filter(_buf_list, function(buf)
+    return buf.is_pinned
+  end)
+end
+
+local function _get_unpinned_bufs()
+  return list.filter(_buf_list, function(buf)
     return not buf.is_pinned
   end)
+end
+
+function M.remove_unpinned_buffers()
+  local to_remove = _get_unpinned_bufs()
 
   if not to_remove then
     return
@@ -271,9 +372,7 @@ function M.remove_unpinned_buffers()
     _active_bufnr = new_active_buf and new_active_buf.buf or nil
   end
 
-  local new_bufs = list.filter(_buf_list, function(buf)
-    return buf.is_pinned
-  end)
+  local new_bufs = _get_pinned_bufs()
   _buf_list = utils.sort_buffers(new_bufs or {}, config.get_sort())
 
   local payload = _get_unpinned_buffers_removed_event_payload(to_remove)
@@ -355,9 +454,49 @@ function M.get_active_buffer()
   return M.get_buffer_by_bufnr(bufnr)
 end
 
+function M.get_active_pinned_buffer()
+  local bufnr = M.get_active_pinned_bufnr()
+
+  if not bufnr then
+    return nil, nil
+  end
+
+  return M.get_buffer_by_bufnr(bufnr)
+end
+
+---@param type 'next' | 'prev'
+function M.get_next_or_prev_pinned_buffer(type)
+  local currently_pinned_bufnr = M.get_active_pinned_bufnr()
+
+  if not currently_pinned_bufnr then
+    return
+  end
+
+  local pinned_buffers = _get_pinned_bufs()
+
+  if not pinned_buffers then
+    return
+  end
+
+  local currently_pinned_buf_index = list.find_index(pinned_buffers, function(buf)
+    return buf.buf == currently_pinned_bufnr
+  end)
+
+  if not currently_pinned_buf_index then
+    return
+  end
+
+  local target_buf_index = currently_pinned_buf_index + (type == "next" and 1 or -1)
+  return pinned_buffers[target_buf_index]
+end
+
 function M.debug_buffers()
-  print("active", _active_bufnr)
+  local active = M.get_active_buffer()
+  local active_pinned = M.get_active_pinned_buffer()
+  print("active", active and active.name or "none")
+  print("active_pinned", active_pinned and active_pinned.name or "none")
   print("buffers", vim.inspect(_buf_list))
+  print("pinned", vim.inspect({ prev = _pinned_bufnrs[1], current = _pinned_bufnrs[2] }))
 end
 
 return M

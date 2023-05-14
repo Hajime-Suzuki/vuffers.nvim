@@ -8,8 +8,10 @@ local config = require("vuffers.config")
 
 local M = {}
 
-local ICON_START_COL = 1
-local ICON_END_COL = 3
+local active_pinned_buffer_ns = vim.api.nvim_create_namespace("VuffersActivePinnedBuffer") -- namespace id
+local pinned_icon_ns = vim.api.nvim_create_namespace("VuffersPinnedBuffer") -- namespace id
+local active_buffer_ns = vim.api.nvim_create_namespace("VuffersActiveFileNamespace") -- namespace id
+local icon_ns = vim.api.nvim_create_namespace("VufferIconNamespace") -- namespace id
 
 if not is_devicon_ok then
   print("devicon not found")
@@ -32,6 +34,7 @@ end
 ---@class Highlight
 ---@field color string
 ---@field size integer
+---@field namespace number
 
 ---@class Line
 ---@field text string
@@ -47,25 +50,23 @@ local function _generate_line(buffer)
   local icon_text = icon ~= "" and icon .. " " or "  "
   local text = pinned_icon_text .. icon_text .. buffer.name
 
-  -- icon: length, color, icon
+  ---@type Highlight[]
   local highlights = {}
 
   if buffer.is_pinned then
-    table.insert(highlights, { color = constants.HIGHLIGHTS.PINNED_ICON, size = string.len(pinned_icon) })
+    table.insert(
+      highlights,
+      { color = constants.HIGHLIGHTS.PINNED_ICON, size = string.len(pinned_icon), namespace = pinned_icon_ns }
+    )
   end
   if icon ~= "" then
-    table.insert(highlights, { color = icon_color, size = string.len(icon) })
+    table.insert(highlights, { color = icon_color, size = string.len(icon), namespace = icon_ns })
   end
 
   local modified = vim.bo[buffer.buf].modified
 
-  -- TODO: set icon start and end col, then use it as highlight location
-  -- return { text = filename, icon = icon_text, modified = modified, is_pinned = buffer.is_pinned }
   return { text = text, modified = modified, highlights = highlights }
 end
-
-local active_buffer_ns = vim.api.nvim_create_namespace("VuffersActiveFileNamespace") -- namespace id
-local icon_ns = vim.api.nvim_create_namespace("VufferIconNamespace") -- namespace id
 
 ---@param window_bufnr integer
 ---@param lines string[]
@@ -94,7 +95,7 @@ local function create_icon_highlighter(window_bufnr, line_number)
     logger.debug("highlight", { start = start, finish = finish, line_number = line_number })
 
     local ok = pcall(function()
-      vim.api.nvim_buf_add_highlight(window_bufnr, icon_ns, highlight.color, line_number, start, finish)
+      vim.api.nvim_buf_add_highlight(window_bufnr, highlight.namespace, highlight.color, line_number, start, finish)
     end)
 
     last_end_col = finish
@@ -149,7 +150,7 @@ local function _delete_modified_icon(window_bufnr, bufnr)
   _ext[bufnr] = nil
 end
 
----@param payload ActiveBufferChangedPayload
+---@param payload {index: integer}
 function M.highlight_active_buffer(payload)
   local window_nr = window.get_buffer_number()
 
@@ -158,6 +159,37 @@ function M.highlight_active_buffer(payload)
   end
 
   _highlight_active_buffer(window_nr, payload.index - 1)
+end
+
+---@param payload {current_index: integer, prev_index?: integer}
+function M.highlight_active_pinned_buffer(payload)
+  local window_nr = window.get_buffer_number()
+
+  if not window.is_open() or not window_nr then
+    return
+  end
+
+  if payload.prev_index then
+    vim.api.nvim_buf_clear_namespace(window_nr, active_pinned_buffer_ns, payload.prev_index - 1, payload.prev_index)
+    vim.api.nvim_buf_add_highlight(
+      window_nr,
+      pinned_icon_ns,
+      constants.HIGHLIGHTS.PINNED_ICON,
+      payload.prev_index - 1,
+      0,
+      string.len(config.get_view_config().pinned_icon) + 1
+    )
+  end
+
+  vim.api.nvim_buf_clear_namespace(window_nr, pinned_icon_ns, payload.current_index - 1, payload.current_index)
+  vim.api.nvim_buf_add_highlight(
+    window_nr,
+    active_pinned_buffer_ns,
+    constants.HIGHLIGHTS.ACTIVE_PINNED_ICON,
+    payload.current_index - 1,
+    0,
+    string.len(config.get_view_config().pinned_icon) + 1
+  )
 end
 
 ---@param buffer NativeBuffer
@@ -228,8 +260,14 @@ function M.render_buffers(payload)
 
   logger.debug("Rendered buffers")
 
+  --- TODO:move into _generate_line
   if payload.active_buffer_index then
     M.highlight_active_buffer({ index = payload.active_buffer_index })
+  end
+
+  --- TODO:move into _generate_line
+  if payload.active_pinned_buffer_index then
+    M.highlight_active_pinned_buffer({ current_index = payload.active_pinned_buffer_index })
   end
 end
 

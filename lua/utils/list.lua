@@ -63,9 +63,9 @@ function M.find(arr, predicate)
   return nil
 end
 
---- @generic TItem: any
+--- @generic TItem
 --- @param arr TItem[]
---- @param predicate fun(item: any, index: number): boolean
+--- @param predicate fun(item: TItem, index: number): boolean
 --- @return integer | nil
 function M.find_index(arr, predicate)
   for i, v in pairs(arr) do

@@ -134,6 +134,9 @@ return {
 | `pin_current_buffer`                |                                                               | pin current buffer. pinned buffer is placed on the top of the list                                                         |
 | `unpin_current_buffer`              |                                                               | opposite of `pin_current_buffer`                                                                                           |
 | `close_unpinned_buffers`            |                                                               | close all unpinned buffers. `config.handlers.on_delete_buffer` is called for each unpinned buffer.                         |
+| `go_to_active_pinned_buffer`        |                                                               | go to currently active pinned buffer                                                                                       |
+| `go_to_next_pinned_buffer`          |                                                               | go to next pinned buffer from the active one                                                                               |
+| `go_to_prev_pinned_buffer`          |                                                               | go to previous pinned buffer from the active one                                                                           |
 | `set_log_level`                     | `level: 'error' \| 'warning' \| 'info' \| 'debug' \| 'trace'` | update log level                                                                                                           |
 
 <br>
@@ -145,6 +148,10 @@ return {
 - `VuffersActiveBuffer`
 
 - `VuffersModifiedIcon`
+
+- `VuffersPinnedIcon`
+
+- `VuffersActivePinnedIcon`
 
 <br>
 

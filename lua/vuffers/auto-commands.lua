@@ -12,6 +12,7 @@ function M.create_auto_group()
   vim.api.nvim_create_autocmd("BufEnter", {
     pattern = "*",
     group = constants.AUTO_CMD_GROUP,
+    ---@param buffer NativeBuffer
     callback = function(buffer)
       if not buf_utils.is_valid_buf(buffer) then
         return
@@ -33,6 +34,7 @@ function M.create_auto_group()
       end
 
       buffers.set_active_bufnr({ path = buffer.file, buf = buffer.buf })
+      buffers.set_active_pinned_bufnr(buffer.buf)
     end,
   })
 
