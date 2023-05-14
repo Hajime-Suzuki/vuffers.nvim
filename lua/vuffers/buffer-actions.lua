@@ -1,8 +1,6 @@
 local logger = require("utils.logger")
 local buffers = require("vuffers.buffers")
 local window = require("vuffers.window")
-local config = require("vuffers.config")
-local list = require("utils.list")
 
 local M = {}
 
@@ -64,6 +62,15 @@ function M.next_or_prev_buffer(args)
   end
 
   vim.api.nvim_command(":b " .. target.buf)
+end
+
+function M.go_to_active_pinned_buffer()
+  local next_pinned_buf = buffers.get_active_pinned_bufnr()
+  if not next_pinned_buf then
+    return
+  end
+
+  vim.api.nvim_command(":b " .. next_pinned_buf)
 end
 
 function M.go_to_next_pinned_buffer()

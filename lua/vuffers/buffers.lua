@@ -54,7 +54,7 @@ local function _get_last_visited_pinned_bufnr()
 end
 
 ---@return Bufnr | nil
-local function _get_active_pinned_bufnr()
+function M.get_active_pinned_bufnr()
   return _pinned_bufnrs[2]
 end
 
@@ -73,7 +73,7 @@ end
 ---@return ActivePinnedBufferChangedPayload | nil
 local function _get_active_pinned_buf_changed_event_payload()
   local prev_bufnr = _get_last_visited_pinned_bufnr()
-  local current_bufnr = _get_active_pinned_bufnr()
+  local current_bufnr = M.get_active_pinned_bufnr()
 
   local prev_index
   if prev_bufnr then
@@ -298,6 +298,7 @@ function M.pin_buffer(index)
     return
   end
   target.is_pinned = true
+  M.set_active_pinned_bufnr(target.buf)
 
   _buf_list = utils.sort_buffers(_buf_list, config.get_sort())
 
@@ -454,7 +455,7 @@ function M.get_active_buffer()
 end
 
 function M.get_active_pinned_buffer()
-  local bufnr = _get_active_pinned_bufnr()
+  local bufnr = M.get_active_pinned_bufnr()
 
   if not bufnr then
     return nil, nil
@@ -465,7 +466,7 @@ end
 
 ---@param type 'next' | 'prev'
 function M.get_next_or_prev_pinned_buffer(type)
-  local currently_pinned_bufnr = _get_active_pinned_bufnr()
+  local currently_pinned_bufnr = M.get_active_pinned_bufnr()
 
   if not currently_pinned_bufnr then
     return
