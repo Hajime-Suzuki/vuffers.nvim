@@ -1,4 +1,3 @@
-local event_bus = require("vuffers.event-bus")
 local logger = require("utils.logger")
 local utils = require("vuffers.buffers.buffer-utils")
 local list = require("utils.list")
@@ -14,39 +13,13 @@ local M = {}
 local _pinned_bufnrs = {}
 
 ---@return Bufnr | nil
-local function _get_last_visited_pinned_bufnr()
+function M.get_last_visited_pinned_bufnr()
   return _pinned_bufnrs[1]
 end
 
 ---@return Bufnr | nil
 function M.get_active_pinned_bufnr()
   return _pinned_bufnrs[2]
-end
-
----@return ActivePinnedBufferChangedPayload | nil
-local function _get_active_pinned_buf_changed_event_payload()
-  local prev_bufnr = _get_last_visited_pinned_bufnr()
-  local current_bufnr = M.get_active_pinned_bufnr()
-
-  local prev_index
-  if prev_bufnr then
-    local _, i = bufs().get_buffer_by_bufnr(prev_bufnr)
-    prev_index = i
-  end
-
-  local current_index
-  if current_bufnr then
-    local _, i = bufs().get_buffer_by_bufnr(current_bufnr)
-    current_index = i
-  end
-
-  if not current_index and not prev_index then
-    return
-  end
-
-  ---@type ActivePinnedBufferChangedPayload
-  local payload = { current_index = current_index, prev_index = prev_index }
-  return payload
 end
 
 ---@param bufnr Bufnr
@@ -64,6 +37,7 @@ function M.set_active_pinned_bufnr(bufnr, opts)
     return
   end
 
+  -- TODO: remove
   if opts and opts.only_current_buf then
     _pinned_bufnrs[current_pos] = bufnr
     return
@@ -72,23 +46,7 @@ function M.set_active_pinned_bufnr(bufnr, opts)
   _pinned_bufnrs[prev_pos] = _pinned_bufnrs[current_pos] or bufnr
   _pinned_bufnrs[current_pos] = bufnr
 
-  local payload = _get_active_pinned_buf_changed_event_payload()
-  if not payload then
-    logger.error("set_active_pinned_bufnr: could not find the buffer index")
-    return
-  end
-  event_bus.publish_active_pinned_buffer_changed(payload)
-end
-
----@param removed_buffers Buffer[]
----@return UnpinnedBuffersRemovedPayload
-local function _get_unpinned_buffers_removed_event_payload(removed_buffers)
-  local _buf_list = bufs().get_buffers()
-  local _, index = bufs().get_active_buffer()
-
-  ---@type UnpinnedBuffersRemovedPayload
-  local payload = { buffers = _buf_list, active_buffer_index = index, removed_buffers = removed_buffers }
-  return payload
+  return true
 end
 
 ---@param index integer
@@ -103,9 +61,6 @@ function M.pin_buffer(index)
 
   local bs = bufs().get_buffers()
   bufs().set_buffers(utils.sort_buffers(bs, config.get_sort()))
-
-  -- local payload = bufs()._get_buffer_list_changed_event_payload()
-  -- event_bus.publish_buffer_list_changed(payload)
 end
 
 ---@param index integer
@@ -138,9 +93,6 @@ function M.unpin_buffer(index)
   target.is_pinned = false
 
   bufs().set_buffers(utils.sort_buffers(_buf_list, config.get_sort()))
-
-  -- local payload = bufs()._get_buffer_list_changed_event_payload()
-  -- event_bus.publish_buffer_list_changed(payload)
 end
 
 local function _get_pinned_bufs()
