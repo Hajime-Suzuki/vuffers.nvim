@@ -1,6 +1,6 @@
 local event_bus = require("vuffers.event-bus")
 local logger = require("utils.logger")
-local utils = require("vuffers.buffer-utils")
+local utils = require("vuffers.buffers.buffer-utils")
 local list = require("utils.list")
 local config = require("vuffers.config")
 

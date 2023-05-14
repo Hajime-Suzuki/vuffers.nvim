@@ -3,7 +3,7 @@ local bufs = require("vuffers.buffers")
 local auto_commands = require("vuffers.auto-commands")
 local logger = require("utils.logger")
 local config = require("vuffers.config")
-local buffer_actions = require("vuffers.buffer-actions")
+local buffer_actions = require("vuffers.buffers.buffer-actions")
 local highlights = require("vuffers.highlights")
 local subscriptions = require("vuffers.subscriptions")
 
