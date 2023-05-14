@@ -1,4 +1,5 @@
 local bufs = require("vuffers.buffers.buffers")
+local event_bus = require("vuffers.event-bus")
 local pinned = require("vuffers.buffers.pinned-buffers")
 local M = {}
 
@@ -21,12 +22,37 @@ M.set_buffers = bufs.set_buffers
 M._get_buffer_list_changed_event_payload = bufs._get_buffer_list_changed_event_payload
 M._set_active_bufnr = bufs._set_active_bufnr
 
-M.get_active_pinned_buffer = pinned.get_active_pinned_buffer
 M.get_active_pinned_bufnr = pinned.get_active_pinned_bufnr
-M.get_next_or_prev_pinned_buffer = pinned.get_next_or_prev_pinned_buffer
-M.pin_buffer = pinned.pin_buffer
-M.remove_unpinned_buffers = pinned.remove_unpinned_buffers
+
+---@param index integer
+M.pin_buffer = function(index)
+  pinned.pin_buffer(index)
+  local payload = bufs._get_buffer_list_changed_event_payload()
+  event_bus.publish_buffer_list_changed(payload)
+end
+
+M.remove_unpinned_buffers = function()
+  local removed_buffers = pinned.remove_unpinned_buffers()
+  if not removed_buffers then
+    return
+  end
+
+  local _buf_list = bufs.get_buffers()
+  local _, index = bufs.get_active_buffer()
+
+  ---@type UnpinnedBuffersRemovedPayload
+  local payload = { buffers = _buf_list, active_buffer_index = index, removed_buffers = removed_buffers }
+  event_bus.publish_unpinned_buffers_removed(payload)
+  return payload
+end
+
 M.set_active_pinned_bufnr = pinned.set_active_pinned_bufnr
-M.unpin_buffer = pinned.unpin_buffer
+
+---@param index integer
+M.unpin_buffer = function(index)
+  pinned.unpin_buffer(index)
+  local payload = bufs._get_buffer_list_changed_event_payload()
+  event_bus.publish_buffer_list_changed(payload)
+end
 
 return M

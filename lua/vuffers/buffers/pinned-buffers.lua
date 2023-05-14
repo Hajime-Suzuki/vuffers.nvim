@@ -104,8 +104,8 @@ function M.pin_buffer(index)
   local bs = bufs().get_buffers()
   bufs().set_buffers(utils.sort_buffers(bs, config.get_sort()))
 
-  local payload = bufs()._get_buffer_list_changed_event_payload()
-  event_bus.publish_buffer_list_changed(payload)
+  -- local payload = bufs()._get_buffer_list_changed_event_payload()
+  -- event_bus.publish_buffer_list_changed(payload)
 end
 
 ---@param index integer
@@ -139,8 +139,8 @@ function M.unpin_buffer(index)
 
   bufs().set_buffers(utils.sort_buffers(_buf_list, config.get_sort()))
 
-  local payload = bufs()._get_buffer_list_changed_event_payload()
-  event_bus.publish_buffer_list_changed(payload)
+  -- local payload = bufs()._get_buffer_list_changed_event_payload()
+  -- event_bus.publish_buffer_list_changed(payload)
 end
 
 local function _get_pinned_bufs()
@@ -164,6 +164,7 @@ function M.remove_unpinned_buffers()
     return
   end
 
+  -- TODO: move logic
   local active_bufnr = bufs().get_active_bufnr()
 
   local is_active_buffer_removed = list.find_index(to_remove or {}, function(buf)
@@ -181,8 +182,7 @@ function M.remove_unpinned_buffers()
   local new_bufs = _get_pinned_bufs()
   bufs().set_buffers(utils.sort_buffers(new_bufs or {}, config.get_sort()))
 
-  local payload = _get_unpinned_buffers_removed_event_payload(to_remove)
-  event_bus.publish_unpinned_buffers_removed(payload)
+  return to_remove
 end
 
 function M.get_active_pinned_buffer()
