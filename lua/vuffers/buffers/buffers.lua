@@ -3,8 +3,9 @@ local logger = require("utils.logger")
 local utils = require("vuffers.buffers.buffer-utils")
 local list = require("utils.list")
 local config = require("vuffers.config")
-local pinned = function()
-  return require("vuffers.buffers.pinned-buffers")
+
+local active = function()
+  return require("vuffers.buffers.active-buffer")
 end
 
 --------------types >>----------------
@@ -46,52 +47,8 @@ M.get_buffers = function()
   return _buf_list
 end
 
----@type number | nil
-local _active_bufnr = nil
-
-local function _get_all_buffers()
-  return _buf_list
-end
-
-function M.get_active_bufnr()
-  return _active_bufnr
-end
-
----@param bufnr Bufnr | nil
-function M._set_active_bufnr(bufnr)
-  _active_bufnr = bufnr
-end
-
 ---@type integer | nil How many more parents the UI shows. This can not go below 0
 local _global_additional_folder_depth = 0
-
----@return ActiveBufferChangedPayload
-local function _get_active_buf_changed_event_payload()
-  local _, index = M.get_active_buffer()
-
-  ---@type ActiveBufferChangedPayload
-  local payload = { index = index or 1 }
-  return payload
-end
-
----@return BufferListChangedPayload
-function M._get_buffer_list_changed_event_payload()
-  local _, active_index = M.get_active_buffer()
-  local _, active_pinned_index = pinned().get_active_pinned_buffer()
-
-  ---@type BufferListChangedPayload
-  local payload =
-    { buffers = _buf_list, active_buffer_index = active_index, active_pinned_buffer_index = active_pinned_index }
-  return payload
-end
-
----@param buffer {path: string, buf: integer}
-function M.set_active_bufnr(buffer)
-  _active_bufnr = buffer.buf
-
-  local event_payload = _get_active_buf_changed_event_payload()
-  event_bus.publish_active_buffer_changed(event_payload)
-end
 
 ---@param buf_or_filename integer | string
 ---@return boolean
@@ -129,29 +86,28 @@ function M.add_buffer(buffer)
 
   logger.debug("add_buffer: buffer is added", { file = buffer.file })
 
-  local payload = M._get_buffer_list_changed_event_payload()
-  event_bus.publish_buffer_list_changed(payload)
+  return true
 end
 
----@param args {bufnr?: number, index?: integer}
+---@param args {bufnr?: number}
 function M.remove_buffer(args)
-  if not args.bufnr and not args.index then
+  if not args.bufnr then
     return
   end
 
-  local target_index = args.index or list.find_index(_buf_list, function(buf)
+  local target_index = list.find_index(_buf_list, function(buf)
     return buf.buf == args.bufnr
   end)
 
   if not target_index then
     -- TODO: debounce. buffer is deleted by UI action, first the buffer list is updated, then actual buffer is deleted by :bufwipeout, which triggers this function again
-    logger.warn("remove_buffer: buffer not found", args)
+    logger.debug("remove_buffer: buffer not found", args)
     return
   end
 
   logger.debug("remove_buffer: buffer will be removed", args)
 
-  if target_index ~= M.get_active_bufnr() then
+  if target_index ~= active().get_active_bufnr() then
     table.remove(_buf_list, target_index)
     local buffers = utils.get_formatted_buffers(_buf_list)
     buffers = utils.sort_buffers(buffers, config.get_sort())
@@ -159,16 +115,14 @@ function M.remove_buffer(args)
 
     logger.debug("remove_buffer: buffer is removed", args)
 
-    local payload = M._get_buffer_list_changed_event_payload()
-    event_bus.publish_buffer_list_changed(payload)
-    return
+    return true
   end
   --
   ---@type Buffer | nil
   local next_active_buffer = _buf_list[target_index + 1] or _buf_list[target_index - 1]
 
   if next_active_buffer then
-    M.set_active_bufnr(next_active_buffer)
+    active().set_active_bufnr(next_active_buffer.buf)
   else
     logger.warn("remove_buffer: can not delete the last buffer", args)
     return
@@ -177,15 +131,11 @@ function M.remove_buffer(args)
   table.remove(_buf_list, target_index)
   logger.debug("remove_buffer: buffer is removed", args)
 
-  local payload = M._get_buffer_list_changed_event_payload()
-  event_bus.publish_buffer_list_changed(payload)
+  return true
 end
 
 function M.change_sort()
   _buf_list = utils.sort_buffers(_buf_list, config.get_sort())
-
-  local payload = M._get_buffer_list_changed_event_payload()
-  event_bus.publish_buffer_list_changed(payload)
 end
 
 ---@param new_level integer
@@ -203,12 +153,10 @@ local function _change_additional_folder_depth(new_level)
   bufs = utils.sort_buffers(bufs, config.get_sort())
   _buf_list = bufs
 
-  local payload = M._get_buffer_list_changed_event_payload()
-
   _global_additional_folder_depth = new_level
   logger.debug("change_level: level changed", { new_level = new_level })
 
-  event_bus.publish_buffer_list_changed(payload)
+  return true
 end
 
 function M.increment_additional_folder_depth()
@@ -217,23 +165,12 @@ function M.increment_additional_folder_depth()
   end)
   local max_additional_folder_depth = math.max(unpack(max_folder_depths)) - 1
   local new_level = math.min(_global_additional_folder_depth + 1, max_additional_folder_depth)
-  _change_additional_folder_depth(new_level)
+  return _change_additional_folder_depth(new_level)
 end
 
 function M.decrement_additional_folder_depth()
   local new_level = math.max(_global_additional_folder_depth - 1, 0)
-  _change_additional_folder_depth(new_level)
-end
-
-function M.reload_buffers()
-  if #_buf_list == 0 then
-    logger.debug("reload_buffers: buffer list is empty. reload all buffers")
-    return M.reset_buffers()
-  end
-
-  logger.debug("reload_buffers: reloading buffers", { buf_list = _buf_list })
-  local payload = M._get_buffer_list_changed_event_payload()
-  event_bus.publish_buffer_list_changed(payload)
+  return _change_additional_folder_depth(new_level)
 end
 
 function M.reset_buffers()
@@ -263,23 +200,18 @@ function M.reset_buffers()
   bufs = utils.sort_buffers(bufs, config.get_sort())
   _buf_list = bufs
 
-  local payload = M._get_buffer_list_changed_event_payload()
-  event_bus.publish_buffer_list_changed(payload)
+  return true
 end
 
 ---@param index integer
 function M.get_buffer_by_index(index)
-  local buffers = _get_all_buffers()
-
-  return buffers[index]
+  return _buf_list[index]
 end
 
 ---@param bufnr integer
 ---@return Buffer | nil buffer, integer | nil index
 function M.get_buffer_by_bufnr(bufnr)
-  local buffers = _get_all_buffers()
-
-  local index = list.find_index(buffers, function(buf)
+  local index = list.find_index(_buf_list, function(buf)
     return buf.buf == bufnr
   end)
 
@@ -287,26 +219,7 @@ function M.get_buffer_by_bufnr(bufnr)
     return
   end
 
-  return buffers[index], index
-end
-
-function M.get_active_buffer()
-  local bufnr = M.get_active_bufnr()
-
-  if not bufnr then
-    return nil, nil
-  end
-
-  return M.get_buffer_by_bufnr(bufnr)
-end
-
-function M.debug_buffers()
-  local active = M.get_active_buffer()
-  local active_pinned = M.get_active_pinned_buffer()
-  print("active", active and active.name or "none")
-  print("active_pinned", active_pinned and active_pinned.name or "none")
-  print("buffers", vim.inspect(_buf_list))
-  -- print("pinned", vim.inspect({ prev = _pinned_bufnrs[1], current = _pinned_bufnrs[2] }))
+  return _buf_list[index], index
 end
 
 return M

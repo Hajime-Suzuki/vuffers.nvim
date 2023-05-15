@@ -33,7 +33,7 @@ function M.create_auto_group()
         end
       end
 
-      buffers.set_active_bufnr({ path = buffer.file, buf = buffer.buf })
+      buffers.set_active_bufnr(buffer.buf)
       buffers.set_active_pinned_bufnr(buffer.buf)
     end,
   })

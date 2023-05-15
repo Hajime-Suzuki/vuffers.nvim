@@ -7,6 +7,10 @@ local bufs = function()
   return require("vuffers.buffers.buffers")
 end
 
+local active = function()
+  return require("vuffers.buffers.active-buffer")
+end
+
 local M = {}
 
 ---@type integer[] first one is last, and the second one is current
@@ -23,8 +27,7 @@ function M.get_active_pinned_bufnr()
 end
 
 ---@param bufnr Bufnr
----@param opts? { only_current_buf: boolean } -- when only_current_buf is true, it will only change the current pinned buffer
-function M.set_active_pinned_bufnr(bufnr, opts)
+function M.set_active_pinned_bufnr(bufnr)
   local _buf_list = bufs().get_buffers()
   local prev_pos = 1
   local current_pos = 2
@@ -34,12 +37,6 @@ function M.set_active_pinned_bufnr(bufnr, opts)
   end) ~= nil
 
   if not is_buf_pinned then
-    return
-  end
-
-  -- TODO: remove
-  if opts and opts.only_current_buf then
-    _pinned_bufnrs[current_pos] = bufnr
     return
   end
 
@@ -87,7 +84,7 @@ function M.unpin_buffer(index)
     _pinned_bufnrs = {}
   else
     logger.debug("unpin_buffer: next pinned buffer found", { next_pinned = next_pinned })
-    M.set_active_pinned_bufnr(next_pinned.buf, { only_current_buf = true })
+    M.set_active_pinned_bufnr(next_pinned.buf)
   end
 
   target.is_pinned = false
@@ -109,15 +106,13 @@ local function _get_unpinned_bufs()
   end)
 end
 
-function M.remove_unpinned_buffers()
+---@param active_bufnr? Bufnr
+function M.remove_unpinned_buffers(active_bufnr)
   local to_remove = _get_unpinned_bufs()
 
   if not to_remove then
     return
   end
-
-  -- TODO: move logic
-  local active_bufnr = bufs().get_active_bufnr()
 
   local is_active_buffer_removed = list.find_index(to_remove or {}, function(buf)
     return buf.buf == active_bufnr
@@ -128,7 +123,7 @@ function M.remove_unpinned_buffers()
     local new_active_buf = list.find(_buf_list, function(buf)
       return buf.is_pinned
     end)
-    bufs()._set_active_bufnr(new_active_buf and new_active_buf.buf or nil)
+    active().set_active_bufnr(new_active_buf and new_active_buf.buf or nil)
   end
 
   local new_bufs = _get_pinned_bufs()

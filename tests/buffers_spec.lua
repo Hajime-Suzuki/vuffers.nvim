@@ -164,7 +164,7 @@ describe("buffers >>", function()
       buffers.pin_buffer(4)
 
       -- active buffer is buf 4
-      buffers.set_active_bufnr({ buf = 4 })
+      buffers.set_active_bufnr(4)
 
       local pinned = list.filter(_updated_bufs.buffers, function(buf)
         return buf.is_pinned
@@ -230,7 +230,7 @@ describe("buffers >>", function()
       buffers.pin_buffer(4)
 
       -- active buffer is buf 2
-      buffers.set_active_bufnr({ buf = 2 })
+      buffers.set_active_bufnr(2)
 
       local pinned = list.filter(_updated_bufs.buffers, function(buf)
         return buf.is_pinned
