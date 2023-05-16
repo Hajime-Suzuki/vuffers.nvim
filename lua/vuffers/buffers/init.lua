@@ -61,15 +61,15 @@ end
 ---@param args {bufnr: number}
 M.remove_buffer = function(args)
   if bufs.remove_buffer(args) then
-    local payload = event_payload.get_active_buf_changed_event_payload()
-    event_bus.publish_active_buffer_changed(payload)
+    local payload = event_payload.get_buffer_list_changed_event_payload()
+    event_bus.publish_buffer_list_changed(payload)
   end
 end
 
 M.reset_buffers = function()
   if bufs.reset_buffers() then
-    local payload = event_payload.get_active_buf_changed_event_payload()
-    event_bus.publish_active_buffer_changed(payload)
+    local payload = event_payload.get_buffer_list_changed_event_payload()
+    event_bus.publish_buffer_list_changed(payload)
   end
 end
 
