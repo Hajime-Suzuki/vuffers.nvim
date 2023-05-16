@@ -1,5 +1,6 @@
 local logger = require("utils.logger")
 local buffers = require("vuffers.buffers")
+local pinned = require("vuffers.buffers.pinned-buffers")
 local window = require("vuffers.window")
 
 local M = {}
@@ -74,7 +75,7 @@ function M.go_to_active_pinned_buffer()
 end
 
 function M.go_to_next_pinned_buffer()
-  local next_pinned_buf = buffers.get_next_or_prev_pinned_buffer("next")
+  local next_pinned_buf = pinned.get_next_or_prev_pinned_buffer("next")
   if not next_pinned_buf then
     return
   end
@@ -83,7 +84,7 @@ function M.go_to_next_pinned_buffer()
 end
 
 function M.go_to_prev_pinned_buffer()
-  local prev_pinned_buf = buffers.get_next_or_prev_pinned_buffer("prev")
+  local prev_pinned_buf = pinned.get_next_or_prev_pinned_buffer("prev")
   if not prev_pinned_buf then
     return
   end

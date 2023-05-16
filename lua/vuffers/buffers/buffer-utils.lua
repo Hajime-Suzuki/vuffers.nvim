@@ -17,7 +17,7 @@ function M._get_name_by_level(path_fragments, level)
   return table.concat(filenames, "/")
 end
 
---- @param buffers {  buf: number, path: string, level: string, path_fragments: string[]}[]
+--- @param buffers { buf: number, path: string, level: string, path_fragments: string[]}[]
 local function _get_unique_folder_depth(buffers, output)
   local grouped_by_filename = list.group_by(buffers, function(item)
     return item.path_fragments[#item.path_fragments - item.level + 1]

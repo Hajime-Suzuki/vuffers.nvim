@@ -23,7 +23,7 @@ describe("buffers >>", function()
   describe("pin_buffer >>", function()
     before_each(function()
       event_bus._delete_all_subscriptions()
-      buffers._reset_buffers()
+      buffers.set_buffers({})
     end)
 
     it("should pin buffer", function()
@@ -79,7 +79,7 @@ describe("buffers >>", function()
   describe("unpin_buffer >>", function()
     before_each(function()
       event_bus._delete_all_subscriptions()
-      buffers._reset_buffers()
+      buffers.set_buffers({})
     end)
 
     it("should unpin buffer", function()
@@ -140,7 +140,7 @@ describe("buffers >>", function()
   describe("remove_unpinned_buffers >>", function()
     before_each(function()
       event_bus._delete_all_subscriptions()
-      buffers._reset_buffers()
+      buffers.set_buffers({})
     end)
 
     it("should remove unpinned buffers when active buffer is pinned", function()
@@ -164,7 +164,7 @@ describe("buffers >>", function()
       buffers.pin_buffer(4)
 
       -- active buffer is buf 4
-      buffers.set_active_bufnr({ buf = 4 })
+      buffers.set_active_bufnr(4)
 
       local pinned = list.filter(_updated_bufs.buffers, function(buf)
         return buf.is_pinned
@@ -230,7 +230,7 @@ describe("buffers >>", function()
       buffers.pin_buffer(4)
 
       -- active buffer is buf 2
-      buffers.set_active_bufnr({ buf = 2 })
+      buffers.set_active_bufnr(2)
 
       local pinned = list.filter(_updated_bufs.buffers, function(buf)
         return buf.is_pinned
