@@ -135,6 +135,8 @@ M.unpin_buffer = function(index)
   end
 end
 
+M.get_next_or_prev_pinned_buffer = pinned.get_next_or_prev_pinned_buffer
+
 M.debug_buffers = function()
   local active_buf = active.get_active_bufnr()
   ---@diagnostic disable-next-line: cast-local-type
