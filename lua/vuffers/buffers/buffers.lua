@@ -1,4 +1,3 @@
-local event_bus = require("vuffers.event-bus")
 local logger = require("utils.logger")
 local utils = require("vuffers.buffers.buffer-utils")
 local list = require("utils.list")
@@ -201,6 +200,12 @@ function M.reset_buffers()
   _buf_list = bufs
 
   return true
+end
+
+---@param identifier { index: integer }
+---@param data { is_pinned: boolean}
+function M.update_buffer(identifier, data)
+  _buf_list[identifier.index].is_pinned = data.is_pinned
 end
 
 ---@param index integer

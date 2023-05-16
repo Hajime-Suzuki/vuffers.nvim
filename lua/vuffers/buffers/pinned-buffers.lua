@@ -53,11 +53,9 @@ function M.pin_buffer(index)
   if not target or target.is_pinned then
     return
   end
-  target.is_pinned = true
-  M.set_active_pinned_bufnr(target.buf)
 
-  local bs = bufs().get_buffers()
-  bufs().set_buffers(utils.sort_buffers(bs, config.get_sort()))
+  M.set_active_pinned_bufnr(target.buf)
+  return true
 end
 
 ---@param index integer
@@ -87,9 +85,7 @@ function M.unpin_buffer(index)
     M.set_active_pinned_bufnr(next_pinned.buf)
   end
 
-  target.is_pinned = false
-
-  bufs().set_buffers(utils.sort_buffers(_buf_list, config.get_sort()))
+  return true
 end
 
 local function _get_pinned_bufs()
@@ -111,7 +107,7 @@ function M.remove_unpinned_buffers(active_bufnr)
   local to_remove = _get_unpinned_bufs()
 
   if not to_remove then
-    return
+    return nil, nil
   end
 
   local is_active_buffer_removed = list.find_index(to_remove or {}, function(buf)
@@ -126,10 +122,7 @@ function M.remove_unpinned_buffers(active_bufnr)
     active().set_active_bufnr(new_active_buf and new_active_buf.buf or nil)
   end
 
-  local new_bufs = _get_pinned_bufs()
-  bufs().set_buffers(utils.sort_buffers(new_bufs or {}, config.get_sort()))
-
-  return to_remove
+  return _get_pinned_bufs(), to_remove
 end
 
 function M.get_active_pinned_buffer()

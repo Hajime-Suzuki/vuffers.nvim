@@ -4,6 +4,8 @@ local event_bus = require("vuffers.event-bus")
 local pinned = require("vuffers.buffers.pinned-buffers")
 local active = require("vuffers.buffers.active-buffer")
 local event_payload = require("vuffers.buffers.event-payload")
+local utils = require("vuffers.buffers.buffer-utils")
+local config = require("vuffers.config")
 
 local M = {}
 
@@ -85,16 +87,22 @@ M.get_active_pinned_bufnr = pinned.get_active_pinned_bufnr
 
 ---@param index integer
 M.pin_buffer = function(index)
-  pinned.pin_buffer(index)
-  local payload = event_payload.get_buffer_list_changed_event_payload()
-  event_bus.publish_buffer_list_changed(payload)
+  if pinned.pin_buffer(index) then
+    bufs.update_buffer({ index = index }, { is_pinned = true })
+    bufs.set_buffers(utils.sort_buffers(bufs.get_buffers(), config.get_sort()))
+
+    local payload = event_payload.get_buffer_list_changed_event_payload()
+    event_bus.publish_buffer_list_changed(payload)
+  end
 end
 
 M.remove_unpinned_buffers = function()
-  local removed_buffers = pinned.remove_unpinned_buffers(active.get_active_bufnr())
+  local remaining_bufs, removed_buffers = pinned.remove_unpinned_buffers(active.get_active_bufnr())
   if not removed_buffers then
     return
   end
+  bufs.set_buffers(utils.sort_buffers(remaining_bufs or {}, config.get_sort()))
+
   local payload = event_payload.get_unpinned_buffers_removed_payload(removed_buffers)
   event_bus.publish_unpinned_buffers_removed(payload)
 end
@@ -118,10 +126,13 @@ end
 
 ---@param index integer
 M.unpin_buffer = function(index)
-  pinned.unpin_buffer(index)
+  if pinned.unpin_buffer(index) then
+    bufs.update_buffer({ index = index }, { is_pinned = false })
+    bufs.set_buffers(utils.sort_buffers(bufs.get_buffers(), config.get_sort()))
 
-  local payload = event_payload.get_buffer_list_changed_event_payload()
-  event_bus.publish_buffer_list_changed(payload)
+    local payload = event_payload.get_buffer_list_changed_event_payload()
+    event_bus.publish_buffer_list_changed(payload)
+  end
 end
 
 M.debug_buffers = function()
@@ -138,4 +149,5 @@ M.debug_buffers = function()
     vim.inspect({ prev = pinned.get_last_visited_pinned_bufnr(), current = pinned.get_active_pinned_bufnr() })
   )
 end
+
 return M
