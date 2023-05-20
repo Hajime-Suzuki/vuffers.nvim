@@ -52,7 +52,7 @@ end
 
 --- @generic TItem: any
 --- @param arr TItem[]
---- @param predicate fun(item: any, index: number): boolean
+--- @param predicate fun(item: TItem, index: number): boolean
 --- @return TItem | nil
 function M.find(arr, predicate)
   for i, v in pairs(arr) do

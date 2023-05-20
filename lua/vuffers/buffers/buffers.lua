@@ -12,7 +12,7 @@ end
 ---@class Buffer
 ---@field buf Bufnr
 ---@field name string name that will be displayed in the buffer list, which considers additional folder depth
----@field path string full path
+---@field path string
 ---@field ext string
 ---@field is_pinned boolean
 ---@field _unique_name string unique name
@@ -54,7 +54,7 @@ local _global_additional_folder_depth = 0
 -- `buf_or_filename` can be buffer number of filename
 local function _is_in_buf_list(buf_or_filename)
   return list.find(_buf_list, function(buffer)
-    return buffer.buf == buf_or_filename or buffer.name == buf_or_filename
+    return buffer.buf == buf_or_filename or buffer.path == buf_or_filename
   end) ~= nil
 end
 

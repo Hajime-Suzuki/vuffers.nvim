@@ -57,6 +57,15 @@ function M.create_auto_group()
     callback = function(buffer)
       logger.debug("BufDelete", { buffer = buffer })
 
+      local target = buffers.get_buffer_by_bufnr(buffer.buf)
+      if target and target.is_pinned then
+        vim.cmd("edit" .. target.path)
+        buffers.set_active_bufnr(buffer.buf)
+        buffers.set_active_pinned_bufnr(buffer.buf)
+
+        return
+      end
+
       buffers.remove_buffer({ bufnr = buffer.buf })
     end,
   })

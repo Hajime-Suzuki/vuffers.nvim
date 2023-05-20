@@ -17,7 +17,7 @@ function M._get_name_by_level(path_fragments, level)
   return table.concat(filenames, "/")
 end
 
---- @param buffers { buf: number, path: string, level: string, path_fragments: string[]}[]
+--- @param buffers { level: string, path_fragments: string[]}[]
 local function _get_unique_folder_depth(buffers, output)
   local grouped_by_filename = list.group_by(buffers, function(item)
     return item.path_fragments[#item.path_fragments - item.level + 1]
@@ -95,19 +95,19 @@ local function _format_buffer(item)
   return b
 end
 
---- @param buffers { buf:integer,  path: string, _additional_folder_depth?: integer , is_pinned?: boolean}[]
+--- @param buffers { buf:integer,  path: string, _additional_folder_depth?: integer , is_pinned?: boolean }[]
 --- @return Buffer[] buffers
 function M.get_formatted_buffers(buffers)
   local cwd = vim.loop.cwd()
   local output = {}
 
   -- preparing the input. adding extra data
-  local input = list.map(buffers, function(buffer, i)
+  local input = list.map(buffers, function(buffer)
     local path_from_cwd = str.replace(buffer.path, (cwd or "") .. "/", "")
     local path_fragments = str.split(path_from_cwd, "/")
     return {
       buf = buffer.buf,
-      path = str.replace(buffer.path, (cwd or "") .. "/", ""),
+      path = buffer.path,
       level = 1,
       path_fragments = path_fragments,
       additional_folder_depth = buffer._additional_folder_depth,

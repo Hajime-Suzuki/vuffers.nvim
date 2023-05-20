@@ -17,7 +17,10 @@ function M.delete_buffer()
   local row = pos[1]
   local buf = buffers.get_buffer_by_index(row)
   local active = buffers.get_active_buffer()
-  local next_buf = buffers.get_buffer_by_index(row + 1) or buffers.get_buffer_by_index(row - 1)
+
+  if buf.is_pinned then
+    return
+  end
 
   if not active or not buf then
     return
@@ -29,6 +32,7 @@ function M.delete_buffer()
     return
   end
 
+  local next_buf = buffers.get_buffer_by_index(row + 1) or buffers.get_buffer_by_index(row - 1)
   if not next_buf then
     print("can not delete last buffer")
     return
