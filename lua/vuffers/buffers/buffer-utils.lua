@@ -64,7 +64,7 @@ local function _split_filename_and_extension(file_name)
   return filename_without_extension, extension
 end
 
---- @param item { buf: integer, path: string, level: integer, path_fragments: string[], additional_folder_depth?: integer, is_pinned?: boolean, _full_path: string }
+--- @param item { buf: integer, path: string, level: integer, path_fragments: string[], additional_folder_depth?: integer, is_pinned?: boolean }
 --- @return Buffer
 local function _format_buffer(item)
   local unique_name = M._get_name_by_level(item.path_fragments, item.level)
@@ -90,30 +90,28 @@ local function _format_buffer(item)
     _additional_folder_depth = item.additional_folder_depth,
     _default_folder_depth = item.level,
     _max_folder_depth = #item.path_fragments,
-    _full_path = item._full_path,
   }
 
   return b
 end
 
---- @param buffers { buf:integer,  path: string, _additional_folder_depth?: integer , is_pinned?: boolean, _full_path: string}[]
+--- @param buffers { buf:integer,  path: string, _additional_folder_depth?: integer , is_pinned?: boolean }[]
 --- @return Buffer[] buffers
 function M.get_formatted_buffers(buffers)
   local cwd = vim.loop.cwd()
   local output = {}
 
   -- preparing the input. adding extra data
-  local input = list.map(buffers, function(buffer, i)
+  local input = list.map(buffers, function(buffer)
     local path_from_cwd = str.replace(buffer.path, (cwd or "") .. "/", "")
     local path_fragments = str.split(path_from_cwd, "/")
     return {
       buf = buffer.buf,
-      path = str.replace(buffer.path, (cwd or "") .. "/", ""),
+      path = buffer.path,
       level = 1,
       path_fragments = path_fragments,
       additional_folder_depth = buffer._additional_folder_depth,
       is_pinned = buffer.is_pinned or false,
-      _full_path = buffer._full_path or buffer.path,
     }
   end)
 

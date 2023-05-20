@@ -59,7 +59,7 @@ function M.create_auto_group()
 
       local target = buffers.get_buffer_by_bufnr(buffer.buf)
       if target and target.is_pinned then
-        vim.cmd("edit" .. target._full_path)
+        vim.cmd("edit" .. target.path)
         buffers.set_active_bufnr(buffer.buf)
         buffers.set_active_pinned_bufnr(buffer.buf)
 
