@@ -53,6 +53,7 @@ function M.setup()
     end,
     { label = "Handlers - on_buffer_delete" }
   )
+
   eb.subscribe(
     eb.event.BufferPinned,
     ---@param payload BufferPinnedPayload
@@ -60,6 +61,15 @@ function M.setup()
       tasks.persist_pinned_buffer(payload.buffer)
     end,
     { label = "Handlers - buffer pinned" }
+  )
+
+  eb.subscribe(
+    eb.event.BufferUnpinned,
+    ---@param payload BufferUnpinnedPayload
+    function(payload)
+      tasks.remove_persisted_pinned_buffer(payload.buffer)
+    end,
+    { label = "Handlers - buffer unpinned" }
   )
 end
 
