@@ -10,6 +10,8 @@ M.event = {
   ActiveBufferChanged = "ActiveBufferChanged",
   ActivePinnedBufferChanged = "ActivePinnedBufferChanged",
   UnpinnedBuffersRemoved = "UnpinnedBufferRemoved",
+  BufferPinned = "BufferPinned",
+  BufferUnpinned = "BufferUnpinned",
 
   -- Events from UI
   VuffersWindowOpened = "VuffersWindowOpened",
@@ -60,6 +62,8 @@ end
 ---@alias ActivePinnedBufferChangedPayload { current_index: integer, prev_index: integer }
 ---@alias BufferListChangedPayload { buffers: Buffer[], active_buffer_index?: integer, active_pinned_buffer_index?: integer}
 ---@alias UnpinnedBuffersRemovedPayload {buffers: Buffer[], active_buffer_index?: integer, removed_buffers: Buffer[] }
+---@alias BufferPinnedPayload { buffer: Buffer }
+---@alias BufferUnpinnedPayload { buffer: Buffer }
 ---@alias VuffersWindowOpenedPayload {buffer_number: integer }
 
 ---@param payload ActiveBufferChangedPayload
@@ -85,6 +89,16 @@ end
 ---@param payload UnpinnedBuffersRemovedPayload
 function M.publish_unpinned_buffers_removed(payload)
   M.publish(M.event.UnpinnedBuffersRemoved, payload)
+end
+
+---@param payload BufferPinnedPayload
+function M.publish_buffer_pinned(payload)
+  M.publish(M.event.BufferPinned, payload)
+end
+
+---@param payload BufferUnpinnedPayload
+function M.publish_buffer_unpinned(payload)
+  M.publish(M.event.BufferUnpinned, payload)
 end
 
 return M
