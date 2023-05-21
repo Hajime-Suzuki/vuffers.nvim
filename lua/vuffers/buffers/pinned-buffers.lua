@@ -2,6 +2,7 @@ local logger = require("utils.logger")
 local utils = require("vuffers.buffers.buffer-utils")
 local list = require("utils.list")
 local config = require("vuffers.config")
+local tasks = require("vuffers.tasks")
 
 local bufs = function()
   return require("vuffers.buffers.buffers")
@@ -159,6 +160,32 @@ function M.get_next_or_prev_pinned_buffer(type)
 
   local target_buf_index = currently_pinned_buf_index + (type == "next" and 1 or -1)
   return pinned_buffers[target_buf_index]
+end
+
+local loaded = false
+function M.restore_pinned_buffers()
+  if loaded then
+    return
+  end
+
+  local pinned_bufs = tasks.get_pinned_buffers()
+  list.for_each(pinned_bufs or {}, function(buf)
+    vim.cmd("edit" .. buf.path)
+  end)
+
+  local bs = bufs.get_buffers()
+  list.for_each(pinned_bufs or {}, function(pinned_buf)
+    local match_idx = list.find_index(bs, function(buf)
+      return buf.path == pinned_buf.path
+    end)
+
+    if match_idx then
+      -- TODO: use update buffer function
+      bs[match_idx].is_pinned = true
+    end
+  end)
+
+  loaded = true
 end
 
 return M
