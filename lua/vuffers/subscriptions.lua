@@ -6,6 +6,7 @@ local buffer_actions = require("vuffers.buffer-actions")
 local config = require("vuffers.config")
 local list = require("utils.list")
 local logger = require("utils.logger")
+local tasks = require("vuffers.tasks")
 
 local M = {}
 
@@ -51,6 +52,14 @@ function M.setup()
       end)
     end,
     { label = "Handlers - on_buffer_delete" }
+  )
+  eb.subscribe(
+    eb.event.BufferPinned,
+    ---@param payload BufferPinnedPayload
+    function(payload)
+      tasks.persist_pinned_buffer(payload.buffer)
+    end,
+    { label = "Handlers - buffer pinned" }
   )
 end
 
