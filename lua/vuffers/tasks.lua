@@ -65,4 +65,18 @@ function M.remove_persisted_pinned_buffer(buffer)
   end
 end
 
+---@return {path: string}[] | nil
+function M.get_pinned_buffers()
+  local ok, res = pcall(function()
+    return file.read_json_file(_get_filename())
+  end)
+
+  if not ok then
+    logger.error("get_binned_buffers: ", res)
+    return
+  end
+
+  return res
+end
+
 return M
