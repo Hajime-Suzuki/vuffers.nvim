@@ -172,11 +172,10 @@ function M.decrement_additional_folder_depth()
   return _change_additional_folder_depth(new_level)
 end
 
-function M.reset_buffers()
-  _buf_list = {}
-
+---@return {buf: integer, name: string, path: string, filetype: string, _additional_folder_depth: integer}
+local function _get_loaded_bufs()
   local bufs = vim.api.nvim_list_bufs()
-  bufs = list.map(bufs, function(buf)
+  return list.map(bufs, function(buf)
     local name = vim.api.nvim_buf_get_name(buf)
     local filetype = vim.api.nvim_buf_get_option(buf, "filetype")
     return {
@@ -187,6 +186,37 @@ function M.reset_buffers()
       _additional_folder_depth = _global_additional_folder_depth,
     }
   end)
+end
+
+---@param file_paths string[]
+function M.add_buffer_by_file_path(file_paths)
+  local bufs = _get_loaded_bufs()
+  bufs = list.filter(bufs, function(buf)
+    return list.find_index(file_paths, function(file_path)
+      return buf.path == file_path and utils.is_valid_buf(buf)
+    end) ~= nil
+  end)
+
+  if bufs == nil then
+    logger.warn("reload_all_buffers: no buffers found")
+    return
+  end
+
+  local merged = list.merge_unique(bufs, _buf_list, {
+    id = function(buf)
+      return buf.path
+    end,
+  })
+
+  bufs = utils.get_formatted_buffers(merged)
+  bufs = utils.sort_buffers(bufs, config.get_sort())
+  _buf_list = bufs
+end
+
+function M.reset_buffers()
+  _buf_list = {}
+
+  local bufs = _get_loaded_bufs()
   ---@diagnostic disable-next-line: cast-local-type
   bufs = list.filter(bufs, utils.is_valid_buf)
 
@@ -202,10 +232,24 @@ function M.reset_buffers()
   return true
 end
 
----@param identifier { index: integer }
+---@param identifier { index: integer } | { path: string }
 ---@param data { is_pinned: boolean}
 function M.update_buffer(identifier, data)
-  _buf_list[identifier.index].is_pinned = data.is_pinned
+  if identifier.index then
+    _buf_list[identifier.index].is_pinned = data.is_pinned
+  end
+
+  if identifier.path then
+    local buf = list.find(_buf_list, function(buf)
+      return buf.path == identifier.path
+    end)
+
+    if not buf then
+      return
+    end
+
+    buf.is_pinned = data.is_pinned
+  end
 end
 
 ---@param index integer

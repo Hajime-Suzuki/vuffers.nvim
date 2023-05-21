@@ -1,8 +1,10 @@
 local logger = require("utils.logger")
-local utils = require("vuffers.buffers.buffer-utils")
 local list = require("utils.list")
-local config = require("vuffers.config")
 local tasks = require("vuffers.tasks")
+local str = require("utils.string")
+local file = require("utils.file")
+
+local PINNED_BUFFER_LOCATION = vim.fn.stdpath("data") .. "/vuffers"
 
 local bufs = function()
   return require("vuffers.buffers.buffers")
@@ -162,30 +164,115 @@ function M.get_next_or_prev_pinned_buffer(type)
   return pinned_buffers[target_buf_index]
 end
 
-local loaded = false
-function M.restore_pinned_buffers()
-  if loaded then
+---@return string
+local function _get_filename()
+  local cwd = vim.loop.cwd()
+  local filename = str.replace(cwd, "/", "_")
+  return PINNED_BUFFER_LOCATION .. "/" .. filename .. ".json"
+end
+
+---@param buffer Buffer
+function M.persist_pinned_buffer(buffer)
+  local ok, err = pcall(function()
+    local filename = _get_filename()
+
+    ---@type {path: string}[]
+    local pinned_buffers = file.read_json_file(filename)
+    local is_pinned = list.find_index(pinned_buffers, function(item)
+      return item.path == buffer.path
+    end)
+
+    if is_pinned then
+      return
+    end
+
+    table.insert(pinned_buffers, { path = buffer.path })
+    file.write_json_file(filename, pinned_buffers)
+  end)
+
+  if not ok then
+    logger.error("persist_pinned_buffer: ", err)
+  end
+end
+
+---@param buffer Buffer
+function M.remove_persisted_pinned_buffer(buffer)
+  local ok, err = pcall(function()
+    local filename = _get_filename()
+
+    ---@type {path: string}[]
+    local pinned_buffers = file.read_json_file(filename)
+
+    local updated = list.filter(pinned_buffers, function(item)
+      return item.path ~= buffer.path
+    end)
+
+    if #updated == #pinned_buffers then
+      return
+    end
+
+    file.write_json_file(filename, updated or {})
+  end)
+
+  if not ok then
+    logger.error("persist_pinned_buffer: ", err)
+  end
+end
+
+---@return {path: string}[] | nil
+function M.get_pinned_buffers()
+  local ok, res = pcall(function()
+    return file.read_json_file(_get_filename())
+  end)
+
+  if not ok then
+    logger.error("get_binned_buffers: ", res)
     return
   end
 
-  local pinned_bufs = tasks.get_pinned_buffers()
-  list.for_each(pinned_bufs or {}, function(buf)
-    vim.cmd("edit" .. buf.path)
+  return res
+end
+
+local loaded = true
+local cwd = vim.loop.cwd()
+function M.restore_pinned_buffers()
+  if not loaded or cwd == vim.loop.cwd() then
+    return
+  end
+
+  loaded = true
+  cwd = vim.loop.cwd()
+
+  local ok, pinned_bufs = pcall(function()
+    return file.read_json_file(_get_filename())
   end)
 
-  local bs = bufs.get_buffers()
+  if not ok then
+    return
+  end
+
+  list.for_each(pinned_bufs or {}, function(buf)
+    if vim.fn.filereadable(buf.path) == 1 then
+      vim.cmd("badd " .. buf.path)
+    end
+  end)
+
+  local paths = list.map(pinned_bufs or {}, function(buf)
+    return buf.path
+  end)
+
+  bufs().add_buffer_by_file_path(paths)
+
+  local bs = bufs().get_buffers()
   list.for_each(pinned_bufs or {}, function(pinned_buf)
     local match_idx = list.find_index(bs, function(buf)
       return buf.path == pinned_buf.path
     end)
 
     if match_idx then
-      -- TODO: use update buffer function
-      bs[match_idx].is_pinned = true
+      bufs().update_buffer({ path = pinned_buf.path }, { is_pinned = true })
     end
   end)
-
-  loaded = true
 end
 
 return M

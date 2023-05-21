@@ -58,23 +58,6 @@ M.reload_buffers = function()
     return M.reset_buffers()
   end
 
-  local pinned_bufs = tasks.get_pinned_buffers()
-
-  list.for_each(pinned_bufs or {}, function(buf)
-    vim.cmd("edit" .. buf.path)
-  end)
-
-  local bs = bufs.get_buffers()
-  list.for_each(pinned_bufs or {}, function(pinned_buf)
-    local match = list.find_index(bs, function(buf)
-      return buf.path == pinned_buf.path
-    end)
-
-    if match then
-      bs[match].is_pinned = true
-    end
-  end)
-
   local payload = event_payload.get_buffer_list_changed_event_payload()
   event_bus.publish_buffer_list_changed(payload)
 end
@@ -89,7 +72,6 @@ end
 
 M.reset_buffers = function()
   if bufs.reset_buffers() then
-    pinned.restore_pinned_buffers()
     local payload = event_payload.get_buffer_list_changed_event_payload()
     event_bus.publish_buffer_list_changed(payload)
   end
@@ -169,7 +151,7 @@ M.debug_buffers = function()
 
   local active_pinned = pinned.get_active_pinned_bufnr()
   print("active", active_buf and active_buf.name or "none")
-  print("active_pinned", active_pinned and active_pinned.name or "none")
+  print("active_pinned", active_pinned or "none")
   print(
     "pinned",
     vim.inspect({ prev = pinned.get_last_visited_pinned_bufnr(), current = pinned.get_active_pinned_bufnr() })

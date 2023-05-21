@@ -4,6 +4,7 @@ local ui = require("vuffers.ui")
 local buffers = require("vuffers.buffers")
 local window = require("vuffers.window")
 local buf_utils = require("vuffers.buffers.buffer-utils")
+local pinned = require("vuffers.buffers.pinned-buffers")
 
 local M = {}
 
@@ -14,6 +15,7 @@ function M.create_auto_group()
     group = constants.AUTO_CMD_GROUP,
     ---@param buffer NativeBuffer
     callback = function(buffer)
+      pinned.restore_pinned_buffers()
       if not buf_utils.is_valid_buf(buffer) then
         return
       end
@@ -42,9 +44,11 @@ function M.create_auto_group()
     pattern = "*",
     group = constants.AUTO_CMD_GROUP,
     callback = function(buffer)
+      pinned.restore_pinned_buffers()
       if not buf_utils.is_valid_buf(buffer) then
         return
       end
+
       logger.debug("BufAdd", { buffer = buffer })
 
       buffers.add_buffer(buffer)
