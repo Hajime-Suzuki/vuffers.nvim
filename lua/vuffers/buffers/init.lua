@@ -87,15 +87,28 @@ M.get_active_pinned_bufnr = pinned.get_active_pinned_bufnr
 
 ---@param index integer
 M.pin_buffer = function(index)
-  if pinned.pin_buffer(index) then
-    local target = bufs.get_buffer_by_index(index)
+  local target = bufs.get_buffer_by_index(index)
 
-    bufs.update_buffer({ index = index }, { is_pinned = true })
+  if not pinned.is_pinned(target.buf) then
+    pinned.pin_buffer(target)
+
     bufs.set_buffers(utils.sort_buffers(bufs.get_buffers(), config.get_sort()))
 
     local payload = event_payload.get_buffer_list_changed_event_payload()
     event_bus.publish_buffer_list_changed(payload)
-    pinned.persist_pinned_buffer(target)
+  end
+end
+
+---@param index integer
+M.unpin_buffer = function(index)
+  local target = bufs.get_buffer_by_index(index)
+
+  if pinned.is_pinned(target.buf) then
+    pinned.unpin_buffer(target)
+    bufs.set_buffers(utils.sort_buffers(bufs.get_buffers(), config.get_sort()))
+
+    local payload = event_payload.get_buffer_list_changed_event_payload()
+    event_bus.publish_buffer_list_changed(payload)
   end
 end
 
@@ -125,19 +138,6 @@ M.set_active_pinned_bufnr = function(bufnr)
   end
 
   event_bus.publish_active_pinned_buffer_changed(payload)
-end
-
----@param index integer
-M.unpin_buffer = function(index)
-  if pinned.unpin_buffer(index) then
-    local target = bufs.get_buffer_by_index(index)
-    bufs.update_buffer({ index = index }, { is_pinned = false })
-    bufs.set_buffers(utils.sort_buffers(bufs.get_buffers(), config.get_sort()))
-
-    local payload = event_payload.get_buffer_list_changed_event_payload()
-    event_bus.publish_buffer_list_changed(payload)
-    pinned.remove_persisted_pinned_buffer(target)
-  end
 end
 
 M.get_next_or_prev_pinned_buffer = pinned.get_next_or_prev_pinned_buffer

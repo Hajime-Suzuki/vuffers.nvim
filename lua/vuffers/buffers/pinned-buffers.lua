@@ -46,7 +46,7 @@ function M.set_active_pinned_bufnr(bufnr)
   local current_pos = 2
 
   local is_buf_pinned = list.find_index(_buf_list, function(b)
-    return b.is_pinned and b.buf == bufnr
+    return M.is_pinned(bufnr) and b.buf == bufnr
   end) ~= nil
 
   if not is_buf_pinned then
@@ -59,36 +59,79 @@ function M.set_active_pinned_bufnr(bufnr)
   return true
 end
 
----@param index integer
-function M.pin_buffer(index)
-  local _buf_list = bufs().get_buffers()
-  local target = _buf_list[index]
-  if not target or target.is_pinned then
-    return
-  end
-
-  _pbufs[target.buf] = true
-
-  M.set_active_pinned_bufnr(target.buf)
-  return true
+---@return string
+local function _get_filename()
+  local cwd = vim.loop.cwd()
+  local filename = str.replace(cwd, "/", "_")
+  return PINNED_BUFFER_LOCATION .. "/" .. filename .. ".json"
 end
 
----@param index integer
-function M.unpin_buffer(index)
-  local _buf_list = bufs().get_buffers()
-  local target = _buf_list[index]
+---@param buffer Buffer
+local function _persist_pinned_buffer(buffer)
+  local ok, err = pcall(function()
+    local filename = _get_filename()
 
-  if not target or not target.is_pinned then
-    return
+    ---@type {path: string}[]
+    local pinned_buffers = file.read_json_file(filename)
+    local is_pinned = list.find_index(pinned_buffers, function(item)
+      return item.path == buffer.path
+    end)
+
+    if is_pinned then
+      return
+    end
+
+    table.insert(pinned_buffers, { path = buffer.path })
+    file.write_json_file(filename, pinned_buffers)
+  end)
+
+  if not ok then
+    logger.error("persist_pinned_buffer: ", err)
   end
+end
+
+---@param buffer Buffer
+local function _remove_persisted_pinned_buffer(buffer)
+  local ok, err = pcall(function()
+    local filename = _get_filename()
+
+    ---@type {path: string}[]
+    local pinned_buffers = file.read_json_file(filename)
+
+    local updated = list.filter(pinned_buffers, function(item)
+      return item.path ~= buffer.path
+    end)
+
+    if #updated == #pinned_buffers then
+      return
+    end
+
+    file.write_json_file(filename, updated or {})
+  end)
+
+  if not ok then
+    logger.error("persist_pinned_buffer: ", err)
+  end
+end
+
+---@param buffer Buffer
+function M.pin_buffer(buffer)
+  _pbufs[buffer.buf] = true
+  M.set_active_pinned_bufnr(buffer.buf)
+  _persist_pinned_buffer(buffer)
+end
+
+---@param buffer Buffer
+function M.unpin_buffer(buffer)
+  local _buf_list = bufs().get_buffers()
 
   local target_index = list.find_index(_buf_list, function(buf)
-    return buf.is_pinned and buf.buf == target.buf
+    return M.is_pinned(buffer.buf) and buf.buf == buffer.buf
   end)
 
   -- pinned buffers are always next to each other
   local next_pinned = list.find({ _buf_list[target_index + 1] or {}, _buf_list[target_index - 1] or {} }, function(item)
-    return item.is_pinned
+    return M.is_pinned(item.buf)
   end)
 
   logger.debug("unpin_buffer: next pinned buffer", next_pinned)
@@ -101,22 +144,22 @@ function M.unpin_buffer(index)
     M.set_active_pinned_bufnr(next_pinned.buf)
   end
 
-  _pbufs[target.buf] = nil
+  _pbufs[buffer.buf] = nil
 
-  return true
+  _remove_persisted_pinned_buffer(buffer)
 end
 
 local function _get_pinned_bufs()
   local _buf_list = bufs().get_buffers()
   return list.filter(_buf_list, function(buf)
-    return buf.is_pinned
+    return M.is_pinned(buf.buf)
   end)
 end
 
 local function _get_unpinned_bufs()
   local _buf_list = bufs().get_buffers()
   return list.filter(_buf_list, function(buf)
-    return not buf.is_pinned
+    return not M.is_pinned(buf.buf)
   end)
 end
 
@@ -135,7 +178,7 @@ function M.remove_unpinned_buffers(active_bufnr)
   local _buf_list = bufs().get_buffers()
   if is_active_buffer_removed then
     local new_active_buf = list.find(_buf_list, function(buf)
-      return buf.is_pinned
+      return M.is_pinned(buf.buf)
     end)
     active().set_active_bufnr(new_active_buf and new_active_buf.buf or nil)
   end
@@ -179,61 +222,6 @@ function M.get_next_or_prev_pinned_buffer(type)
   return pinned_buffers[target_buf_index]
 end
 
----@return string
-local function _get_filename()
-  local cwd = vim.loop.cwd()
-  local filename = str.replace(cwd, "/", "_")
-  return PINNED_BUFFER_LOCATION .. "/" .. filename .. ".json"
-end
-
----@param buffer Buffer
-function M.persist_pinned_buffer(buffer)
-  local ok, err = pcall(function()
-    local filename = _get_filename()
-
-    ---@type {path: string}[]
-    local pinned_buffers = file.read_json_file(filename)
-    local is_pinned = list.find_index(pinned_buffers, function(item)
-      return item.path == buffer.path
-    end)
-
-    if is_pinned then
-      return
-    end
-
-    table.insert(pinned_buffers, { path = buffer.path })
-    file.write_json_file(filename, pinned_buffers)
-  end)
-
-  if not ok then
-    logger.error("persist_pinned_buffer: ", err)
-  end
-end
-
----@param buffer Buffer
-function M.remove_persisted_pinned_buffer(buffer)
-  local ok, err = pcall(function()
-    local filename = _get_filename()
-
-    ---@type {path: string}[]
-    local pinned_buffers = file.read_json_file(filename)
-
-    local updated = list.filter(pinned_buffers, function(item)
-      return item.path ~= buffer.path
-    end)
-
-    if #updated == #pinned_buffers then
-      return
-    end
-
-    file.write_json_file(filename, updated or {})
-  end)
-
-  if not ok then
-    logger.error("persist_pinned_buffer: ", err)
-  end
-end
-
 local loaded = true
 local cwd = vim.loop.cwd()
 function M.restore_pinned_buffers()
@@ -271,17 +259,6 @@ function M.restore_pinned_buffers()
       _pbufs[buf.buf] = true
     end)
   end
-
-  local bs = bufs().get_buffers()
-  list.for_each(pinned_bufs or {}, function(pinned_buf)
-    local match_idx = list.find_index(bs, function(buf)
-      return buf.path == pinned_buf.path
-    end)
-
-    if match_idx then
-      bufs().update_buffer({ path = pinned_buf.path }, { is_pinned = true })
-    end
-  end)
 end
 
 return M

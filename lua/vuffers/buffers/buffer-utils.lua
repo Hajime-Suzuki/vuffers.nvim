@@ -157,6 +157,7 @@ end
 --- @param buffers Buffer[]
 --- @param sort SortOrder
 function M.sort_buffers(buffers, sort)
+  -- TODO: remove dependency
   local pinned = require("vuffers.buffers.pinned-buffers")
   return order_by(buffers, {
     function(buf)
