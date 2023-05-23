@@ -159,7 +159,7 @@ end
 
 ---@param buffer Buffer
 M.is_pinned = function(buffer)
-  return pinned.get_pinned_bufnrs()[buffer.buf] == true
+  return pinned.is_pinned(buffer.buf)
 end
 
 return M

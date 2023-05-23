@@ -22,6 +22,10 @@ M.get_pinned_bufnrs = function()
   return _pbufs
 end
 
+M.is_pinned = function(bufnr)
+  return _pbufs[bufnr] == true
+end
+
 ---@type integer[] first one is last, and the second one is current
 local _pinned_bufnrs = {}
 

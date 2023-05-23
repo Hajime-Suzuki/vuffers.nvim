@@ -157,9 +157,10 @@ end
 --- @param buffers Buffer[]
 --- @param sort SortOrder
 function M.sort_buffers(buffers, sort)
+  local pinned = require("vuffers.buffers.pinned-buffers")
   return order_by(buffers, {
     function(buf)
-      return buf.is_pinned and 1 or 0
+      return pinned.is_pinned(buf.buf) and 1 or 0
     end,
     function(buf)
       local type = buf.buf
