@@ -157,7 +157,7 @@ M.debug_buffers = function()
   print("buffers", vim.inspect(bufs.get_buffers()))
 end
 
----@param buffer Buffer
+---@param buffer Buffer | NativeBuffer
 M.is_pinned = function(buffer)
   return pinned.is_pinned(buffer.buf)
 end
