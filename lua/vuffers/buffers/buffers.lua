@@ -14,7 +14,6 @@ end
 ---@field name string name that will be displayed in the buffer list, which considers additional folder depth
 ---@field path string
 ---@field ext string
----@field is_pinned boolean
 ---@field _unique_name string unique name
 ---@field _filename string filename ("test" in "test.txt")
 ---@field _default_folder_depth number
@@ -241,26 +240,6 @@ function M.reset_buffers()
   _buf_list = bufs
 
   return true
-end
-
----@param identifier { index: integer } | { path: string }
----@param data { is_pinned: boolean}
-function M.update_buffer(identifier, data)
-  if identifier.index then
-    _buf_list[identifier.index].is_pinned = data.is_pinned
-  end
-
-  if identifier.path then
-    local buf = list.find(_buf_list, function(buf)
-      return buf.path == identifier.path
-    end)
-
-    if not buf then
-      return
-    end
-
-    buf.is_pinned = data.is_pinned
-  end
 end
 
 ---@param index integer

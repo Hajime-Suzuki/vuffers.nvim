@@ -22,6 +22,13 @@ M.get_pinned_bufnrs = function()
   return _pbufs
 end
 
+--- only for testing!
+M.__set_pinned_bufnrs = function(data)
+  for _, n in pairs(data) do
+    _pbufs[n] = true
+  end
+end
+
 M.is_pinned = function(bufnr)
   return _pbufs[bufnr] == true
 end

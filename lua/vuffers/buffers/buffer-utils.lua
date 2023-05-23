@@ -64,7 +64,7 @@ local function _split_filename_and_extension(file_name)
   return filename_without_extension, extension
 end
 
---- @param item { buf: integer, path: string, level: integer, path_fragments: string[], additional_folder_depth?: integer, is_pinned?: boolean }
+--- @param item { buf: integer, path: string, level: integer, path_fragments: string[], additional_folder_depth?: integer }
 --- @return Buffer
 local function _format_buffer(item)
   local unique_name = M._get_name_by_level(item.path_fragments, item.level)
@@ -84,7 +84,6 @@ local function _format_buffer(item)
     name = display_name_without_extension,
     path = item.path,
     ext = extension or "",
-    is_pinned = item.is_pinned,
     _unique_name = unique_name_without_extension,
     _filename = filename_without_extension,
     _additional_folder_depth = item.additional_folder_depth,
@@ -95,7 +94,7 @@ local function _format_buffer(item)
   return b
 end
 
---- @param buffers { buf:integer,  path: string, _additional_folder_depth?: integer , is_pinned?: boolean }[]
+--- @param buffers { buf:integer,  path: string, _additional_folder_depth?: integer }[]
 --- @return Buffer[] buffers
 function M.get_formatted_buffers(buffers)
   local cwd = vim.loop.cwd()
@@ -111,7 +110,6 @@ function M.get_formatted_buffers(buffers)
       level = 1,
       path_fragments = path_fragments,
       additional_folder_depth = buffer._additional_folder_depth,
-      is_pinned = buffer.is_pinned or false,
     }
   end)
 
