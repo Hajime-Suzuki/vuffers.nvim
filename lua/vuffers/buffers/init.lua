@@ -6,8 +6,6 @@ local active = require("vuffers.buffers.active-buffer")
 local event_payload = require("vuffers.buffers.event-payload")
 local utils = require("vuffers.buffers.buffer-utils")
 local config = require("vuffers.config")
-local tasks = require("vuffers.tasks")
-local list = require("utils.list")
 
 local M = {}
 
@@ -97,7 +95,7 @@ M.pin_buffer = function(index)
 
     local payload = event_payload.get_buffer_list_changed_event_payload()
     event_bus.publish_buffer_list_changed(payload)
-    event_bus.publish_buffer_pinned({ buffer = target })
+    pinned.persist_pinned_buffer(target)
   end
 end
 
@@ -138,7 +136,7 @@ M.unpin_buffer = function(index)
 
     local payload = event_payload.get_buffer_list_changed_event_payload()
     event_bus.publish_buffer_list_changed(payload)
-    event_bus.publish_buffer_unpinned({ buffer = target })
+    pinned.remove_persisted_pinned_buffer(target)
   end
 end
 

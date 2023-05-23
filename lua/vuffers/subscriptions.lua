@@ -3,10 +3,10 @@ local ui = require("vuffers.ui")
 local keymaps = require("vuffers.key-bindings")
 local buffers = require("vuffers.buffers")
 local buffer_actions = require("vuffers.buffer-actions")
+local pinned_bufs = require("vuffers.buffers.pinned-buffers")
 local config = require("vuffers.config")
 local list = require("utils.list")
 local logger = require("utils.logger")
-local tasks = require("vuffers.tasks")
 
 local M = {}
 
@@ -52,24 +52,6 @@ function M.setup()
       end)
     end,
     { label = "Handlers - on_buffer_delete" }
-  )
-
-  eb.subscribe(
-    eb.event.BufferPinned,
-    ---@param payload BufferPinnedPayload
-    function(payload)
-      tasks.persist_pinned_buffer(payload.buffer)
-    end,
-    { label = "Handlers - buffer pinned" }
-  )
-
-  eb.subscribe(
-    eb.event.BufferUnpinned,
-    ---@param payload BufferUnpinnedPayload
-    function(payload)
-      tasks.remove_persisted_pinned_buffer(payload.buffer)
-    end,
-    { label = "Handlers - buffer unpinned" }
   )
 end
 
