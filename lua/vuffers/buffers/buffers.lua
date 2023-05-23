@@ -191,10 +191,17 @@ end
 ---@param file_paths string[]
 function M.add_buffer_by_file_path(file_paths)
   local bufs = _get_loaded_bufs()
+
+  local path_map = list.group_by(file_paths, function(file_path)
+    return file_path
+  end)
+
   bufs = list.filter(bufs, function(buf)
-    return list.find_index(file_paths, function(file_path)
-      return buf.path == file_path and utils.is_valid_buf(buf)
-    end) ~= nil
+    if not utils.is_valid_buf(buf) then
+      return false
+    end
+
+    return path_map[buf.path] ~= nil
   end)
 
   if bufs == nil then

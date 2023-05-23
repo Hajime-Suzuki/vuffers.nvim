@@ -218,20 +218,6 @@ function M.remove_persisted_pinned_buffer(buffer)
   end
 end
 
----@return {path: string}[] | nil
-function M.get_pinned_buffers()
-  local ok, res = pcall(function()
-    return file.read_json_file(_get_filename())
-  end)
-
-  if not ok then
-    logger.error("get_binned_buffers: ", res)
-    return
-  end
-
-  return res
-end
-
 local loaded = true
 local cwd = vim.loop.cwd()
 function M.restore_pinned_buffers()
@@ -242,11 +228,13 @@ function M.restore_pinned_buffers()
   loaded = true
   cwd = vim.loop.cwd()
 
+  local filename = _get_filename()
   local ok, pinned_bufs = pcall(function()
-    return file.read_json_file(_get_filename())
+    return file.read_json_file(filename)
   end)
 
   if not ok then
+    logger.error("restore_pinned_buffers failed", { filename = filename, err = pinned_bufs })
     return
   end
 

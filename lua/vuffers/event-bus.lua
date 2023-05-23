@@ -10,8 +10,6 @@ M.event = {
   ActiveBufferChanged = "ActiveBufferChanged",
   ActivePinnedBufferChanged = "ActivePinnedBufferChanged",
   UnpinnedBuffersRemoved = "UnpinnedBufferRemoved",
-  BufferPinned = "BufferPinned",
-  BufferUnpinned = "BufferUnpinned",
 
   -- Events from UI
   VuffersWindowOpened = "VuffersWindowOpened",
