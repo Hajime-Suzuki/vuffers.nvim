@@ -15,6 +15,13 @@ end
 
 local M = {}
 
+---@type table<Bufnr, boolean>
+local _pbufs = {}
+
+M.get_pinned_bufnrs = function()
+  return _pbufs
+end
+
 ---@type integer[] first one is last, and the second one is current
 local _pinned_bufnrs = {}
 
@@ -56,6 +63,8 @@ function M.pin_buffer(index)
     return
   end
 
+  _pbufs[target.buf] = true
+
   M.set_active_pinned_bufnr(target.buf)
   return true
 end
@@ -84,8 +93,11 @@ function M.unpin_buffer(index)
     _pinned_bufnrs = {}
   else
     logger.debug("unpin_buffer: next pinned buffer found", { next_pinned = next_pinned })
+
     M.set_active_pinned_bufnr(next_pinned.buf)
   end
+
+  _pbufs[target.buf] = nil
 
   return true
 end
@@ -248,7 +260,13 @@ function M.restore_pinned_buffers()
     return buf.path
   end)
 
-  bufs().add_buffer_by_file_path(paths)
+  local pinned_bufnrs = bufs().add_buffer_by_file_path(paths)
+
+  if pinned_bufnrs then
+    list.for_each(pinned_bufnrs, function(buf)
+      _pbufs[buf.buf] = true
+    end)
+  end
 
   local bs = bufs().get_buffers()
   list.for_each(pinned_bufs or {}, function(pinned_buf)

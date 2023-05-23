@@ -172,7 +172,7 @@ function M.decrement_additional_folder_depth()
   return _change_additional_folder_depth(new_level)
 end
 
----@return {buf: integer, name: string, path: string, filetype: string, _additional_folder_depth: integer}
+---@return {buf: Bufnr, name: string, path: string, filetype: string, _additional_folder_depth: integer}
 local function _get_loaded_bufs()
   local bufs = vim.api.nvim_list_bufs()
   return list.map(bufs, function(buf)
@@ -189,6 +189,7 @@ local function _get_loaded_bufs()
 end
 
 ---@param file_paths string[]
+---@return { buf: Bufnr }[] | nil
 function M.add_buffer_by_file_path(file_paths)
   local bufs = _get_loaded_bufs()
 
@@ -196,7 +197,8 @@ function M.add_buffer_by_file_path(file_paths)
     return file_path
   end)
 
-  bufs = list.filter(bufs, function(buf)
+  ---@type { buf: Bufnr }[] | nil
+  local bufs_to_add = list.filter(bufs, function(buf)
     if not utils.is_valid_buf(buf) then
       return false
     end
@@ -204,12 +206,12 @@ function M.add_buffer_by_file_path(file_paths)
     return path_map[buf.path] ~= nil
   end)
 
-  if bufs == nil then
+  if bufs_to_add == nil then
     logger.warn("reload_all_buffers: no buffers found")
     return
   end
 
-  local merged = list.merge_unique(bufs, _buf_list, {
+  local merged = list.merge_unique(bufs_to_add, _buf_list, {
     id = function(buf)
       return buf.path
     end,
@@ -218,6 +220,8 @@ function M.add_buffer_by_file_path(file_paths)
   bufs = utils.get_formatted_buffers(merged)
   bufs = utils.sort_buffers(bufs, config.get_sort())
   _buf_list = bufs
+
+  return bufs_to_add
 end
 
 function M.reset_buffers()
