@@ -88,11 +88,14 @@ M.get_active_pinned_bufnr = pinned.get_active_pinned_bufnr
 ---@param index integer
 M.pin_buffer = function(index)
   if pinned.pin_buffer(index) then
+    local target = bufs.get_buffer_by_index(index)
+
     bufs.update_buffer({ index = index }, { is_pinned = true })
     bufs.set_buffers(utils.sort_buffers(bufs.get_buffers(), config.get_sort()))
 
     local payload = event_payload.get_buffer_list_changed_event_payload()
     event_bus.publish_buffer_list_changed(payload)
+    pinned.persist_pinned_buffer(target)
   end
 end
 
@@ -127,11 +130,13 @@ end
 ---@param index integer
 M.unpin_buffer = function(index)
   if pinned.unpin_buffer(index) then
+    local target = bufs.get_buffer_by_index(index)
     bufs.update_buffer({ index = index }, { is_pinned = false })
     bufs.set_buffers(utils.sort_buffers(bufs.get_buffers(), config.get_sort()))
 
     local payload = event_payload.get_buffer_list_changed_event_payload()
     event_bus.publish_buffer_list_changed(payload)
+    pinned.remove_persisted_pinned_buffer(target)
   end
 end
 
@@ -142,14 +147,14 @@ M.debug_buffers = function()
   ---@diagnostic disable-next-line: cast-local-type
   active_buf = active_buf and bufs.get_buffer_by_bufnr(active_buf) or nil
 
-  local active_pinned = M.get_active_pinned_buffer()
+  local active_pinned = pinned.get_active_pinned_bufnr()
   print("active", active_buf and active_buf.name or "none")
-  print("active_pinned", active_pinned and active_pinned.name or "none")
-  print("buffers", vim.inspect(bufs.get_buffers()))
+  print("active_pinned", active_pinned or "none")
   print(
     "pinned",
     vim.inspect({ prev = pinned.get_last_visited_pinned_bufnr(), current = pinned.get_active_pinned_bufnr() })
   )
+  print("buffers", vim.inspect(bufs.get_buffers()))
 end
 
 return M

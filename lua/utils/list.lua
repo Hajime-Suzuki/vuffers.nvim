@@ -23,14 +23,23 @@ end
 --- @generic TItem
 --- @param arr1 TItem[]
 --- @param arr2 TItem[]
+--- @param opts {id: fun(item: TItem): string}
 --- @return TItem[]
-function M.merge(arr1, arr2)
+function M.merge_unique(arr1, arr2, opts)
   local merged = {}
+  local seen = {}
+
   for _, v in ipairs(arr1) do
-    table.insert(merged, v)
+    if not seen[opts.id(v)] then
+      table.insert(merged, v)
+      seen[opts.id(v)] = true
+    end
   end
   for _, v in ipairs(arr2) do
-    table.insert(merged, v)
+    if not seen[opts.id(v)] then
+      table.insert(merged, v)
+      seen[opts.id(v)] = true
+    end
   end
   return merged
 end
