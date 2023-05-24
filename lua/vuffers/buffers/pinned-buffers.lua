@@ -16,21 +16,25 @@ end
 local M = {}
 
 ---@type table<Bufnr, boolean>
-local _pbufs = {}
+local _buf_map = {}
 
 M.get_pinned_bufnrs = function()
-  return _pbufs
+  return _buf_map
 end
 
 --- only for testing!
 M.__set_pinned_bufnrs = function(data)
   for _, n in pairs(data) do
-    _pbufs[n] = true
+    _buf_map[n] = true
   end
 end
 
+M.__reset_pinned_bufnrs = function()
+  _buf_map = {}
+end
+
 M.is_pinned = function(bufnr)
-  return _pbufs[bufnr] == true
+  return _buf_map[bufnr] == true
 end
 
 ---@type integer[] first one is last, and the second one is current
@@ -123,7 +127,7 @@ end
 
 ---@param buffer Buffer
 function M.pin_buffer(buffer)
-  _pbufs[buffer.buf] = true
+  _buf_map[buffer.buf] = true
   M.set_active_pinned_bufnr(buffer.buf)
   _persist_pinned_buffer(buffer)
 end
@@ -151,7 +155,7 @@ function M.unpin_buffer(buffer)
     M.set_active_pinned_bufnr(next_pinned.buf)
   end
 
-  _pbufs[buffer.buf] = nil
+  _buf_map[buffer.buf] = nil
 
   _remove_persisted_pinned_buffer(buffer)
 end
@@ -263,7 +267,7 @@ function M.restore_pinned_buffers()
 
   if pinned_bufnrs then
     list.for_each(pinned_bufnrs, function(buf)
-      _pbufs[buf.buf] = true
+      _buf_map[buf.buf] = true
     end)
   end
 end
