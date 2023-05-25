@@ -5,6 +5,7 @@ local pinned = require("vuffers.buffers.pinned-buffers")
 local active = require("vuffers.buffers.active-buffer")
 local event_payload = require("vuffers.buffers.event-payload")
 local utils = require("vuffers.buffers.buffer-utils")
+local list = require("utils.list")
 local config = require("vuffers.config")
 
 local M = {}
@@ -113,11 +114,34 @@ M.unpin_buffer = function(index)
 end
 
 M.remove_unpinned_buffers = function()
-  local remaining_bufs, removed_buffers = pinned.remove_unpinned_buffers(active.get_active_bufnr())
+  if pinned.is_empty() then
+    return
+  end
+
+  local is_active_buffer_removed = not pinned.is_pinned(active.get_active_bufnr())
+
+  local _buf_list = bufs.get_buffers()
+
+  if is_active_buffer_removed then
+    local new_active_buf = list.find(_buf_list, function(buf)
+      return pinned.is_pinned(buf.buf)
+    end)
+    active.set_active_bufnr(new_active_buf and new_active_buf.buf or nil)
+  end
+
+  local remaining_buffers = list.filter(_buf_list, function(buf)
+    return pinned.is_pinned(buf.buf)
+  end)
+
+  local removed_buffers = list.filter(_buf_list, function(buf)
+    return not pinned.is_pinned(buf.buf)
+  end)
+
   if not removed_buffers then
     return
   end
-  bufs.set_buffers(utils.sort_buffers(remaining_bufs or {}, config.get_sort()))
+
+  bufs.set_buffers(utils.sort_buffers(remaining_buffers or {}, config.get_sort()))
 
   local payload = event_payload.get_unpinned_buffers_removed_payload(removed_buffers)
   event_bus.publish_unpinned_buffers_removed(payload)

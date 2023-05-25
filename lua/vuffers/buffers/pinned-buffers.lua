@@ -22,6 +22,12 @@ M.get_pinned_bufnrs = function()
   return _buf_map
 end
 
+M.is_empty = function()
+  return list.find_index(_buf_map, function(is_pinned)
+    return is_pinned
+  end) == nil
+end
+
 --- only for testing!
 M.__set_pinned_bufnrs = function(data)
   for _, n in pairs(data) do
@@ -172,29 +178,6 @@ local function _get_unpinned_bufs()
   return list.filter(_buf_list, function(buf)
     return not M.is_pinned(buf.buf)
   end)
-end
-
----@param active_bufnr? Bufnr
-function M.remove_unpinned_buffers(active_bufnr)
-  local to_remove = _get_unpinned_bufs()
-
-  if not to_remove then
-    return nil, nil
-  end
-
-  local is_active_buffer_removed = list.find_index(to_remove or {}, function(buf)
-    return buf.buf == active_bufnr
-  end)
-
-  local _buf_list = bufs().get_buffers()
-  if is_active_buffer_removed then
-    local new_active_buf = list.find(_buf_list, function(buf)
-      return M.is_pinned(buf.buf)
-    end)
-    active().set_active_bufnr(new_active_buf and new_active_buf.buf or nil)
-  end
-
-  return _get_pinned_bufs(), to_remove
 end
 
 function M.get_active_pinned_buffer()
