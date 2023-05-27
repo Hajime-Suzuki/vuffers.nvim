@@ -2,6 +2,7 @@ local config = require("vuffers.config")
 local logger = require("utils.logger")
 local constants = require("vuffers.constants")
 local event_bus = require("vuffers.event-bus")
+local list = require("utils.list")
 
 local M = {}
 
@@ -31,7 +32,7 @@ local window_options = {
   winfixheight = true,
   foldenable = false,
   spell = false,
-  -- signcolumn = "no",
+  signcolumn = "no",
   cursorcolumn = false,
   cursorline = false,
   colorcolumn = "0",
@@ -171,6 +172,35 @@ function M.resize(width)
 
   config.set_window_width(new_width)
   vim.api.nvim_win_set_width(view.winnr, new_width)
+end
+
+local LENGTH_BEFORE_BUFFER_NAME = 3
+local EDIT_ICON_LENGTH = 2
+
+function M.auto_resize()
+  if not config.get_view_config().window.auto_resize then
+    return
+  end
+
+  local view = _get_view()
+  if not view then
+    return
+  end
+
+  local buf = vim.api.nvim_win_get_buf(view.winnr)
+  local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+
+  local max_text_length = 0
+  list.for_each(lines, function(line)
+    max_text_length = math.max(max_text_length, string.len(line))
+  end)
+
+  M.resize(
+    math.max(
+      max_text_length + LENGTH_BEFORE_BUFFER_NAME + EDIT_ICON_LENGTH,
+      (config.get_view_config().window.min_width or 0)
+    )
+  )
 end
 
 return M

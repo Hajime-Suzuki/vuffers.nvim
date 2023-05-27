@@ -6,6 +6,7 @@ local buffer_actions = require("vuffers.buffer-actions")
 local config = require("vuffers.config")
 local list = require("utils.list")
 local logger = require("utils.logger")
+local window = require("vuffers.window")
 
 local M = {}
 
@@ -18,6 +19,7 @@ function M.setup()
   )
 
   eb.subscribe(eb.event.BufferListChanged, ui.render_buffers, { label = "UI - render buffers" })
+  eb.subscribe(eb.event.BufferListChanged, window.auto_resize, { label = "Window - auto resize" })
 
   eb.subscribe(eb.event.VuffersWindowOpened, keymaps.setup, { label = "Keymaps - set up keymaps" })
   eb.subscribe(eb.event.VuffersWindowOpened, buffers.reload_buffers, { label = "Buffers - reload all buffers" })
