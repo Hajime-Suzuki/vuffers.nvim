@@ -58,15 +58,14 @@ function M.create_auto_group()
   vim.api.nvim_create_autocmd({ "BufDelete" }, {
     pattern = "*",
     group = constants.AUTO_CMD_GROUP,
+    ---@param buffer NativeBuffer
     callback = function(buffer)
       logger.debug("BufDelete", { buffer = buffer })
 
-      local target = buffers.get_buffer_by_bufnr(buffer.buf)
-      if target and target.is_pinned then
-        vim.cmd("edit" .. target.path)
+      if buffers.is_pinned(buffer) then
+        vim.cmd("edit " .. buffer.file)
         buffers.set_active_bufnr(buffer.buf)
         buffers.set_active_pinned_bufnr(buffer.buf)
-
         return
       end
 

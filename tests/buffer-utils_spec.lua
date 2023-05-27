@@ -3,6 +3,7 @@ local utils = require("vuffers.buffers.buffer-utils")
 local str = require("utils.string")
 local list = require("utils.list")
 local constants = require("vuffers.constants")
+local pinned = require("vuffers.buffers.pinned-buffers")
 
 local function shuffle(tbl)
   local output = vim.deepcopy(tbl)
@@ -335,6 +336,7 @@ describe("utils", function()
     end)
 
     it("should sort pinned buffers first", function()
+      pinned.__set_pinned_bufnrs({ 5, 6 })
       ---@type Buffer[]
       local bufs = {
         {

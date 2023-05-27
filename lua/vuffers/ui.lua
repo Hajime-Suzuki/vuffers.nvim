@@ -46,14 +46,14 @@ end
 local function _generate_line(buffer)
   local icon, icon_color = _get_icon(buffer)
   local pinned_icon = config.get_view_config().pinned_icon
-  local pinned_icon_text = buffer.is_pinned and pinned_icon .. " " or ""
+  local pinned_icon_text = bufs.is_pinned(buffer) and pinned_icon .. " " or ""
   local icon_text = icon ~= "" and icon .. " " or "  "
   local text = pinned_icon_text .. icon_text .. buffer.name
 
   ---@type Highlight[]
   local highlights = {}
 
-  if buffer.is_pinned then
+  if bufs.is_pinned(buffer) then
     table.insert(
       highlights,
       { color = constants.HIGHLIGHTS.PINNED_ICON, size = string.len(pinned_icon), namespace = pinned_icon_ns }

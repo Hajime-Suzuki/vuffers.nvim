@@ -1,5 +1,7 @@
 ---@diagnostic disable: undefined-global
 local buffers = require("vuffers.buffers")
+local pinned_bufs = require("vuffers.buffers.pinned-buffers")
+local bs = require("vuffers.buffers.buffers")
 local event_bus = require("vuffers.event-bus")
 local config = require("vuffers.config")
 local list = require("utils.list")
@@ -24,6 +26,7 @@ describe("buffers >>", function()
     before_each(function()
       event_bus._delete_all_subscriptions()
       buffers.set_buffers({})
+      pinned_bufs.__reset_pinned_bufnrs()
     end)
 
     it("should pin buffer", function()
@@ -43,7 +46,7 @@ describe("buffers >>", function()
       buffers.pin_buffer(1)
 
       -- then is_pinned is true
-      assert.are.same(true, _updated_bufs.buffers[1].is_pinned)
+      assert.are.same(true, buffers.is_pinned({ buf = 1 }))
     end)
 
     it("should place pinned buffers on the top of the list", function()
@@ -64,7 +67,7 @@ describe("buffers >>", function()
       buffers.pin_buffer(3)
 
       local bufs = list.map(_updated_bufs.buffers, function(buf)
-        return { is_pinned = buf.is_pinned, buf = buf.buf }
+        return { is_pinned = buffers.is_pinned(buf), buf = buf.buf }
       end)
 
       -- then buffers are sorted correctly
@@ -100,7 +103,7 @@ describe("buffers >>", function()
       buffers.unpin_buffer(1)
 
       -- then is_pinned is true
-      assert.are.same(false, _updated_bufs.buffers[1].is_pinned)
+      assert.are.same(false, buffers.is_pinned({ buf = 1 }))
     end)
 
     it("should place pinned buffers on the top of the list", function()
@@ -125,14 +128,14 @@ describe("buffers >>", function()
       buffers.unpin_buffer(1) -- unpin first buffer on the list (buf 2) updated buf: 3, 1, 2
 
       local bufs = list.map(_updated_bufs.buffers, function(buf)
-        return { iis_pinned = buf.is_pinned, buf = buf.buf }
+        return { is_pinned = buffers.is_pinned(buf), buf = buf.buf }
       end)
 
       -- then buffers are sorted correctly
       assert.are.same({
-        { iis_pinned = true, buf = 3 },
-        { iis_pinned = false, buf = 1 },
-        { iis_pinned = false, buf = 2 },
+        { is_pinned = true, buf = 3 },
+        { is_pinned = false, buf = 1 },
+        { is_pinned = false, buf = 2 },
       }, bufs)
     end)
   end)
@@ -141,6 +144,7 @@ describe("buffers >>", function()
     before_each(function()
       event_bus._delete_all_subscriptions()
       buffers.set_buffers({})
+      pinned_bufs.__reset_pinned_bufnrs()
     end)
 
     it("should remove unpinned buffers when active buffer is pinned", function()
@@ -167,7 +171,7 @@ describe("buffers >>", function()
       buffers.set_active_bufnr(4)
 
       local pinned = list.filter(_updated_bufs.buffers, function(buf)
-        return buf.is_pinned
+        return buffers.is_pinned(buf)
       end)
 
       pinned = list.map(pinned or {}, function(buf)
@@ -183,11 +187,11 @@ describe("buffers >>", function()
       buffers.remove_unpinned_buffers()
 
       local unpinned = list.filter(_updated_bufs.buffers, function(buf)
-        return not buf.is_pinned
+        return not buffers.is_pinned(buf)
       end)
 
       pinned = list.filter(_updated_bufs.buffers, function(buf)
-        return buf.is_pinned
+        return buffers.is_pinned(buf)
       end)
       pinned = list.map(pinned or {}, function(buf)
         return buf.buf
@@ -233,7 +237,7 @@ describe("buffers >>", function()
       buffers.set_active_bufnr(2)
 
       local pinned = list.filter(_updated_bufs.buffers, function(buf)
-        return buf.is_pinned
+        return buffers.is_pinned(buf)
       end)
 
       pinned = list.map(pinned or {}, function(buf)
@@ -249,11 +253,11 @@ describe("buffers >>", function()
       buffers.remove_unpinned_buffers()
 
       local unpinned = list.filter(_updated_bufs.buffers, function(buf)
-        return not buf.is_pinned
+        return not buffers.is_pinned(buf)
       end)
 
       pinned = list.filter(_updated_bufs.buffers, function(buf)
-        return buf.is_pinned
+        return buffers.is_pinned(buf)
       end)
       pinned = list.map(pinned or {}, function(buf)
         return buf.buf

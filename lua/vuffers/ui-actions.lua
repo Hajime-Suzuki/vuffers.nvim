@@ -18,7 +18,7 @@ function M.delete_buffer()
   local buf = buffers.get_buffer_by_index(row)
   local active = buffers.get_active_buffer()
 
-  if buf.is_pinned then
+  if buffers.is_pinned(buf) then
     return
   end
 
