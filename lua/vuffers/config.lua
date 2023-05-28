@@ -115,7 +115,7 @@ function M.setup(user_config)
       pinned_icon = "󰃀",
       window = {
         auto_resize = false,
-        width = 20,
+        width = 35,
         focus_on_open = false,
       },
     },
