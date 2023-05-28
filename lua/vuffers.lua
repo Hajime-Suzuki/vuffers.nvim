@@ -72,6 +72,16 @@ function M.resize(width)
   window.resize(width)
 end
 
+function M.toggle_auto_resize()
+  local view_config = config.get_view_config()
+  local auto_resize_enabled = not view_config.window.auto_resize
+
+  config.set_auto_resize(auto_resize_enabled)
+  if auto_resize_enabled then
+    window.auto_resize()
+  end
+end
+
 ------------------------------------
 --   BUFFERS                    --
 ------------------------------------
