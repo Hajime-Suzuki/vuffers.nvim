@@ -18,7 +18,7 @@ local M = {}
 ---@class View
 ---@field modified_icon string
 ---@field pinned_icon string
----@field window {width: number, focus_on_open: boolean }
+---@field window { auto_resize: boolean, width: number, focus_on_open: boolean }
 
 ---@class Keymaps
 ---@field use_default boolean
@@ -72,6 +72,11 @@ M.set_log_level = function(level)
   config.debug.level = level
 end
 
+---@param auto_resize boolean
+M.set_auto_resize = function(auto_resize)
+  config.view.window.auto_resize = auto_resize
+end
+
 ---@param user_config Config
 function M.setup(user_config)
   ---@type Config
@@ -107,8 +112,9 @@ function M.setup(user_config)
     },
     view = {
       modified_icon = "󰛿", -- when a buffer is modified, this icon will be shown
-      pinned_icon = "󰐾",
+      pinned_icon = "󰃀",
       window = {
+        auto_resize = false,
         width = 35,
         focus_on_open = false,
       },

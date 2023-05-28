@@ -21,6 +21,20 @@ function M.for_each(arr, callback)
 end
 
 --- @generic TItem
+--- @generic TFoldVal
+--- @param arr TItem[]
+--- @param initial_value TFoldVal
+--- @param callback fun(val: TFoldVal, item: TItem, index: number): TFoldVal
+--- @return TFoldVal
+function M.fold(arr, initial_value, callback)
+  local output = initial_value
+  M.for_each(arr, function(item, index)
+    output = callback(output, item, index)
+  end)
+  return output
+end
+
+--- @generic TItem
 --- @param arr1 TItem[]
 --- @param arr2 TItem[]
 --- @param opts {id: fun(item: TItem): string}
