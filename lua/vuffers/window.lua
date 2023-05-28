@@ -190,17 +190,11 @@ function M.auto_resize()
   local buf = vim.api.nvim_win_get_buf(view.winnr)
   local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
 
-  local max_text_length = 0
-  list.for_each(lines, function(line)
-    max_text_length = math.max(max_text_length, string.len(line))
+  local max_text_length = list.fold(lines, 0, function(fold_val, line)
+    return math.max(fold_val, line:len())
   end)
 
-  M.resize(
-    math.max(
-      max_text_length + LENGTH_BEFORE_BUFFER_NAME + EDIT_ICON_LENGTH,
-      (config.get_view_config().window.min_width or 0)
-    )
-  )
+  M.resize(max_text_length + LENGTH_BEFORE_BUFFER_NAME + EDIT_ICON_LENGTH)
 end
 
 return M
