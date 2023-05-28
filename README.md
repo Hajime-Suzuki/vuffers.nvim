@@ -34,6 +34,9 @@ With this plugin, I aim to provide a solution that addresses these specific need
   - For example, if both `a/foo/baz.ts` and `b/bar/baz.ts` are open, they will be shown as `foo/baz` and `bar/baz` respectively
 - Shortcuts for seamless navigation between buffers
 - Sorting of buffers for customizable organization of your workflow
+- Pinning of buffers for persistent and convenient access
+  - moved to the top of the buffer list and are protected from accidentally closed
+  - saved and restored per cwd
 
 <br>
 
@@ -51,6 +54,10 @@ Navigation
 
 https://user-images.githubusercontent.com/26042720/233858935-e7a72733-b8aa-4cb2-ab36-9f345b9896a1.mp4
 
+Pinned buffers
+
+https://github.com/Hajime-Suzuki/vuffers.nvim/assets/26042720/3170217d-95ec-45dd-b3da-74b107de0da3
+
 <br>
 
 ## ❗ Requirements
@@ -64,6 +71,7 @@ Older versions may work without a problem but not tested
 ### Dependencies
 
 - nvim-tree/nvim-web-devicons
+- (optional) Tastyep/structlog.nvim (for logging)
 
 <br>
 
@@ -110,6 +118,7 @@ return {
         modified_icon = "󰛿", -- when a buffer is modified, this icon will be shown
         pinned_icon = "󰐾",
         window = {
+          auto_resize= false,
           width = 35,
           focus_on_open = false,
         },
@@ -137,6 +146,7 @@ return {
 | `go_to_active_pinned_buffer`        |                                                               | go to currently active pinned buffer                                                                                       |
 | `go_to_next_pinned_buffer`          |                                                               | go to next pinned buffer from the active one                                                                               |
 | `go_to_prev_pinned_buffer`          |                                                               | go to previous pinned buffer from the active one                                                                           |
+| `toggle_auto_resize`                |                                                               | toggle auto resize                                                                                                         |
 | `set_log_level`                     | `level: 'error' \| 'warning' \| 'info' \| 'debug' \| 'trace'` | update log level                                                                                                           |
 
 <br>
