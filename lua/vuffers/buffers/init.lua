@@ -18,6 +18,13 @@ M.add_buffer = function(buffer)
   end
 end
 
+---@param {index: number, new_name: string}
+M.rename_buffer = function(args)
+  bufs.rename_buffer(args)
+  local payload = event_payload.get_buffer_list_changed_event_payload()
+  event_bus.publish_buffer_list_changed(payload)
+end
+
 M.change_sort = function()
   bufs.change_sort()
   local payload = event_payload.get_buffer_list_changed_event_payload()
@@ -184,6 +191,13 @@ end
 ---@param buffer Buffer | NativeBuffer
 M.is_pinned = function(buffer)
   return pinned.is_pinned(buffer.buf)
+end
+
+M.persist_buffers = bufs.persist_buffers
+
+M.restore_buffers = function()
+  pinned.restore_pinned_buffers()
+  bufs.load_buffers()
 end
 
 return M

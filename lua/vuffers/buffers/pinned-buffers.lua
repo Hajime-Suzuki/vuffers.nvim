@@ -216,8 +216,10 @@ function M.get_next_or_prev_pinned_buffer(type)
   return pinned_buffers[target_buf_index]
 end
 
+-- workaround
 local loaded = true
 local cwd = vim.loop.cwd()
+-- TODO: merge this into buffers.load_buffers
 function M.restore_pinned_buffers()
   if not loaded or cwd == vim.loop.cwd() then
     return
@@ -242,11 +244,7 @@ function M.restore_pinned_buffers()
     end
   end)
 
-  local paths = list.map(pinned_bufs or {}, function(buf)
-    return buf.path
-  end)
-
-  local pinned_bufnrs = bufs().add_buffer_by_file_path(paths)
+  local pinned_bufnrs = bufs().add_buffer_by_file_path(pinned_bufs)
 
   if pinned_bufnrs then
     list.for_each(pinned_bufnrs, function(buf)

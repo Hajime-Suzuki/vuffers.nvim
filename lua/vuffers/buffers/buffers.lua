@@ -1,4 +1,6 @@
+local file = require("utils.file")
 local logger = require("utils.logger")
+local str = require("utils.string")
 local utils = require("vuffers.buffers.buffer-utils")
 local list = require("utils.list")
 local config = require("vuffers.config")
@@ -11,13 +13,14 @@ end
 
 ---@class Buffer
 ---@field buf Bufnr
----@field name string name that will be displayed in the buffer list, which considers additional folder depth
+---@field name string name that will be displayed in the buffer list, which considers additional folder depth //TODO: change it to display name
 ---@field path string
 ---@field ext string
----@field _unique_name string unique name
+---@field _custom_name string | nil set if user renames the file
+---@field _unique_name string unique name (when "src/main" is `name`, then "main" is `_unique_name`)
 ---@field _filename string filename ("test" in "test.txt")
 ---@field _default_folder_depth number
----@field _additional_folder_depth number
+---@field _additional_folder_depth number //TODO: make it custom_name if possible
 ---@field _max_folder_depth number
 
 ---@class NativeBuffer
@@ -85,6 +88,14 @@ function M.add_buffer(buffer)
   logger.debug("add_buffer: buffer is added", { file = buffer.file })
 
   return true
+end
+
+---@param args {index: number, new_name: string}
+function M.rename_buffer(args)
+  _buf_list[args.index]._custom_name = args.new_name
+  local buffers = utils.get_formatted_buffers(_buf_list)
+  buffers = utils.sort_buffers(buffers, config.get_sort())
+  _buf_list = buffers
 end
 
 ---@param args {bufnr?: number}
@@ -187,22 +198,38 @@ local function _get_loaded_bufs()
   end)
 end
 
----@param file_paths string[]
+---@param file_paths {path: string, _custom_name:string} []
 ---@return { buf: Bufnr }[] | nil
 function M.add_buffer_by_file_path(file_paths)
   local bufs = _get_loaded_bufs()
 
+  ---@type {[string]: { path: string, _custom_name:string }[]}
   local path_map = list.group_by(file_paths, function(file_path)
-    return file_path
+    return file_path.path
   end)
 
-  ---@type { buf: Bufnr }[] | nil
-  local bufs_to_add = list.filter(bufs, function(buf)
+  ---@type ({ buf: Bufnr, name: string, path: string, filetype: string, _additional_folder_depth: integer } | nil)[]
+  local bufs_to_add = list.map(bufs, function(buf)
     if not utils.is_valid_buf(buf) then
-      return false
+      return nil
     end
 
-    return path_map[buf.path] ~= nil
+    local data = path_map[buf.path]
+    if not data then
+      return nil
+    end
+
+    return {
+      buf = buf.buf,
+      name = buf.name,
+      path = buf.path,
+      filetype = buf.filetype,
+      _additional_folder_depth = buf._additional_folder_depth,
+      _custom_name = data[1]._custom_name,
+    }
+  end)
+  bufs_to_add = list.filter(bufs_to_add, function(buf)
+    return buf ~= nil
   end)
 
   if bufs_to_add == nil then
@@ -259,6 +286,70 @@ function M.get_buffer_by_bufnr(bufnr)
   end
 
   return _buf_list[index], index
+end
+
+local PINNED_BUFFER_LOCATION = vim.fn.stdpath("data") .. "/vuffers"
+---@return string
+local function _get_filename()
+  local cwd = vim.loop.cwd()
+  local filename = str.replace(cwd, "/", "_")
+  return PINNED_BUFFER_LOCATION .. "/" .. filename .. "_buffers" .. ".json"
+end
+
+function M.persist_buffers()
+  local ok, err = pcall(function()
+    local filename = _get_filename()
+
+    local data = list.map(_buf_list, function(item)
+      return {
+        path = item.path,
+        _custom_name = item._custom_name,
+      }
+    end)
+
+    file.write_json_file(filename, data)
+  end)
+
+  if not ok then
+    logger.error("persist_pinned_buffer: ", err)
+  end
+end
+
+-- workaround
+local loaded = true
+local cwd = vim.loop.cwd()
+function M.load_buffers()
+  if not loaded or cwd == vim.loop.cwd() then
+    return
+  end
+
+  loaded = true
+  cwd = vim.loop.cwd()
+
+  local filename = _get_filename()
+
+  ---@type boolean, { path: string, _custom_name: string }[]
+  local ok, buffers = pcall(function()
+    return file.read_json_file(filename)
+  end)
+
+  if not ok then
+    logger.error("restore_pinned_buffers failed", { filename = filename, err = buffers })
+    return
+  end
+
+  if not #buffers then
+    return
+  end
+
+  -- add buffers so buffer gets buffer number
+  list.for_each(buffers or {}, function(buf)
+    if vim.fn.filereadable(buf.path) == 1 then
+      vim.cmd("badd " .. buf.path)
+    end
+  end)
+
+  M.add_buffer_by_file_path(buffers)
 end
 
 return M
