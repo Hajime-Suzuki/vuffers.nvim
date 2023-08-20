@@ -111,6 +111,14 @@ function M.create_auto_group()
       end
     end,
   })
+
+  vim.api.nvim_create_autocmd("SessionLoadPost", {
+    pattern = "*",
+    group = constants.AUTO_CMD_GROUP,
+    callback = function(buffer)
+      buffers.restore_buffers(true)
+    end,
+  })
 end
 
 return M

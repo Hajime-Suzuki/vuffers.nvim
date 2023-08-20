@@ -195,18 +195,25 @@ end
 
 M.persist_buffers = bufs.persist_buffers
 
-local loaded = true
-local cwd = vim.loop.cwd()
-M.restore_buffers = function()
-  if not loaded or cwd == vim.loop.cwd() then
+local loaded = false
+local cwd = nil
+---@param force? boolean
+M.restore_buffers = function(force)
+  if not force and (loaded or cwd == vim.loop.cwd()) then
     return
   end
 
+  logger.info("restore_buffers: buffers are loaded from file")
   loaded = true
   cwd = vim.loop.cwd()
 
   bufs.load_buffers()
   pinned.restore_pinned_buffers()
+
+  if not #bufs.get_buffers() then
+    return
+  end
+
   bufs.set_buffers(utils.sort_buffers(bufs.get_buffers(), config.get_sort()))
 
   local payload = event_payload.get_buffer_list_changed_event_payload()
