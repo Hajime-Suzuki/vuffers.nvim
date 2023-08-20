@@ -315,17 +315,7 @@ function M.persist_buffers()
   end
 end
 
--- workaround
-local loaded = true
-local cwd = vim.loop.cwd()
 function M.load_buffers()
-  if not loaded or cwd == vim.loop.cwd() then
-    return
-  end
-
-  loaded = true
-  cwd = vim.loop.cwd()
-
   local filename = _get_filename()
 
   ---@type boolean, { path: string, _custom_name: string }[]
@@ -342,14 +332,14 @@ function M.load_buffers()
     return
   end
 
-  -- add buffers so buffer gets buffer number
+  -- add buffers so that buffer gets buffer number
   list.for_each(buffers or {}, function(buf)
     if vim.fn.filereadable(buf.path) == 1 then
       vim.cmd("badd " .. buf.path)
     end
   end)
 
-  M.add_buffer_by_file_path(buffers)
+  return M.add_buffer_by_file_path(buffers)
 end
 
 return M

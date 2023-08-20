@@ -216,19 +216,10 @@ function M.get_next_or_prev_pinned_buffer(type)
   return pinned_buffers[target_buf_index]
 end
 
--- workaround
-local loaded = true
-local cwd = vim.loop.cwd()
--- TODO: merge this into buffers.load_buffers
 function M.restore_pinned_buffers()
-  if not loaded or cwd == vim.loop.cwd() then
-    return
-  end
-
-  loaded = true
-  cwd = vim.loop.cwd()
-
   local filename = _get_filename()
+
+  ---@type boolean, {path: string}[]
   local ok, pinned_bufs = pcall(function()
     return file.read_json_file(filename)
   end)
@@ -238,16 +229,16 @@ function M.restore_pinned_buffers()
     return
   end
 
-  list.for_each(pinned_bufs or {}, function(buf)
-    if vim.fn.filereadable(buf.path) == 1 then
-      vim.cmd("badd " .. buf.path)
-    end
+  local buffers = bufs().get_buffers()
+  pinned_bufs = list.filter(buffers, function(buf)
+    local match = list.find(pinned_bufs, function(pinned_buf)
+      return pinned_buf.path == buf.path
+    end)
+    return match ~= nil
   end)
 
-  local pinned_bufnrs = bufs().add_buffer_by_file_path(pinned_bufs)
-
-  if pinned_bufnrs then
-    list.for_each(pinned_bufnrs, function(buf)
+  if pinned_bufs then
+    list.for_each(pinned_bufs, function(buf)
       _buf_map[buf.buf] = true
     end)
   end

@@ -195,9 +195,22 @@ end
 
 M.persist_buffers = bufs.persist_buffers
 
+local loaded = true
+local cwd = vim.loop.cwd()
 M.restore_buffers = function()
-  pinned.restore_pinned_buffers()
+  if not loaded or cwd == vim.loop.cwd() then
+    return
+  end
+
+  loaded = true
+  cwd = vim.loop.cwd()
+
   bufs.load_buffers()
+  pinned.restore_pinned_buffers()
+  bufs.set_buffers(utils.sort_buffers(bufs.get_buffers(), config.get_sort()))
+
+  local payload = event_payload.get_buffer_list_changed_event_payload()
+  event_bus.publish_buffer_list_changed(payload)
 end
 
 return M
