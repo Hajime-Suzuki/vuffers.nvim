@@ -174,6 +174,12 @@ end
 -- MISC                         --
 ------------------------------------
 
+-- TODO: document in readme
+function M.on_session_loaded()
+  print("session is loaded")
+  bufs.restore_buffers()
+end
+
 function M.debug_buffers()
   bufs.debug_buffers()
 end
