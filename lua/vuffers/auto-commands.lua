@@ -14,8 +14,6 @@ function M.create_auto_group()
     group = constants.AUTO_CMD_GROUP,
     ---@param buffer NativeBuffer
     callback = function(buffer)
-      buffers.restore_buffers()
-
       if not buf_utils.is_valid_buf(buffer) then
         return
       end
@@ -44,8 +42,6 @@ function M.create_auto_group()
     pattern = "*",
     group = constants.AUTO_CMD_GROUP,
     callback = function(buffer)
-      buffers.restore_buffers()
-
       if not buf_utils.is_valid_buf(buffer) then
         return
       end
@@ -112,11 +108,11 @@ function M.create_auto_group()
     end,
   })
 
-  vim.api.nvim_create_autocmd("SessionLoadPost", {
+  vim.api.nvim_create_autocmd("VimLeavePre", {
     pattern = "*",
     group = constants.AUTO_CMD_GROUP,
-    callback = function(buffer)
-      buffers.restore_buffers(true)
+    callback = function()
+      buffers.persist_buffers()
     end,
   })
 end

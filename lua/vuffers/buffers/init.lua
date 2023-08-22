@@ -214,4 +214,6 @@ M.restore_buffers = function()
   event_bus.publish_buffer_list_changed(payload)
 end
 
+M.restore_pinned_buffers = pinned.restore_pinned_buffers
+
 return M
