@@ -84,58 +84,9 @@ local function _get_filename()
 end
 
 ---@param buffer Buffer
-local function _persist_pinned_buffer(buffer)
-  local ok, err = pcall(function()
-    local filename = _get_filename()
-
-    ---@type {path: string}[]
-    local pinned_buffers = file.read_json_file(filename)
-    local is_pinned = list.find_index(pinned_buffers, function(item)
-      return item.path == buffer.path
-    end)
-
-    if is_pinned then
-      return
-    end
-
-    table.insert(pinned_buffers, { path = buffer.path })
-    file.write_json_file(filename, pinned_buffers)
-  end)
-
-  if not ok then
-    logger.error("persist_pinned_buffer: ", err)
-  end
-end
-
----@param buffer Buffer
-local function _remove_persisted_pinned_buffer(buffer)
-  local ok, err = pcall(function()
-    local filename = _get_filename()
-
-    ---@type {path: string}[]
-    local pinned_buffers = file.read_json_file(filename)
-
-    local updated = list.filter(pinned_buffers, function(item)
-      return item.path ~= buffer.path
-    end)
-
-    if #updated == #pinned_buffers then
-      return
-    end
-
-    file.write_json_file(filename, updated or {})
-  end)
-
-  if not ok then
-    logger.error("persist_pinned_buffer: ", err)
-  end
-end
-
----@param buffer Buffer
 function M.pin_buffer(buffer)
   _buf_map[buffer.buf] = true
   M.set_active_pinned_bufnr(buffer.buf)
-  _persist_pinned_buffer(buffer)
 end
 
 ---@param buffer Buffer
@@ -162,8 +113,6 @@ function M.unpin_buffer(buffer)
   end
 
   _buf_map[buffer.buf] = nil
-
-  _remove_persisted_pinned_buffer(buffer)
 end
 
 local function _get_pinned_bufs()
@@ -216,10 +165,33 @@ function M.get_next_or_prev_pinned_buffer(type)
   return pinned_buffers[target_buf_index]
 end
 
+-- TODO: move to buffers.init
+function M.persist_pinned_buffers()
+  local buffers = bufs().get_buffers()
+  local to_save = list.filter(buffers, function(buf)
+    return M.is_pinned(buf.buf)
+  end)
+  to_save = list.map(to_save or {}, function(buf)
+    return { path = buf.path }
+  end)
+
+  if not #to_save then
+    return
+  end
+
+  local ok, err = pcall(function()
+    local filename = _get_filename()
+
+    file.write_json_file(filename, to_save)
+  end)
+
+  if not ok then
+    logger.error("persist_pinned_buffer: ", err)
+  end
+end
+
 function M.restore_pinned_buffers()
   local filename = _get_filename()
-
-  ---@type boolean, {path: string}[]
   local ok, pinned_bufs = pcall(function()
     return file.read_json_file(filename)
   end)
@@ -229,16 +201,17 @@ function M.restore_pinned_buffers()
     return
   end
 
-  local buffers = bufs().get_buffers()
-  pinned_bufs = list.filter(buffers, function(buf)
-    local match = list.find(pinned_bufs, function(pinned_buf)
-      return pinned_buf.path == buf.path
-    end)
-    return match ~= nil
+  -- this is necessary only when session is not loaded
+  list.for_each(pinned_bufs or {}, function(buf)
+    if vim.fn.filereadable(buf.path) == 1 then
+      vim.cmd("badd " .. buf.path)
+    end
   end)
 
-  if pinned_bufs then
-    list.for_each(pinned_bufs, function(buf)
+  local pinned_bufnrs = bufs().add_buffer_by_file_path(pinned_bufs)
+
+  if pinned_bufnrs then
+    list.for_each(pinned_bufnrs, function(buf)
       _buf_map[buf.buf] = true
     end)
   end

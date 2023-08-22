@@ -113,6 +113,7 @@ function M.create_auto_group()
     group = constants.AUTO_CMD_GROUP,
     callback = function()
       buffers.persist_buffers()
+      buffers.persist_pinned_buffers()
     end,
   })
 end

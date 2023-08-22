@@ -178,6 +178,7 @@ end
 -- TODO: document in readme
 function M.on_session_loaded()
   print("session is loaded")
+  -- TODO: set session is set flag. If NOT set, do not overwrite the buffers file on leaving neovim
   bufs.restore_buffers()
 end
 

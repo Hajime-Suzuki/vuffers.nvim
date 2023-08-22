@@ -296,6 +296,7 @@ local function _get_filename()
   return PINNED_BUFFER_LOCATION .. "/" .. filename .. "_buffers" .. ".json"
 end
 
+-- TODO: move to buffers.init
 function M.persist_buffers()
   local ok, err = pcall(function()
     local filename = _get_filename()
@@ -315,7 +316,9 @@ function M.persist_buffers()
   end
 end
 
-function M.load_buffers()
+-- TODO: move to buffers.init
+-- TODO: restore unpinned buffer only
+function M.restore_buffers_from_file()
   local filename = _get_filename()
 
   ---@type boolean, { path: string, _custom_name: string }[]

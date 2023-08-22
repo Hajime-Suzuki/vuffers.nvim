@@ -19,7 +19,6 @@ function M.setup()
   )
 
   eb.subscribe(eb.event.BufferListChanged, ui.render_buffers, { label = "UI - render buffers" })
-  -- eb.subscribe(eb.event.BufferListChanged, buffers.persist_buffers, { label = "File - persist buffers to a file" })
   eb.subscribe(eb.event.BufferListChanged, window.auto_resize, { label = "Window - auto resize" })
 
   eb.subscribe(eb.event.VuffersWindowOpened, keymaps.setup, { label = "Keymaps - set up keymaps" })
