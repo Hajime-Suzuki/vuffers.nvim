@@ -67,7 +67,6 @@ end
 --- @param item { buf: integer, path: string, level: integer, path_fragments: string[], additional_folder_depth?: integer, custom_name?: string }
 --- @param unique_name string
 local function _get_display_name(item, unique_name)
-  logger.info(item.custom_name)
   if item.custom_name then
     return item.custom_name
   end

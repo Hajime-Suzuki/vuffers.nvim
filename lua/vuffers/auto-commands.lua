@@ -112,8 +112,10 @@ function M.create_auto_group()
     pattern = "*",
     group = constants.AUTO_CMD_GROUP,
     callback = function()
-      buffers.persist_buffers()
       buffers.persist_pinned_buffers()
+      if buffers.is_restored_from_session then
+        buffers.persist_buffers()
+      end
     end,
   })
 end

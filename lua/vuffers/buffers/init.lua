@@ -196,6 +196,11 @@ end
 
 M.persist_buffers = bufs.persist_buffers
 
+M.is_restored_from_session = false
+M.set_is_restored_from_session = function(value)
+  M.is_restored_from_session = value
+end
+
 M.restore_buffers = function()
   pinned.restore_pinned_buffers()
   bufs.restore_buffers_from_file()
