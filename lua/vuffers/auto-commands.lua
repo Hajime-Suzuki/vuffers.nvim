@@ -33,7 +33,7 @@ function M.create_auto_group()
         end
       end
 
-      buffers.set_active_bufnr(buffer.buf)
+      buffers.set_active_buf(buffer)
       buffers.set_active_pinned_bufnr(buffer.buf)
     end,
   })
@@ -61,7 +61,7 @@ function M.create_auto_group()
 
       if buffers.is_pinned(buffer) then
         vim.cmd("edit " .. buffer.file)
-        buffers.set_active_bufnr(buffer.buf)
+        buffers.set_active_buf(buffer)
         buffers.set_active_pinned_bufnr(buffer.buf)
         return
       end

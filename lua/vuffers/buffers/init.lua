@@ -84,9 +84,9 @@ M.reset_buffers = function()
   end
 end
 
----@param bufnr Bufnr
-M.set_active_bufnr = function(bufnr)
-  active.set_active_bufnr(bufnr)
+---@param buf Buffer | NativeBuffer
+M.set_active_buf = function(buf)
+  active.set_active_buf({ path = buf.path or buf.file })
   local payload = event_payload.get_active_buf_changed_event_payload()
   event_bus.publish_active_buffer_changed(payload)
 end
@@ -134,7 +134,7 @@ M.remove_unpinned_buffers = function()
     local new_active_buf = list.find(_buf_list, function(buf)
       return pinned.is_pinned(buf.buf)
     end)
-    active.set_active_bufnr(new_active_buf and new_active_buf.buf or nil)
+    active.set_active_buf(new_active_buf)
   end
 
   local remaining_buffers = list.filter(_buf_list, function(buf)

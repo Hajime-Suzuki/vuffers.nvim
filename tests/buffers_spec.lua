@@ -168,7 +168,7 @@ describe("buffers >>", function()
       buffers.pin_buffer(4)
 
       -- active buffer is buf 4
-      buffers.set_active_bufnr(4)
+      buffers.set_active_buf({ path = "foo.lua" })
 
       local pinned = list.filter(_updated_bufs.buffers, function(buf)
         return buffers.is_pinned(buf)
@@ -234,7 +234,7 @@ describe("buffers >>", function()
       buffers.pin_buffer(4)
 
       -- active buffer is buf 2
-      buffers.set_active_bufnr(2)
+      buffers.set_active_buf({ path = "foo.lua" })
 
       local pinned = list.filter(_updated_bufs.buffers, function(buf)
         return buffers.is_pinned(buf)

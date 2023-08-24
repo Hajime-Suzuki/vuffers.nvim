@@ -32,6 +32,7 @@ end
 ---@field match string
 
 ---@alias Bufnr integer
+---@alias BufPath string
 --------------<<types ----------------
 
 local M = {}
@@ -131,7 +132,7 @@ function M.remove_buffer(args)
   local next_active_buffer = _buf_list[target_index + 1] or _buf_list[target_index - 1]
 
   if next_active_buffer then
-    active().set_active_bufnr(next_active_buffer.buf)
+    active().set_active_buf(next_active_buffer)
   else
     logger.warn("remove_buffer: can not delete the last buffer", args)
     return
