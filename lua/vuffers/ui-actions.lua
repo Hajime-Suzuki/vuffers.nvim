@@ -57,4 +57,15 @@ function M.unpin_buffer()
   buffers.unpin_buffer(row)
 end
 
+function M.rename_buffer()
+  local pos = vim.api.nvim_win_get_cursor(0)
+  local buf = buffers.get_buffer_by_index(pos[1])
+  vim.ui.input({ prompt = "new name? ", default = buf.name }, function(new_name)
+    if not new_name then
+      return
+    end
+    buffers.rename_buffer({ index = pos[1], new_name = new_name })
+  end)
+end
+
 return M
