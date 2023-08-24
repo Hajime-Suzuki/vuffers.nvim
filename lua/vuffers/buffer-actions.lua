@@ -1,3 +1,4 @@
+-- this module deals with actions that involve buffer command in neovim
 local logger = require("utils.logger")
 local buffers = require("vuffers.buffers")
 local pinned = require("vuffers.buffers.pinned-buffers")

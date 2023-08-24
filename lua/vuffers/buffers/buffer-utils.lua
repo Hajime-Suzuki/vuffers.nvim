@@ -64,17 +64,28 @@ local function _split_filename_and_extension(file_name)
   return filename_without_extension, extension
 end
 
---- @param item { buf: integer, path: string, level: integer, path_fragments: string[], additional_folder_depth?: integer }
+--- @param item { buf: integer, path: string, level: integer, path_fragments: string[], additional_folder_depth?: integer, custom_name?: string }
+--- @param unique_name string
+local function _get_display_name(item, unique_name)
+  if item.custom_name then
+    return item.custom_name
+  end
+
+  local additional_depth = item.additional_folder_depth
+  if additional_depth and additional_depth > 0 then
+    return M._get_name_by_level(item.path_fragments, item.level + additional_depth)
+  end
+
+  return unique_name
+end
+
+--- @param item { buf: integer, path: string, level: integer, path_fragments: string[], additional_folder_depth?: integer, custom_name?: string }
 --- @return Buffer
 local function _format_buffer(item)
   local unique_name = M._get_name_by_level(item.path_fragments, item.level)
   local unique_name_without_extension, extension = _split_filename_and_extension(unique_name)
 
-  local additional_depth = item.additional_folder_depth
-
-  local display_name = (additional_depth and additional_depth > 0)
-      and M._get_name_by_level(item.path_fragments, item.level + additional_depth)
-    or unique_name
+  local display_name = _get_display_name(item, unique_name)
   local display_name_without_extension = _split_filename_and_extension(display_name)
   local filename_without_extension = _split_filename_and_extension(item.path_fragments[#item.path_fragments])
 
@@ -89,12 +100,13 @@ local function _format_buffer(item)
     _additional_folder_depth = item.additional_folder_depth,
     _default_folder_depth = item.level,
     _max_folder_depth = #item.path_fragments,
+    _custom_name = item.custom_name,
   }
 
   return b
 end
 
---- @param buffers { buf:integer,  path: string, _additional_folder_depth?: integer }[]
+--- @param buffers { buf:integer,  path: string, _additional_folder_depth?: integer, _custom_name?: string }[]
 --- @return Buffer[] buffers
 function M.get_formatted_buffers(buffers)
   local cwd = vim.loop.cwd()
@@ -110,6 +122,7 @@ function M.get_formatted_buffers(buffers)
       level = 1,
       path_fragments = path_fragments,
       additional_folder_depth = buffer._additional_folder_depth,
+      custom_name = buffer._custom_name,
     }
   end)
 

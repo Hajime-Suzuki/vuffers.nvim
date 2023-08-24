@@ -18,6 +18,13 @@ M.add_buffer = function(buffer)
   end
 end
 
+---@param {index: number, new_name: string}
+M.rename_buffer = function(args)
+  bufs.rename_buffer(args)
+  local payload = event_payload.get_buffer_list_changed_event_payload()
+  event_bus.publish_buffer_list_changed(payload)
+end
+
 M.change_sort = function()
   bufs.change_sort()
   local payload = event_payload.get_buffer_list_changed_event_payload()
@@ -52,6 +59,7 @@ M.decrement_additional_folder_depth = function()
   end
 end
 
+-- TODO: rename and move to buffers.init. this is just publishing event for UI.
 M.reload_buffers = function()
   if bufs.get_num_of_buffers() == 0 then
     return M.reset_buffers()
@@ -185,5 +193,24 @@ end
 M.is_pinned = function(buffer)
   return pinned.is_pinned(buffer.buf)
 end
+
+M.persist_buffers = bufs.persist_buffers
+
+M.is_restored_from_session = false
+M.set_is_restored_from_session = function(value)
+  M.is_restored_from_session = value
+end
+
+M.restore_buffers = function()
+  pinned.restore_pinned_buffers()
+  bufs.restore_buffers_from_file()
+  bufs.set_buffers(utils.sort_buffers(bufs.get_buffers(), config.get_sort()))
+
+  local payload = event_payload.get_buffer_list_changed_event_payload()
+  event_bus.publish_buffer_list_changed(payload)
+end
+
+M.persist_pinned_buffers = pinned.persist_pinned_buffers
+M.restore_pinned_buffers = pinned.restore_pinned_buffers
 
 return M

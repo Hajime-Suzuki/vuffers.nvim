@@ -17,6 +17,7 @@ function M.setup(opts)
   highlights.setup()
   subscriptions.setup()
   auto_commands.create_auto_group()
+  bufs.restore_pinned_buffers()
   logger.debug("setup end")
 end
 
@@ -173,6 +174,11 @@ end
 ------------------------------------
 -- MISC                         --
 ------------------------------------
+
+function M.on_session_loaded()
+  bufs.restore_buffers()
+  bufs.set_is_restored_from_session(true)
+end
 
 function M.debug_buffers()
   bufs.debug_buffers()
