@@ -117,7 +117,10 @@ function M.remove_buffer(args)
 
   logger.debug("remove_buffer: buffer will be removed", args)
 
-  if target_index ~= active().get_active_bufnr() then
+  -- TODO: rename when remove_buffer accepts filepath instead
+  local target_buf = M.get_buffer_by_index(target_index)
+
+  if target_buf and target_buf.path ~= active().get_active_buf_path() then
     table.remove(_buf_list, target_index)
     local buffers = utils.get_formatted_buffers(_buf_list)
     buffers = utils.sort_buffers(buffers, config.get_sort())
@@ -275,6 +278,21 @@ function M.get_buffer_by_index(index)
   return _buf_list[index]
 end
 
+---@param path BufPath
+---@return Buffer | nil buffer, integer | nil index
+function M.get_buffer_by_path(path)
+  local index = list.find_index(_buf_list, function(buf)
+    return buf.path == path
+  end)
+
+  if not index then
+    return
+  end
+
+  return _buf_list[index], index
+end
+
+---@deprecated
 ---@param bufnr integer
 ---@return Buffer | nil buffer, integer | nil index
 function M.get_buffer_by_bufnr(bufnr)

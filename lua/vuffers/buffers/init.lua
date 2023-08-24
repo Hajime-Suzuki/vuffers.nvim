@@ -32,13 +32,13 @@ M.change_sort = function()
 end
 
 M.get_active_buffer = function()
-  local bufnr = active.get_active_bufnr()
+  local path = active.get_active_buf_path()
 
-  if not bufnr then
+  if not path then
     return nil, nil
   end
 
-  return bufs.get_buffer_by_bufnr(bufnr)
+  return bufs.get_buffer_by_path(path)
 end
 
 M.get_buffer_by_bufnr = bufs.get_buffer_by_bufnr
@@ -126,7 +126,11 @@ M.remove_unpinned_buffers = function()
     return
   end
 
-  local is_active_buffer_removed = not pinned.is_pinned(active.get_active_bufnr())
+  -- TODO: remove when is_pinned accepts path
+  local active_buf_path = active.get_active_buf_path()
+  local active_buf = active_buf_path and bufs.get_buffer_by_path(active_buf_path)
+
+  local is_active_buffer_removed = active_buf and not pinned.is_pinned(active_buf.buf)
 
   local _buf_list = bufs.get_buffers()
 
@@ -175,9 +179,9 @@ end
 M.get_next_or_prev_pinned_buffer = pinned.get_next_or_prev_pinned_buffer
 
 M.debug_buffers = function()
-  local active_buf = active.get_active_bufnr()
+  local active_buf_path = active.get_active_buf_path()
   ---@diagnostic disable-next-line: cast-local-type
-  active_buf = active_buf and bufs.get_buffer_by_bufnr(active_buf) or nil
+  local active_buf = active_buf_path and bufs.get_buffer_by_path(active_buf_path)
 
   local active_pinned = pinned.get_active_pinned_bufnr()
   print("active", active_buf and active_buf.name or "none")

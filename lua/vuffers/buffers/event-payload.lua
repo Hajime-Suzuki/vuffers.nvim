@@ -6,12 +6,12 @@ local active = require("vuffers.buffers.active-buffer")
 local M = {}
 
 local function _get_active_buffer()
-  local bufnr = active.get_active_bufnr()
-  if not bufnr then
+  local path = active.get_active_buf_path()
+  if not path then
     return nil, nil
   end
 
-  return bufs.get_buffer_by_bufnr(bufnr)
+  return bufs.get_buffer_by_path(path)
 end
 
 ---@return ActivePinnedBufferChangedPayload | nil

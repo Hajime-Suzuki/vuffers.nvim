@@ -39,6 +39,7 @@ M.__reset_pinned_bufnrs = function()
   _buf_map = {}
 end
 
+---@param bufnr Bufnr | nil
 M.is_pinned = function(bufnr)
   return _buf_map[bufnr] == true
 end
