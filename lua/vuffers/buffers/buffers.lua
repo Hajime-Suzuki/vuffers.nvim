@@ -119,8 +119,11 @@ function M.remove_buffer(args)
 
   -- TODO: rename when remove_buffer accepts filepath instead
   local target_buf = M.get_buffer_by_index(target_index)
+  local active_buf_path = active().get_active_buf_path()
+  local active_buf = active_buf_path and M.get_buffer_by_path(active_buf_path)
 
-  if target_buf and target_buf.path ~= active().get_active_buf_path() then
+  -- if active_buf and target_index ~= active_buf.buf then
+  if active_buf and target_buf.path ~= active_buf.path then
     table.remove(_buf_list, target_index)
     local buffers = utils.get_formatted_buffers(_buf_list)
     buffers = utils.sort_buffers(buffers, config.get_sort())

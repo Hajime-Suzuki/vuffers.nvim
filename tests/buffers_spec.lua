@@ -167,7 +167,7 @@ describe("buffers >>", function()
       buffers.pin_buffer(4)
       buffers.pin_buffer(4)
 
-      -- active buffer is buf 4
+      -- active buffer is buf 4, and last opened buffer is buf 3
       buffers.set_active_buf({ path = "foo.lua" })
 
       local pinned = list.filter(_updated_bufs.buffers, function(buf)
