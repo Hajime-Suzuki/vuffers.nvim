@@ -37,6 +37,8 @@ With this plugin, I aim to provide a solution that addresses these specific need
 - Pinning of buffers for persistent and convenient access
   - moved to the top of the buffer list and are protected from accidentally closed
   - saved and restored per cwd
+- Rename buffer "display name" (not actual filename)
+  - it is persisted if you use session
 
 <br>
 
@@ -57,6 +59,12 @@ https://user-images.githubusercontent.com/26042720/233858935-e7a72733-b8aa-4cb2-
 Pinned buffers
 
 https://github.com/Hajime-Suzuki/vuffers.nvim/assets/26042720/3170217d-95ec-45dd-b3da-74b107de0da3
+
+Rename
+
+https://github.com/Hajime-Suzuki/vuffers.nvim/assets/26042720/f7ed8bff-42f4-4d28-8350-87291d2f55c5
+
+
 
 <br>
 
@@ -108,6 +116,7 @@ return {
           delete = "d",
           pin = "p",
           unpin = "P",
+          rename = "r",
         },
       },
       sort = {
@@ -128,6 +137,30 @@ return {
 }
 ```
 
+If you use session, please call `on_session_loaded` when a session is restored. This is required to restore renamed buffers.
+<br>
+
+Example usage for [neovim-session-manager](https://github.com/Shatur/neovim-session-manager)
+
+```
+vim.api.nvim_create_autocmd({ "User" }, {
+	pattern = "SessionLoadPost",
+	callback = function()
+		require("vuffers").on_session_loaded()
+	end,
+})
+```
+
+or for built-in event
+
+```
+vim.api.nvim_create_autocmd("SessionLoadPost", {
+	callback = function()
+		require("vuffers").on_session_loaded()
+	end,
+})
+```
+
 <br>
 
 ## 🔫 Usage
@@ -138,6 +171,7 @@ return {
 | `go_to_buffer_by_line`              | `line_number?: integer`                                       | open the buffer on the specified line. works with line number                                                              |
 | `sort`                              | `{type: 'none' \| 'filename', direction: 'asc' \| 'desc' }`   | sort the vuffers list                                                                                                      |
 | `resize`                            | `width: string \| number`                                     | resize vuffers list window. If string such as "+10" or "-10" passed, the window size is increased or decreased accordingly |
+| `rename`                            |                                                               | rename display name, and it's persisted when using session                                                                 |
 | `increment_additional_folder_depth` |                                                               | show extra parent folder. however, sorting is still based on the filename (e.g. "something" for "a/b/c/something.json")    |
 | `decrement_additional_folder_depth` |                                                               | opposite of `increment_additional_folder_depth`                                                                            |
 | `pin_current_buffer`                |                                                               | pin current buffer. pinned buffer is placed on the top of the list                                                         |

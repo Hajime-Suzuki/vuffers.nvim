@@ -175,7 +175,6 @@ end
 -- MISC                         --
 ------------------------------------
 
--- TODO: document in readme
 function M.on_session_loaded()
   bufs.restore_buffers()
   bufs.set_is_restored_from_session(true)
