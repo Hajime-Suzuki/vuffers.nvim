@@ -3,7 +3,7 @@ local M = {}
 ---@type BufPath | nil
 local _active_buf = nil
 
----@param buf {path: string} | nil
+---@param buf {path: BufPath} | nil
 function M.set_active_buf(buf)
   _active_buf = buf ~= nil and buf.path or nil
 end

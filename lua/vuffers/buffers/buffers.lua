@@ -206,7 +206,7 @@ local function _get_loaded_bufs()
 end
 
 ---@param file_paths {path: string, _custom_name:string} []
----@return { buf: Bufnr }[] | nil
+---@return { path: BufPath }[] | nil
 function M.add_buffer_by_file_path(file_paths)
   local bufs = _get_loaded_bufs()
 
