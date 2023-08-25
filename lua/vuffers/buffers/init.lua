@@ -43,6 +43,7 @@ end
 
 M.get_buffer_by_bufnr = bufs.get_buffer_by_bufnr
 M.get_buffer_by_index = bufs.get_buffer_by_index
+M.get_buffer_by_path = bufs.get_buffer_by_path
 M.get_num_of_buffers = bufs.get_num_of_buffers
 
 M.increment_additional_folder_depth = function()
@@ -92,7 +93,7 @@ M.set_active_buf = function(buf)
 end
 
 M.set_buffers = bufs.set_buffers -- TODO: remove
-M.get_active_pinned_bufnr = pinned.get_active_pinned_bufnr
+M.get_active_pinned_buf_path = pinned.get_active_pinned_buf_path
 
 ---@param index integer
 M.pin_buffer = function(index)
@@ -159,9 +160,9 @@ M.remove_unpinned_buffers = function()
   event_bus.publish_unpinned_buffers_removed(payload)
 end
 
----@param bufnr Bufnr
-M.set_active_pinned_bufnr = function(bufnr)
-  local is_changed = pinned.set_active_pinned_bufnr(bufnr)
+---@param buf NativeBuffer
+M.set_active_pinned_bufnr = function(buf)
+  local is_changed = pinned.set_active_pinned_buf({ path = buf.file })
   if not is_changed then
     return
   end
@@ -183,12 +184,12 @@ M.debug_buffers = function()
   ---@diagnostic disable-next-line: cast-local-type
   local active_buf = active_buf_path and bufs.get_buffer_by_path(active_buf_path)
 
-  local active_pinned = pinned.get_active_pinned_bufnr()
+  local active_pinned = pinned.get_active_pinned_buf_path()
   print("active", active_buf and active_buf.name or "none")
   print("active_pinned", active_pinned or "none")
   print(
     "pinned",
-    vim.inspect({ prev = pinned.get_last_visited_pinned_bufnr(), current = pinned.get_active_pinned_bufnr() })
+    vim.inspect({ prev = pinned.get_last_visited_pinned_buf_path(), current = pinned.get_active_pinned_buf_path() })
   )
   print("buffers", vim.inspect(bufs.get_buffers()))
 end

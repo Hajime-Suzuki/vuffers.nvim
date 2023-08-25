@@ -49,31 +49,31 @@ end
 local _pinned_bufnrs = {}
 
 ---@return BufPath | nil
-function M.get_last_visited_pinned_bufnr()
+function M.get_last_visited_pinned_buf_path()
   return _pinned_bufnrs[1]
 end
 
 ---@return BufPath | nil
-function M.get_active_pinned_bufnr()
+function M.get_active_pinned_buf_path()
   return _pinned_bufnrs[2]
 end
 
----@param path BufPath
-function M.set_active_pinned_bufnr(path)
+---@param buf {path: BufPath}
+function M.set_active_pinned_buf(buf)
   local _buf_list = bufs().get_buffers()
   local prev_pos = 1
   local current_pos = 2
 
   local is_buf_pinned = list.find_index(_buf_list, function(b)
-    return M.is_pinned(path) and b.path == path
+    return M.is_pinned(buf.path) and b.path == buf.path
   end) ~= nil
 
   if not is_buf_pinned then
     return
   end
 
-  _pinned_bufnrs[prev_pos] = _pinned_bufnrs[current_pos] or path
-  _pinned_bufnrs[current_pos] = path
+  _pinned_bufnrs[prev_pos] = _pinned_bufnrs[current_pos] or buf.path
+  _pinned_bufnrs[current_pos] = buf.path
 
   return true
 end
@@ -88,7 +88,7 @@ end
 ---@param buffer Buffer
 function M.pin_buffer(buffer)
   _buf_map[buffer.path] = true
-  M.set_active_pinned_bufnr(buffer.path)
+  M.set_active_pinned_buf(buffer)
 end
 
 ---@param buffer Buffer
@@ -111,7 +111,7 @@ function M.unpin_buffer(buffer)
   else
     logger.debug("unpin_buffer: next pinned buffer found", { next_pinned = next_pinned })
 
-    M.set_active_pinned_bufnr(next_pinned.path)
+    M.set_active_pinned_buf(next_pinned)
   end
 
   _buf_map[buffer.path] = nil
@@ -124,15 +124,15 @@ local function _get_pinned_bufs()
   end)
 end
 
-local function _get_unpinned_bufs()
-  local _buf_list = bufs().get_buffers()
-  return list.filter(_buf_list, function(buf)
-    return not M.is_pinned(buf.path)
-  end)
-end
+-- local function _get_unpinned_bufs()
+--   local _buf_list = bufs().get_buffers()
+--   return list.filter(_buf_list, function(buf)
+--     return not M.is_pinned(buf.path)
+--   end)
+-- end
 
 function M.get_active_pinned_buffer()
-  local path = M.get_active_pinned_bufnr()
+  local path = M.get_active_pinned_buf_path()
 
   if not path then
     return nil, nil
@@ -143,7 +143,7 @@ end
 
 ---@param type 'next' | 'prev'
 function M.get_next_or_prev_pinned_buffer(type)
-  local currently_pinned_path = M.get_active_pinned_bufnr()
+  local currently_pinned_path = M.get_active_pinned_buf_path()
 
   if not currently_pinned_path then
     return
