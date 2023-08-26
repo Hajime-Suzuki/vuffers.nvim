@@ -127,7 +127,7 @@ M.remove_unpinned_buffers = function()
   end
 
   local active_buf_path = active.get_active_buf_path()
-  local is_active_buffer_removed = pinned.is_pinned(active_buf_path)
+  local is_active_buffer_removed = not pinned.is_pinned(active_buf_path)
 
   local _buf_list = bufs.get_buffers()
 

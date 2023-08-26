@@ -46,7 +46,7 @@ describe("buffers >>", function()
       buffers.pin_buffer(1)
 
       -- then is_pinned is true
-      assert.are.same(true, buffers.is_pinned({ buf = 1 }))
+      assert.are.same(true, buffers.is_pinned({ path = "a/b/c/test.json" }))
     end)
 
     it("should place pinned buffers on the top of the list", function()
@@ -168,7 +168,9 @@ describe("buffers >>", function()
       buffers.pin_buffer(4)
 
       -- active buffer is buf 4, and last opened buffer is buf 3
-      buffers.set_active_buf({ path = "foo.lua" })
+      buffers.set_active_buf({ path = "test/something.ts" })
+      local active_buf = buffers.get_active_buffer()
+      assert.are.same("test/something.ts", active_buf.path)
 
       local pinned = list.filter(_updated_bufs.buffers, function(buf)
         return buffers.is_pinned(buf)
@@ -191,6 +193,7 @@ describe("buffers >>", function()
       end)
 
       pinned = list.filter(_updated_bufs.buffers, function(buf)
+        -- print(vim.inspect(buf), buffers.is_pinned(buf))
         return buffers.is_pinned(buf)
       end)
       pinned = list.map(pinned or {}, function(buf)
@@ -199,6 +202,8 @@ describe("buffers >>", function()
       local removed = list.map(_updated_bufs.removed_buffers, function(buf)
         return buf.buf
       end)
+
+      local active_buf_after = buffers.get_active_buffer()
 
       -- THEN there are no unpinned buffers
       assert.are.same({}, unpinned)
@@ -209,6 +214,7 @@ describe("buffers >>", function()
       -- AND unpinned buffers are removed buffers
       assert.are.same({ 1, 2 }, removed)
 
+      print(vim.inspect(_updated_bufs))
       -- AND active buffer is still buf 4 (index 2)
       assert.are.same(2, _updated_bufs.active_buffer_index)
     end)
@@ -235,6 +241,8 @@ describe("buffers >>", function()
 
       -- active buffer is buf 2
       buffers.set_active_buf({ path = "foo.lua" })
+      local active_buf = buffers.get_active_buffer()
+      assert.are.same("foo.lua", active_buf.path)
 
       local pinned = list.filter(_updated_bufs.buffers, function(buf)
         return buffers.is_pinned(buf)
