@@ -62,7 +62,7 @@ function M.create_auto_group()
       buffer = {
         buf = buffer.buf,
         event = buffer.event,
-        file = buffer.match,
+        file = buffer.match, -- buffer.file is not full path
         group = buffer.group,
         id = buffer.id,
         match = buffer.match,
@@ -77,7 +77,7 @@ function M.create_auto_group()
         return
       end
 
-      buffers.remove_buffer({ bufnr = buffer.buf })
+      buffers.remove_buffer({ path = buffer.file })
     end,
   })
 

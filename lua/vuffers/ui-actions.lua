@@ -27,7 +27,7 @@ function M.delete_buffer()
   end
 
   if buf.buf ~= active.buf then
-    buffers.remove_buffer({ bufnr = buf.buf })
+    buffers.remove_buffer({ path = buf.path })
     config.get_handlers().on_delete_buffer(buf.buf)
     return
   end
@@ -41,7 +41,7 @@ function M.delete_buffer()
   -- can not close buffer if it is active buffer
   vim.api.nvim_command("wincmd l" .. "|" .. "buffer " .. next_buf.buf .. "|" .. "wincmd h")
 
-  buffers.remove_buffer({ bufnr = buf.buf })
+  buffers.remove_buffer({ path = buf.path })
   config.get_handlers().on_delete_buffer(buf.buf)
 end
 

@@ -99,14 +99,14 @@ function M.rename_buffer(args)
   _buf_list = buffers
 end
 
----@param args {bufnr?: number}
+---@param args {path?: string}
 function M.remove_buffer(args)
-  if not args.bufnr then
+  if not args.path then
     return
   end
 
   local target_index = list.find_index(_buf_list, function(buf)
-    return buf.buf == args.bufnr
+    return buf.path == args.path
   end)
 
   if not target_index then
@@ -117,13 +117,9 @@ function M.remove_buffer(args)
 
   logger.debug("remove_buffer: buffer will be removed", args)
 
-  -- TODO: rename when remove_buffer accepts filepath instead
-  local target_buf = M.get_buffer_by_index(target_index)
   local active_buf_path = active().get_active_buf_path()
-  local active_buf = active_buf_path and M.get_buffer_by_path(active_buf_path)
 
-  -- if active_buf and target_index ~= active_buf.buf then
-  if active_buf and target_buf.path ~= active_buf.path then
+  if args.path ~= active_buf_path then
     table.remove(_buf_list, target_index)
     local buffers = utils.get_formatted_buffers(_buf_list)
     buffers = utils.sort_buffers(buffers, config.get_sort())
@@ -286,21 +282,6 @@ end
 function M.get_buffer_by_path(path)
   local index = list.find_index(_buf_list, function(buf)
     return buf.path == path
-  end)
-
-  if not index then
-    return
-  end
-
-  return _buf_list[index], index
-end
-
----@deprecated
----@param bufnr integer
----@return Buffer | nil buffer, integer | nil index
-function M.get_buffer_by_bufnr(bufnr)
-  local index = list.find_index(_buf_list, function(buf)
-    return buf.buf == bufnr
   end)
 
   if not index then

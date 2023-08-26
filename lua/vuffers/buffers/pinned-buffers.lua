@@ -124,13 +124,6 @@ local function _get_pinned_bufs()
   end)
 end
 
--- local function _get_unpinned_bufs()
---   local _buf_list = bufs().get_buffers()
---   return list.filter(_buf_list, function(buf)
---     return not M.is_pinned(buf.path)
---   end)
--- end
-
 function M.get_active_pinned_buffer()
   local path = M.get_active_pinned_buf_path()
 

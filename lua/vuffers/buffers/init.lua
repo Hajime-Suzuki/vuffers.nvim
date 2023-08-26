@@ -41,7 +41,6 @@ M.get_active_buffer = function()
   return bufs.get_buffer_by_path(path)
 end
 
-M.get_buffer_by_bufnr = bufs.get_buffer_by_bufnr
 M.get_buffer_by_index = bufs.get_buffer_by_index
 M.get_buffer_by_path = bufs.get_buffer_by_path
 M.get_num_of_buffers = bufs.get_num_of_buffers
@@ -70,7 +69,7 @@ M.reload_buffers = function()
   event_bus.publish_buffer_list_changed(payload)
 end
 
----@param args {bufnr: number}
+---@param args {path: string}
 M.remove_buffer = function(args)
   if bufs.remove_buffer(args) then
     local payload = event_payload.get_buffer_list_changed_event_payload()
@@ -127,11 +126,8 @@ M.remove_unpinned_buffers = function()
     return
   end
 
-  -- TODO: remove when is_pinned accepts path
   local active_buf_path = active.get_active_buf_path()
-  local active_buf = active_buf_path and bufs.get_buffer_by_path(active_buf_path)
-
-  local is_active_buffer_removed = active_buf and not pinned.is_pinned(active_buf.path)
+  local is_active_buffer_removed = pinned.is_pinned(active_buf_path)
 
   local _buf_list = bufs.get_buffers()
 
