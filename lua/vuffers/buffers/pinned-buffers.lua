@@ -18,9 +18,9 @@ local M = {}
 ---@type table<BufPath, boolean>
 local _buf_map = {}
 
--- M.get_pinned_bufnrs = function()
---   return _buf_map
--- end
+M.get_pinned_bufs = function()
+  return _buf_map
+end
 
 M.is_empty = function()
   return list.find_index(_buf_map, function(is_pinned)
@@ -212,13 +212,16 @@ function M.restore_pinned_buffers()
     end
   end)
 
-  local pinned_bufnrs = bufs().add_buffer_by_file_path(pinned_bufs)
+  list.for_each(pinned_bufs or {}, function(buf)
+    _buf_map[buf.path] = true
+  end)
+  -- local pinned_bufnrs = bufs().add_buffer_by_file_path(pinned_bufs)
 
-  if pinned_bufnrs then
-    list.for_each(pinned_bufnrs, function(buf)
-      _buf_map[buf.path] = true
-    end)
-  end
+  -- if pinned_bufnrs then
+  --   list.for_each(pinned_bufnrs, function(buf)
+  --     _buf_map[buf.path] = true
+  --   end)
+  -- end
 end
 
 return M

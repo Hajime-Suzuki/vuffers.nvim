@@ -191,6 +191,7 @@ M.debug_buffers = function()
     "pinned",
     vim.inspect({ prev = pinned.get_last_visited_pinned_buf_path(), current = pinned.get_active_pinned_buf_path() })
   )
+  print("pinned buffers", vim.inspect(pinned.get_pinned_bufs()))
   print("buffers", vim.inspect(bufs.get_buffers()))
 end
 
