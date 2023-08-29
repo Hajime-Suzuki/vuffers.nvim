@@ -97,7 +97,25 @@ function M.rename_buffer(args)
   _buf_list = buffers
 end
 
----@param args {path?: string}
+---@param args {index: number}
+function M.reset_custom_display_name(args)
+  local target = M.get_buffer_by_index(args.index)
+
+  if not target then
+    return
+  end
+
+  if target._custom_name then
+    target._custom_name = nil
+  end
+
+  local updated = utils.get_formatted_buffers({ target })
+  _buf_list[args.index] = updated[1]
+
+  return true
+end
+
+---@param args {bufnr?: number}
 function M.remove_buffer(args)
   if not args.path then
     return

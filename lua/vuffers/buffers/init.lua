@@ -19,11 +19,19 @@ M.add_buffer = function(buffer)
   end
 end
 
----@param {index: number, new_name: string}
+---@param args {index: number, new_name: string}
 M.rename_buffer = function(args)
   bufs.rename_buffer(args)
   local payload = event_payload.get_buffer_list_changed_event_payload()
   event_bus.publish_buffer_list_changed(payload)
+end
+
+---@param args {index: number}
+M.reset_custom_display_name = function(args)
+  if bufs.reset_custom_display_name(args) then
+    local payload = event_payload.get_buffer_list_changed_event_payload()
+    event_bus.publish_buffer_list_changed(payload)
+  end
 end
 
 M.change_sort = function()

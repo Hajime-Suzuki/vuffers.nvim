@@ -68,4 +68,9 @@ function M.rename_buffer()
   end)
 end
 
+function M.reset_custom_display_name()
+  local pos = vim.api.nvim_win_get_cursor(0)
+  buffers.reset_custom_display_name({ index = pos[1] })
+end
+
 return M
