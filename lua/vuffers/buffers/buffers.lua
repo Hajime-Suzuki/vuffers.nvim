@@ -1,6 +1,4 @@
-local file = require("utils.file")
 local logger = require("utils.logger")
-local str = require("utils.string")
 local utils = require("vuffers.buffers.buffer-utils")
 local list = require("utils.list")
 local config = require("vuffers.config")
@@ -289,63 +287,6 @@ function M.get_buffer_by_path(path)
   end
 
   return _buf_list[index], index
-end
-
-local PINNED_BUFFER_LOCATION = vim.fn.stdpath("data") .. "/vuffers"
----@return string
-local function _get_filename()
-  local cwd = vim.loop.cwd()
-  local filename = str.replace(cwd, "/", "_")
-  return PINNED_BUFFER_LOCATION .. "/" .. filename .. "_buffers" .. ".json"
-end
-
--- TODO: move to buffers.init
-function M.persist_buffers()
-  local ok, err = pcall(function()
-    local filename = _get_filename()
-
-    local data = list.map(_buf_list, function(item)
-      return {
-        path = item.path,
-        _custom_name = item._custom_name,
-      }
-    end)
-
-    file.write_json_file(filename, data)
-  end)
-
-  if not ok then
-    logger.error("persist_pinned_buffer: ", err)
-  end
-end
-
--- TODO: move to buffers.init
--- TODO: restore unpinned buffer only
-function M.restore_buffers_from_file()
-  local filename = _get_filename()
-
-  ---@type boolean, { path: string, _custom_name: string }[]
-  local ok, buffers = pcall(function()
-    return file.read_json_file(filename)
-  end)
-
-  if not ok then
-    logger.error("restore_pinned_buffers failed", { filename = filename, err = buffers })
-    return
-  end
-
-  if not #buffers then
-    return
-  end
-
-  -- add buffers so that buffer gets buffer number
-  list.for_each(buffers or {}, function(buf)
-    if vim.fn.filereadable(buf.path) == 1 then
-      vim.cmd("badd " .. buf.path)
-    end
-  end)
-
-  return M.add_buffer_by_file_path(buffers)
 end
 
 return M

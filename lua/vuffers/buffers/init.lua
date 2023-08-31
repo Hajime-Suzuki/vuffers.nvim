@@ -7,6 +7,7 @@ local event_payload = require("vuffers.buffers.event-payload")
 local utils = require("vuffers.buffers.buffer-utils")
 local list = require("utils.list")
 local config = require("vuffers.config")
+local persist = require("vuffers.buffers.persist")
 
 local M = {}
 
@@ -91,7 +92,6 @@ M.set_active_buf = function(buf)
   event_bus.publish_active_buffer_changed(payload)
 end
 
-M.set_buffers = bufs.set_buffers -- TODO: remove
 M.get_active_pinned_buf_path = pinned.get_active_pinned_buf_path
 
 ---@param index integer
@@ -196,23 +196,18 @@ M.is_pinned = function(buffer)
   return pinned.is_pinned(buffer.path or buffer.file)
 end
 
-M.persist_buffers = bufs.persist_buffers
-
-M.is_restored_from_session = false
-M.set_is_restored_from_session = function(value)
-  M.is_restored_from_session = value
-end
-
+--------- persistence ---------
+M.is_restored_from_session = persist.is_restored_from_session
+M.set_is_restored_from_session = persist.set_is_restored_from_session
+M.persist_buffers = persist.persist_buffers
 M.restore_buffers = function()
-  pinned.restore_pinned_buffers()
-  bufs.restore_buffers_from_file()
+  persist.restore_pinned_buffers()
+  persist.restore_buffers_from_file()
   bufs.set_buffers(utils.sort_buffers(bufs.get_buffers(), config.get_sort()))
-
   local payload = event_payload.get_buffer_list_changed_event_payload()
   event_bus.publish_buffer_list_changed(payload)
 end
-
-M.persist_pinned_buffers = pinned.persist_pinned_buffers
-M.restore_pinned_buffers = pinned.restore_pinned_buffers
+M.persist_pinned_buffers = persist.persist_pinned_buffers
+M.restore_pinned_buffers = persist.restore_pinned_buffers
 
 return M
