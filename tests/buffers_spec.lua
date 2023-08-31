@@ -1,7 +1,7 @@
 ---@diagnostic disable: undefined-global
 local buffers = require("vuffers.buffers")
 local pinned_bufs = require("vuffers.buffers.pinned-buffers")
-local bs = require("vuffers.buffers.buffers")
+local _bufs = require("vuffers.buffers.buffers")
 local event_bus = require("vuffers.event-bus")
 local config = require("vuffers.config")
 local list = require("utils.list")
@@ -25,7 +25,7 @@ describe("buffers >>", function()
   describe("pin_buffer >>", function()
     before_each(function()
       event_bus._delete_all_subscriptions()
-      buffers.set_buffers({})
+      _bufs.set_buffers({})
       pinned_bufs.__reset_pinned_bufnrs()
     end)
 
@@ -46,7 +46,7 @@ describe("buffers >>", function()
       buffers.pin_buffer(1)
 
       -- then is_pinned is true
-      assert.are.same(true, buffers.is_pinned({ buf = 1 }))
+      assert.are.same(true, buffers.is_pinned({ path = "a/b/c/test.json" }))
     end)
 
     it("should place pinned buffers on the top of the list", function()
@@ -82,7 +82,7 @@ describe("buffers >>", function()
   describe("unpin_buffer >>", function()
     before_each(function()
       event_bus._delete_all_subscriptions()
-      buffers.set_buffers({})
+      _bufs.set_buffers({})
     end)
 
     it("should unpin buffer", function()
@@ -143,7 +143,7 @@ describe("buffers >>", function()
   describe("remove_unpinned_buffers >>", function()
     before_each(function()
       event_bus._delete_all_subscriptions()
-      buffers.set_buffers({})
+      _bufs.set_buffers({})
       pinned_bufs.__reset_pinned_bufnrs()
     end)
 
@@ -167,8 +167,10 @@ describe("buffers >>", function()
       buffers.pin_buffer(4)
       buffers.pin_buffer(4)
 
-      -- active buffer is buf 4
-      buffers.set_active_bufnr(4)
+      -- active buffer is buf 4, and last opened buffer is buf 3
+      buffers.set_active_buf({ path = "test/something.ts" })
+      local active_buf = buffers.get_active_buffer()
+      assert.are.same("test/something.ts", active_buf.path)
 
       local pinned = list.filter(_updated_bufs.buffers, function(buf)
         return buffers.is_pinned(buf)
@@ -199,6 +201,8 @@ describe("buffers >>", function()
       local removed = list.map(_updated_bufs.removed_buffers, function(buf)
         return buf.buf
       end)
+
+      local active_buf_after = buffers.get_active_buffer()
 
       -- THEN there are no unpinned buffers
       assert.are.same({}, unpinned)
@@ -234,7 +238,9 @@ describe("buffers >>", function()
       buffers.pin_buffer(4)
 
       -- active buffer is buf 2
-      buffers.set_active_bufnr(2)
+      buffers.set_active_buf({ path = "foo.lua" })
+      local active_buf = buffers.get_active_buffer()
+      assert.are.same("foo.lua", active_buf.path)
 
       local pinned = list.filter(_updated_bufs.buffers, function(buf)
         return buffers.is_pinned(buf)

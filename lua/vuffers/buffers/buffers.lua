@@ -1,6 +1,4 @@
-local file = require("utils.file")
 local logger = require("utils.logger")
-local str = require("utils.string")
 local utils = require("vuffers.buffers.buffer-utils")
 local list = require("utils.list")
 local config = require("vuffers.config")
@@ -32,6 +30,7 @@ end
 ---@field match string
 
 ---@alias Bufnr integer
+---@alias BufPath string
 --------------<<types ----------------
 
 local M = {}
@@ -98,14 +97,14 @@ function M.rename_buffer(args)
   _buf_list = buffers
 end
 
----@param args {bufnr?: number}
+---@param args {path?: string}
 function M.remove_buffer(args)
-  if not args.bufnr then
+  if not args.path then
     return
   end
 
   local target_index = list.find_index(_buf_list, function(buf)
-    return buf.buf == args.bufnr
+    return buf.path == args.path
   end)
 
   if not target_index then
@@ -116,7 +115,9 @@ function M.remove_buffer(args)
 
   logger.debug("remove_buffer: buffer will be removed", args)
 
-  if target_index ~= active().get_active_bufnr() then
+  local active_buf_path = active().get_active_buf_path()
+
+  if args.path ~= active_buf_path then
     table.remove(_buf_list, target_index)
     local buffers = utils.get_formatted_buffers(_buf_list)
     buffers = utils.sort_buffers(buffers, config.get_sort())
@@ -131,7 +132,7 @@ function M.remove_buffer(args)
   local next_active_buffer = _buf_list[target_index + 1] or _buf_list[target_index - 1]
 
   if next_active_buffer then
-    active().set_active_bufnr(next_active_buffer.buf)
+    active().set_active_buf(next_active_buffer)
   else
     logger.warn("remove_buffer: can not delete the last buffer", args)
     return
@@ -199,7 +200,7 @@ local function _get_loaded_bufs()
 end
 
 ---@param file_paths {path: string, _custom_name:string} []
----@return { buf: Bufnr }[] | nil
+---@return { path: BufPath }[] | nil
 function M.add_buffer_by_file_path(file_paths)
   local bufs = _get_loaded_bufs()
 
@@ -274,11 +275,11 @@ function M.get_buffer_by_index(index)
   return _buf_list[index]
 end
 
----@param bufnr integer
+---@param path BufPath
 ---@return Buffer | nil buffer, integer | nil index
-function M.get_buffer_by_bufnr(bufnr)
+function M.get_buffer_by_path(path)
   local index = list.find_index(_buf_list, function(buf)
-    return buf.buf == bufnr
+    return buf.path == path
   end)
 
   if not index then
@@ -286,63 +287,6 @@ function M.get_buffer_by_bufnr(bufnr)
   end
 
   return _buf_list[index], index
-end
-
-local PINNED_BUFFER_LOCATION = vim.fn.stdpath("data") .. "/vuffers"
----@return string
-local function _get_filename()
-  local cwd = vim.loop.cwd()
-  local filename = str.replace(cwd, "/", "_")
-  return PINNED_BUFFER_LOCATION .. "/" .. filename .. "_buffers" .. ".json"
-end
-
--- TODO: move to buffers.init
-function M.persist_buffers()
-  local ok, err = pcall(function()
-    local filename = _get_filename()
-
-    local data = list.map(_buf_list, function(item)
-      return {
-        path = item.path,
-        _custom_name = item._custom_name,
-      }
-    end)
-
-    file.write_json_file(filename, data)
-  end)
-
-  if not ok then
-    logger.error("persist_pinned_buffer: ", err)
-  end
-end
-
--- TODO: move to buffers.init
--- TODO: restore unpinned buffer only
-function M.restore_buffers_from_file()
-  local filename = _get_filename()
-
-  ---@type boolean, { path: string, _custom_name: string }[]
-  local ok, buffers = pcall(function()
-    return file.read_json_file(filename)
-  end)
-
-  if not ok then
-    logger.error("restore_pinned_buffers failed", { filename = filename, err = buffers })
-    return
-  end
-
-  if not #buffers then
-    return
-  end
-
-  -- add buffers so that buffer gets buffer number
-  list.for_each(buffers or {}, function(buf)
-    if vim.fn.filereadable(buf.path) == 1 then
-      vim.cmd("badd " .. buf.path)
-    end
-  end)
-
-  return M.add_buffer_by_file_path(buffers)
 end
 
 return M

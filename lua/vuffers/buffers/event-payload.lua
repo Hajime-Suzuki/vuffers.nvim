@@ -6,30 +6,30 @@ local active = require("vuffers.buffers.active-buffer")
 local M = {}
 
 local function _get_active_buffer()
-  local bufnr = active.get_active_bufnr()
-  if not bufnr then
+  local path = active.get_active_buf_path()
+  if not path then
     return nil, nil
   end
 
-  return bufs.get_buffer_by_bufnr(bufnr)
+  return bufs.get_buffer_by_path(path)
 end
 
 ---@return ActivePinnedBufferChangedPayload | nil
 function M.get_active_pinned_buf_changed_event_payload()
-  local prev_bufnr = pinned.get_last_visited_pinned_bufnr()
-  local current_bufnr = pinned.get_active_pinned_bufnr()
+  local prev_buf_path = pinned.get_last_visited_pinned_buf_path()
+  local current_buf_path = pinned.get_active_pinned_buf_path()
 
   ---@type integer | nil
   local prev_index
-  if prev_bufnr then
-    local _, i = bufs.get_buffer_by_bufnr(prev_bufnr)
+  if prev_buf_path then
+    local _, i = bufs.get_buffer_by_path(prev_buf_path)
     prev_index = i
   end
 
   ---@type integer | nil
   local current_index
-  if current_bufnr then
-    local _, i = bufs.get_buffer_by_bufnr(current_bufnr)
+  if current_buf_path then
+    local _, i = bufs.get_buffer_by_path(current_buf_path)
     current_index = i
   end
 

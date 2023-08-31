@@ -336,7 +336,7 @@ describe("utils", function()
     end)
 
     it("should sort pinned buffers first", function()
-      pinned.__set_pinned_bufnrs({ 5, 6 })
+      pinned.__set_pinned_bufnrs({ "z/some", "c/d/main" })
       ---@type Buffer[]
       local bufs = {
         {
@@ -352,6 +352,7 @@ describe("utils", function()
           _unique_name = "c/d/main",
           ext = "ts",
           is_pinned = true,
+          path = "c/d/main",
         },
         {
           buf = 2,
@@ -373,6 +374,7 @@ describe("utils", function()
           _unique_name = "z/some",
           ext = "ts",
           is_pinned = true,
+          path = "z/some",
         },
       }
 

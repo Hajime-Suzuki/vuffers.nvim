@@ -1,15 +1,15 @@
 local M = {}
 
----@type integer | nil
-local _active_bufnr = nil
+---@type BufPath | nil
+local _active_buf = nil
 
----@param bufnr Bufnr | nil
-function M.set_active_bufnr(bufnr)
-  _active_bufnr = bufnr
+---@param buf {path: BufPath} | nil
+function M.set_active_buf(buf)
+  _active_buf = buf ~= nil and buf.path or nil
 end
 
-function M.get_active_bufnr()
-  return _active_bufnr
+function M.get_active_buf_path()
+  return _active_buf
 end
 
 return M
