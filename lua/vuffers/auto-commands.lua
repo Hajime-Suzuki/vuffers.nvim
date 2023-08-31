@@ -33,8 +33,8 @@ function M.create_auto_group()
         end
       end
 
-      buffers.set_active_bufnr(buffer.buf)
-      buffers.set_active_pinned_bufnr(buffer.buf)
+      buffers.set_active_buf(buffer)
+      buffers.set_active_pinned_bufnr(buffer)
     end,
   })
 
@@ -57,16 +57,26 @@ function M.create_auto_group()
     group = constants.AUTO_CMD_GROUP,
     ---@param buffer NativeBuffer
     callback = function(buffer)
+      -- for BufDelete, buffer.file is relative path unlike ones in other autocmd.
+      buffer = {
+        buf = buffer.buf,
+        event = buffer.event,
+        file = buffer.match, -- buffer.file is not full path
+        group = buffer.group,
+        id = buffer.id,
+        match = buffer.match,
+      }
+
       logger.debug("BufDelete", { buffer = buffer })
 
       if buffers.is_pinned(buffer) then
         vim.cmd("edit " .. buffer.file)
-        buffers.set_active_bufnr(buffer.buf)
-        buffers.set_active_pinned_bufnr(buffer.buf)
+        buffers.set_active_buf(buffer)
+        buffers.set_active_pinned_bufnr(buffer)
         return
       end
 
-      buffers.remove_buffer({ bufnr = buffer.buf })
+      buffers.remove_buffer({ path = buffer.file })
     end,
   })
 
@@ -113,7 +123,7 @@ function M.create_auto_group()
     group = constants.AUTO_CMD_GROUP,
     callback = function()
       buffers.persist_pinned_buffers()
-      if buffers.is_restored_from_session then
+      if buffers.is_restored_from_session() then
         buffers.persist_buffers()
       end
     end,

@@ -67,12 +67,13 @@ function M.next_or_prev_buffer(args)
 end
 
 function M.go_to_active_pinned_buffer()
-  local next_pinned_buf = buffers.get_active_pinned_bufnr()
+  local next_pinned_buf_path = buffers.get_active_pinned_buf_path()
+  local next_pinned_buf = next_pinned_buf_path and buffers.get_buffer_by_path(next_pinned_buf_path)
   if not next_pinned_buf then
     return
   end
 
-  vim.api.nvim_command(":b " .. next_pinned_buf)
+  vim.api.nvim_command(":b " .. next_pinned_buf.buf)
 end
 
 function M.go_to_next_pinned_buffer()

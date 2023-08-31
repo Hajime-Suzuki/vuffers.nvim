@@ -209,7 +209,7 @@ function M.update_modified_icon(buffer)
   end
 
   local new_modified = vim.bo[buffer.buf].modified
-  local target, index = bufs.get_buffer_by_bufnr(buffer.buf)
+  local target, index = bufs.get_buffer_by_path(buffer.file)
 
   if target == nil then
     return
