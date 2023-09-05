@@ -73,4 +73,8 @@ function M.reset_custom_display_name()
   buffers.reset_custom_display_name({ index = pos[1] })
 end
 
+function M.reset_custom_display_names()
+  buffers.reset_custom_display_names()
+end
+
 return M

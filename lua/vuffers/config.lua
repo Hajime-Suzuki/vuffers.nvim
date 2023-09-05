@@ -22,7 +22,7 @@ local M = {}
 
 ---@class Keymaps
 ---@field use_default boolean
----@field view { open: string, delete: string, pin: string, unpin: string, rename:string, reset_custom_display_name: string }
+---@field view { open: string, delete: string, pin: string, unpin: string, rename:string, reset_custom_display_name: string, reset_custom_display_names: string }
 
 ---@class Config
 ---@field debug DebugConfig
@@ -106,6 +106,7 @@ function M.setup(user_config)
         unpin = "P",
         rename = "r",
         reset_custom_display_name = "R",
+        reset_custom_display_names = "<leader>R",
       },
     },
     sort = {

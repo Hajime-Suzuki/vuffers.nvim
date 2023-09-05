@@ -26,7 +26,10 @@ function M.setup(payload)
   vim.keymap.set("n", keymaps.view.unpin, actions.unpin_buffer, opts)
 
   vim.keymap.set("n", keymaps.view.rename, actions.rename_buffer, opts)
+
   vim.keymap.set("n", keymaps.view.reset_custom_display_name, actions.reset_custom_display_name, opts)
+
+  vim.keymap.set("n", keymaps.view.reset_custom_display_names, actions.reset_custom_display_names, opts)
 end
 
 return M

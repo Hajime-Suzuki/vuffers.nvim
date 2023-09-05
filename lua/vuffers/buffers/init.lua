@@ -34,6 +34,13 @@ M.reset_custom_display_name = function(args)
   end
 end
 
+M.reset_custom_display_names = function()
+  if bufs.reset_custom_display_names() then
+    local payload = event_payload.get_buffer_list_changed_event_payload()
+    event_bus.publish_buffer_list_changed(payload)
+  end
+end
+
 M.change_sort = function()
   bufs.change_sort()
   local payload = event_payload.get_buffer_list_changed_event_payload()
