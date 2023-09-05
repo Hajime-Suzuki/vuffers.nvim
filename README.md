@@ -64,8 +64,6 @@ Rename
 
 https://github.com/Hajime-Suzuki/vuffers.nvim/assets/26042720/f7ed8bff-42f4-4d28-8350-87291d2f55c5
 
-
-
 <br>
 
 ## ❗ Requirements
@@ -117,6 +115,8 @@ return {
           pin = "p",
           unpin = "P",
           rename = "r",
+          reset_custom_display_name = "R",
+          reset_custom_display_names = "<leader>R",
         },
       },
       sort = {
@@ -177,9 +177,11 @@ vim.api.nvim_create_autocmd("SessionLoadPost", {
 | `pin_current_buffer`                |                                                               | pin current buffer. pinned buffer is placed on the top of the list                                                         |
 | `unpin_current_buffer`              |                                                               | opposite of `pin_current_buffer`                                                                                           |
 | `close_unpinned_buffers`            |                                                               | close all unpinned buffers. `config.handlers.on_delete_buffer` is called for each unpinned buffer.                         |
-| `go_to_active_pinned_buffer`        |                                                               | go to currently active pinned buffer                                                                                       |
-| `go_to_next_pinned_buffer`          |                                                               | go to next pinned buffer from the active one                                                                               |
-| `go_to_prev_pinned_buffer`          |                                                               | go to previous pinned buffer from the active one                                                                           |
+| `reset_current_display_name`        |                                                               | reset display name for the current buffer                                                                                  |
+| `reset_all_display_names`           |                                                               | reset display name for all buffers                                                                                         |
+| `go_to_active_pinned_buffer`        |                                                               | (\*might be deprecated in the future) go to currently active pinned buffer                                                 |
+| `go_to_next_pinned_buffer`          |                                                               | (\*might be deprecated in the future) go to next pinned buffer from the active one                                         |
+| `go_to_prev_pinned_buffer`          |                                                               | (\*might be deprecated in the future) go to previous pinned buffer from the active one                                     |
 | `toggle_auto_resize`                |                                                               | toggle auto resize                                                                                                         |
 | `set_log_level`                     | `level: 'error' \| 'warning' \| 'info' \| 'debug' \| 'trace'` | update log level                                                                                                           |
 
