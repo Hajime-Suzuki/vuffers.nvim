@@ -141,22 +141,43 @@ function M.close_unpinned_buffers()
   bufs.remove_unpinned_buffers()
 end
 
+-- might be deprecated in the future
 function M.go_to_active_pinned_buffer()
   logger.debug("go_to_active_pinned_buffer: start")
   buffer_actions.go_to_active_pinned_buffer()
   logger.info("go_to_active_pinned_buffer: done")
 end
 
+-- might be deprecated in the future
 function M.go_to_next_pinned_buffer()
   logger.debug("go_to_next_pinned_buffer: start")
   buffer_actions.go_to_next_pinned_buffer()
   logger.info("go_to_next_pinned_buffer: done")
 end
 
+-- might be deprecated in the future
 function M.go_to_prev_pinned_buffer()
   logger.debug("go_to_next_pinned_buffer: start")
   buffer_actions.go_to_prev_pinned_buffer()
   logger.info("go_to_next_pinned_buffer: done")
+end
+
+function M.reset_current_display_name()
+  logger.debug("reset_display_name: start")
+  local _, current_index = bufs.get_active_buffer()
+  if not current_index then
+    return
+  end
+
+  bufs.reset_custom_display_name({ index = current_index })
+  logger.info("reset_display_name: done")
+end
+
+function M.reset_all_display_names()
+  logger.debug("reset_display_names: start")
+
+  bufs.reset_custom_display_names()
+  logger.info("reset_display_names: done")
 end
 
 --- rest buffers and reload buffers from scratch
