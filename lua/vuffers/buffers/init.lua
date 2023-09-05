@@ -75,7 +75,6 @@ M.decrement_additional_folder_depth = function()
   end
 end
 
--- TODO: rename and move to buffers.init. this is just publishing event for UI.
 M.reload_buffers = function()
   if bufs.get_num_of_buffers() == 0 then
     return M.reset_buffers()
