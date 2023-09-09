@@ -285,4 +285,121 @@ describe("buffers >>", function()
       assert.are.same(1, _updated_bufs.active_buffer_index)
     end)
   end)
+
+  describe("rename_buffer >>", function()
+    before_each(function()
+      event_bus._delete_all_subscriptions()
+      _bufs.set_buffers({})
+      pinned_bufs.__reset_pinned_bufnrs()
+    end)
+
+    it("should rename buffer", function()
+      ---@type BufferListChangedPayload
+      local _updated_bufs = {}
+      local f = function(bufs)
+        _updated_bufs = bufs
+      end
+
+      -- GIVEN there are buffers
+      buffers.add_buffer(create_buffer({ file = "a/b/c/test.json", buf = 1 }))
+      buffers.add_buffer(create_buffer({ file = "foo.lua", buf = 2 }))
+      buffers.add_buffer(create_buffer({ file = "bar.lua", buf = 3 }))
+      buffers.add_buffer(create_buffer({ file = "test/something.ts", buf = 4 }))
+
+      event_bus.subscribe(event_bus.event.BufferListChanged, f, { label = "test" })
+
+      -- WHEN rename buffer
+      buffers.rename_buffer({ index = 2, new_name = "new name!" })
+
+      local updated = _updated_bufs.buffers[2]
+
+      -- THEN buffer is renamed
+      assert.are.same("new name!", updated.name)
+    end)
+  end)
+
+  describe("reset_custom_display_name >>", function()
+    before_each(function()
+      event_bus._delete_all_subscriptions()
+      _bufs.set_buffers({})
+      pinned_bufs.__reset_pinned_bufnrs()
+    end)
+
+    it("should reset display name of the target buffer", function()
+      ---@type BufferListChangedPayload
+      local _updated_bufs = {}
+      local f = function(bufs)
+        _updated_bufs = bufs
+      end
+
+      -- GIVEN there are buffers
+      buffers.add_buffer(create_buffer({ file = "a/b/c/test.json", buf = 1 }))
+      buffers.add_buffer(create_buffer({ file = "foo.lua", buf = 2 }))
+      buffers.add_buffer(create_buffer({ file = "bar.lua", buf = 3 }))
+      buffers.add_buffer(create_buffer({ file = "test/something.ts", buf = 4 }))
+
+      event_bus.subscribe(event_bus.event.BufferListChanged, f, { label = "test" })
+
+      local original_display_name = buffers.get_buffer_by_index(2).name
+
+      -- WHEN rename buffer
+      buffers.rename_buffer({ index = 2, new_name = "new name!" })
+
+      -- (make sure rename is performed)
+      local updated = _updated_bufs.buffers[2]
+      assert.are_not.same(updated.name, original_display_name)
+
+      -- AND reset custom display name
+      buffers.reset_custom_display_name({ index = 2 })
+
+      -- THEN buffer has the same original name as before
+      updated = _updated_bufs.buffers[2]
+      assert.are.same(original_display_name, updated.name)
+    end)
+  end)
+
+  describe("reset_custom_display_names >>", function()
+    before_each(function()
+      event_bus._delete_all_subscriptions()
+      _bufs.set_buffers({})
+      pinned_bufs.__reset_pinned_bufnrs()
+    end)
+
+    it("should reset all custom names", function()
+      ---@type BufferListChangedPayload
+      local _updated_bufs = {}
+      local f = function(bufs)
+        _updated_bufs = bufs
+      end
+
+      -- GIVEN there are buffers
+      buffers.add_buffer(create_buffer({ file = "a/b/c/test.json", buf = 1 }))
+      buffers.add_buffer(create_buffer({ file = "foo.lua", buf = 2 }))
+      buffers.add_buffer(create_buffer({ file = "bar.lua", buf = 3 }))
+      buffers.add_buffer(create_buffer({ file = "test/something.ts", buf = 4 }))
+
+      event_bus.subscribe(event_bus.event.BufferListChanged, f, { label = "test" })
+
+      local original_display_names = list.map(_bufs.get_buffers() or {}, function(buf)
+        return buf.name
+      end)
+
+      -- WHEN rename buffer
+      buffers.rename_buffer({ index = 2, new_name = "new name!" })
+      buffers.rename_buffer({ index = 4, new_name = "new name2" })
+
+      -- (make sure rename is performed)
+      assert.are_not.same(_updated_bufs.buffers[2], original_display_names[2])
+      assert.are_not.same(_updated_bufs.buffers[4], original_display_names[2])
+
+      -- AND reset custom display name
+      buffers.reset_custom_display_names()
+
+      -- THEN buffer has the same original name as before
+      local updated_names = list.map(_updated_bufs.buffers or {}, function(buf)
+        return buf.name
+      end)
+      assert.are.same(original_display_names, updated_names)
+    end)
+  end)
 end)

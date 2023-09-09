@@ -115,6 +115,8 @@ return {
           pin = "p",
           unpin = "P",
           rename = "r",
+          reset_custom_display_name = "R",
+          reset_custom_display_names = "<leader>R",
         },
       },
       sort = {
@@ -175,12 +177,13 @@ vim.api.nvim_create_autocmd("SessionLoadPost", {
 | `go_to_buffer_by_line`              | `line_number?: integer`                                       | open the buffer on the specified line. works with line number                                                                                       |
 | `sort`                              | `{type: 'none' \| 'filename', direction: 'asc' \| 'desc' }`   | sort the vuffers list                                                                                                                               |
 | `resize`                            | `width: string \| number`                                     | resize vuffers list window. If string such as "+10" or "-10" passed, the window size is increased or decreased accordingly                          |
-| `rename`                            |                                                               | rename display name, and it's persisted when using session                                                                                          |
 | `increment_additional_folder_depth` |                                                               | show extra parent folder. however, sorting is still based on the filename (e.g. "something" for "a/b/c/something.json")                             |
 | `decrement_additional_folder_depth` |                                                               | opposite of `increment_additional_folder_depth`                                                                                                     |
 | `pin_current_buffer`                |                                                               | pin current buffer. pinned buffer is placed on the top of the list                                                                                  |
 | `unpin_current_buffer`              |                                                               | opposite of `pin_current_buffer`                                                                                                                    |
 | `close_unpinned_buffers`            |                                                               | close all unpinned buffers. `config.handlers.on_delete_buffer` is called for each unpinned buffer.                                                  |
+| `reset_current_display_name`        |                                                               | reset display name for the current buffer                                                                                                           |
+| `reset_all_display_names`           |                                                               | reset display name for all buffers                                                                                                                  |
 | `go_to_active_pinned_buffer`        |                                                               | go to currently active pinned buffer                                                                                                                |
 | `go_to_next_pinned_buffer`          |                                                               | go to next pinned buffer from the active one                                                                                                        |
 | `go_to_prev_pinned_buffer`          |                                                               | go to previous pinned buffer from the active one                                                                                                    |
