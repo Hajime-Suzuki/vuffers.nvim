@@ -190,6 +190,20 @@ vim.api.nvim_create_autocmd("SessionLoadPost", {
 | `toggle_auto_resize`                |                                                               | toggle auto resize                                                                                                                                  |
 | `set_log_level`                     | `level: 'error' \| 'warning' \| 'info' \| 'debug' \| 'trace'` | update log level                                                                                                                                    |
 
+### UI actions
+
+UI actions are available only inside the vuffers window, and the target is the buffer under the cursor. See `keymaps.view` in the config.
+
+| function                     | description                                  |
+| ---------------------------- | -------------------------------------------- |
+| `open`                       | open the buffer                              |
+| `delete`                     | close the buffer                             |
+| `pin`                        |                                              |
+| `unpin`                      |                                              |
+| `rename`                     | rename the buffer, popup asks you a new name |
+| `reset_custom_display_name`  |                                              |
+| `reset_custom_display_names` | reset all display names                      |
+
 <br>
 
 ## ⚡ Highlight Groups
