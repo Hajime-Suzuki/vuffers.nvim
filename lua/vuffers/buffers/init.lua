@@ -204,6 +204,23 @@ end
 
 ---@param args {origin_index: number, target_index: number}
 M.move_buffer = function(args)
+  local target_buf = bufs.get_buffer_by_index(args.target_index)
+  local origin_buf = bufs.get_buffer_by_index(args.origin_index)
+
+  if not origin_buf or not target_buf then
+    return logger.warn("move_buffer: buffer not found", args)
+  end
+
+  if not pinned.is_pinned(origin_buf.path) and pinned.is_pinned(target_buf.path) then
+    logger.warn("move_buffer: can not move unpinned buffer to pinned buffers area", args)
+    return
+  end
+
+  if pinned.is_pinned(origin_buf.path) and not pinned.is_pinned(target_buf.path) then
+    logger.warn("move_buffer: can not move pinned buffer to unpinned buffers area", args)
+    return
+  end
+
   if bufs.move_buffer(args) then
     local payload = event_payload.get_buffer_list_changed_event_payload()
     event_bus.publish_buffer_list_changed(payload)

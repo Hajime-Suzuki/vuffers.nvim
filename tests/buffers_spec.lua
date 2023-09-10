@@ -500,6 +500,72 @@ describe("buffers >>", function()
       -- TODO: AND sort order becomes "custom"
     end)
 
+    it("should not move unpinned buffer to the pinned buffers area", function()
+      ---@type BufferListChangedPayload
+      local _updated_bufs = {}
+      local f = function(bufs)
+        _updated_bufs = bufs
+      end
+
+      -- GIVEN there are buffers
+      buffers.add_buffer(create_buffer({ file = "a/b/c/test.json", buf = 1 }))
+      buffers.add_buffer(create_buffer({ file = "foo.lua", buf = 2 }))
+      buffers.add_buffer(create_buffer({ file = "bar.lua", buf = 3 }))
+      buffers.add_buffer(create_buffer({ file = "test/something.ts", buf = 4 }))
+
+      -- AND buf 1 and buf 2 are pinned
+      buffers.pin_buffer(1)
+      buffers.pin_buffer(2)
+
+      local original_bufs = _bufs.get_buffers()
+      event_bus.subscribe(event_bus.event.BufferListChanged, f, { label = "test" })
+
+      -- WHEN target index is pinned buffers area
+      buffers.move_buffer({ origin_index = 4, target_index = 2 })
+
+      -- THEN no event is published
+      assert.are.same({}, _updated_bufs)
+
+      -- AND no buffer is moved
+      local bufs_after_move = _bufs.get_buffers()
+      assert.are.same(original_bufs, bufs_after_move)
+
+      -- TODO: AND sort order becomes "custom"
+    end)
+
+    it("should not move pinned buffer to the unpinned buffers area", function()
+      ---@type BufferListChangedPayload
+      local _updated_bufs = {}
+      local f = function(bufs)
+        _updated_bufs = bufs
+      end
+
+      -- GIVEN there are buffers
+      buffers.add_buffer(create_buffer({ file = "a/b/c/test.json", buf = 1 }))
+      buffers.add_buffer(create_buffer({ file = "foo.lua", buf = 2 }))
+      buffers.add_buffer(create_buffer({ file = "bar.lua", buf = 3 }))
+      buffers.add_buffer(create_buffer({ file = "test/something.ts", buf = 4 }))
+
+      -- AND buf 1 and buf 2 are pinned
+      buffers.pin_buffer(1)
+      buffers.pin_buffer(2)
+
+      local original_bufs = _bufs.get_buffers()
+      event_bus.subscribe(event_bus.event.BufferListChanged, f, { label = "test" })
+
+      -- WHEN target index is pinned buffers area
+      buffers.move_buffer({ origin_index = 1, target_index = 4 })
+
+      -- THEN no event is published
+      assert.are.same({}, _updated_bufs)
+
+      -- AND no buffer is moved
+      local bufs_after_move = _bufs.get_buffers()
+      assert.are.same(original_bufs, bufs_after_move)
+
+      -- TODO: AND sort order becomes "custom"
+    end)
+
     it("should change order", function()
       ---@type BufferListChangedPayload
       local _updated_bufs = {}
