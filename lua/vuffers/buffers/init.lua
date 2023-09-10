@@ -19,11 +19,26 @@ M.add_buffer = function(buffer)
   end
 end
 
----@param {index: number, new_name: string}
+---@param args {index: number, new_name: string}
 M.rename_buffer = function(args)
   bufs.rename_buffer(args)
   local payload = event_payload.get_buffer_list_changed_event_payload()
   event_bus.publish_buffer_list_changed(payload)
+end
+
+---@param args {index: number}
+M.reset_custom_display_name = function(args)
+  if bufs.reset_custom_display_name(args) then
+    local payload = event_payload.get_buffer_list_changed_event_payload()
+    event_bus.publish_buffer_list_changed(payload)
+  end
+end
+
+M.reset_custom_display_names = function()
+  if bufs.reset_custom_display_names() then
+    local payload = event_payload.get_buffer_list_changed_event_payload()
+    event_bus.publish_buffer_list_changed(payload)
+  end
 end
 
 M.change_sort = function()
@@ -60,7 +75,6 @@ M.decrement_additional_folder_depth = function()
   end
 end
 
--- TODO: rename and move to buffers.init. this is just publishing event for UI.
 M.reload_buffers = function()
   if bufs.get_num_of_buffers() == 0 then
     return M.reset_buffers()

@@ -97,7 +97,48 @@ function M.rename_buffer(args)
   _buf_list = buffers
 end
 
----@param args {path?: string}
+---@param args {index: number}
+function M.reset_custom_display_name(args)
+  local target = M.get_buffer_by_index(args.index)
+
+  if not target or not target._custom_name then
+    return
+  end
+
+  target._custom_name = nil
+
+  local updated = utils.get_formatted_buffers({ target })
+  _buf_list[args.index] = updated[1]
+
+  return true
+end
+
+function M.reset_custom_display_names()
+  local bufs = M.get_buffers()
+  ---@diagnostic disable-next-line: cast-local-type
+  local bufs_with_custom_name = list.filter(bufs or {}, function(buf)
+    return buf._custom_name ~= nil
+  end)
+
+  if not bufs_with_custom_name or not #bufs_with_custom_name then
+    return
+  end
+
+  list.for_each(bufs, function(buf, i)
+    if buf._custom_name then
+      buf._custom_name = nil
+    end
+  end)
+
+  bufs = utils.get_formatted_buffers(bufs)
+  bufs = utils.sort_buffers(bufs, config.get_sort())
+
+  _buf_list = bufs
+
+  return true
+end
+
+---@param args {bufnr?: number}
 function M.remove_buffer(args)
   if not args.path then
     return
