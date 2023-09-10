@@ -189,6 +189,25 @@ function M.change_sort()
   _buf_list = utils.sort_buffers(_buf_list, config.get_sort())
 end
 
+---@param args {origin_index: number, target_index: number}
+function M.move_buffer(args)
+  local origin_buf = _buf_list[args.origin_index]
+  local target_buf = _buf_list[args.target_index]
+
+  if args.target_index == args.origin_index then
+    return logger.warn("move_buffer: target is the same as origin", args)
+  end
+
+  if not origin_buf or not target_buf then
+    return logger.warn("move_buffer: buffer not found", args)
+  end
+
+  table.remove(_buf_list, args.origin_index)
+  table.insert(_buf_list, args.target_index, origin_buf)
+
+  return true
+end
+
 ---@param new_level integer
 local function _change_additional_folder_depth(new_level)
   if new_level == _global_additional_folder_depth then

@@ -402,4 +402,129 @@ describe("buffers >>", function()
       assert.are.same(original_display_names, updated_names)
     end)
   end)
+
+  describe("move_buffer >>", function()
+    before_each(function()
+      event_bus._delete_all_subscriptions()
+      _bufs.set_buffers({})
+      pinned_bufs.__reset_pinned_bufnrs()
+    end)
+
+    it("should not change order if origin index is invalid", function()
+      ---@type BufferListChangedPayload
+      local _updated_bufs = {}
+      local f = function(bufs)
+        _updated_bufs = bufs
+      end
+
+      -- GIVEN there are buffers
+      buffers.add_buffer(create_buffer({ file = "a/b/c/test.json", buf = 1 }))
+      buffers.add_buffer(create_buffer({ file = "foo.lua", buf = 2 }))
+      buffers.add_buffer(create_buffer({ file = "bar.lua", buf = 3 }))
+      buffers.add_buffer(create_buffer({ file = "test/something.ts", buf = 4 }))
+
+      local original_bufs = _bufs.get_buffers()
+
+      event_bus.subscribe(event_bus.event.BufferListChanged, f, { label = "test" })
+
+      -- WHEN origin index is out of bounds
+      buffers.move_buffer({ origin_index = 5, target_index = 2 })
+
+      -- THEN no event is published
+      assert.are.same({}, _updated_bufs)
+
+      -- AND no buffer is moved
+      local bufs_after_move = _bufs.get_buffers()
+      assert.are.same(original_bufs, bufs_after_move)
+
+      -- TODO: AND sort order becomes "custom"
+    end)
+
+    it("should not change order if target index is invalid", function()
+      ---@type BufferListChangedPayload
+      local _updated_bufs = {}
+      local f = function(bufs)
+        _updated_bufs = bufs
+      end
+
+      -- GIVEN there are buffers
+      buffers.add_buffer(create_buffer({ file = "a/b/c/test.json", buf = 1 }))
+      buffers.add_buffer(create_buffer({ file = "foo.lua", buf = 2 }))
+      buffers.add_buffer(create_buffer({ file = "bar.lua", buf = 3 }))
+      buffers.add_buffer(create_buffer({ file = "test/something.ts", buf = 4 }))
+
+      local original_bufs = _bufs.get_buffers()
+
+      event_bus.subscribe(event_bus.event.BufferListChanged, f, { label = "test" })
+
+      -- WHEN target index is out of bounds
+      buffers.move_buffer({ origin_index = 1, target_index = 6 })
+
+      -- THEN no event is published
+      assert.are.same({}, _updated_bufs)
+
+      -- AND no buffer is moved
+      local bufs_after_move = _bufs.get_buffers()
+      assert.are.same(original_bufs, bufs_after_move)
+
+      -- TODO: AND sort order becomes "custom"
+    end)
+
+    it("should not change order if target index and origin index is the same", function()
+      ---@type BufferListChangedPayload
+      local _updated_bufs = {}
+      local f = function(bufs)
+        _updated_bufs = bufs
+      end
+
+      -- GIVEN there are buffers
+      buffers.add_buffer(create_buffer({ file = "a/b/c/test.json", buf = 1 }))
+      buffers.add_buffer(create_buffer({ file = "foo.lua", buf = 2 }))
+      buffers.add_buffer(create_buffer({ file = "bar.lua", buf = 3 }))
+      buffers.add_buffer(create_buffer({ file = "test/something.ts", buf = 4 }))
+
+      local original_bufs = _bufs.get_buffers()
+
+      event_bus.subscribe(event_bus.event.BufferListChanged, f, { label = "test" })
+
+      -- WHEN target index is the same as origin index
+      buffers.move_buffer({ origin_index = 1, target_index = 1 })
+
+      -- THEN no event is published
+      assert.are.same({}, _updated_bufs)
+
+      -- AND no buffer is moved
+      local bufs_after_move = _bufs.get_buffers()
+      assert.are.same(original_bufs, bufs_after_move)
+
+      -- TODO: AND sort order becomes "custom"
+    end)
+
+    it("should change order", function()
+      ---@type BufferListChangedPayload
+      local _updated_bufs = {}
+      local f = function(bufs)
+        _updated_bufs = bufs
+      end
+
+      -- GIVEN there are buffers
+      buffers.add_buffer(create_buffer({ file = "a/b/c/test.json", buf = 1 }))
+      buffers.add_buffer(create_buffer({ file = "foo.lua", buf = 2 }))
+      buffers.add_buffer(create_buffer({ file = "bar.lua", buf = 3 }))
+      buffers.add_buffer(create_buffer({ file = "test/something.ts", buf = 4 }))
+
+      event_bus.subscribe(event_bus.event.BufferListChanged, f, { label = "test" })
+
+      -- WHEN move buffer 4 to the 2nd position
+      buffers.move_buffer({ origin_index = 4, target_index = 2 })
+
+      -- THEN buffer is in the new order
+      local updated_order = list.map(_updated_bufs.buffers or {}, function(buf)
+        return buf.buf
+      end)
+      assert.are.same({ 1, 4, 2, 3 }, updated_order)
+
+      -- TODO: AND sort order becomes "custom"
+    end)
+  end)
 end)

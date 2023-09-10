@@ -106,6 +106,10 @@ M.set_active_buf = function(buf)
   event_bus.publish_active_buffer_changed(payload)
 end
 
+------------------------------------
+--   PINNED BUFS                --
+------------------------------------
+
 M.get_active_pinned_buf_path = pinned.get_active_pinned_buf_path
 
 ---@param index integer
@@ -189,6 +193,27 @@ end
 
 M.get_next_or_prev_pinned_buffer = pinned.get_next_or_prev_pinned_buffer
 
+---@param buffer Buffer | NativeBuffer
+M.is_pinned = function(buffer)
+  return pinned.is_pinned(buffer.path or buffer.file)
+end
+
+------------------------------------
+--   CUSTOM ORDER             --
+------------------------------------
+
+---@param args {origin_index: number, target_index: number}
+M.move_buffer = function(args)
+  if bufs.move_buffer(args) then
+    local payload = event_payload.get_buffer_list_changed_event_payload()
+    event_bus.publish_buffer_list_changed(payload)
+  end
+end
+
+------------------------------------
+--   MISC                       --
+------------------------------------
+
 M.debug_buffers = function()
   local active_buf_path = active.get_active_buf_path()
   ---@diagnostic disable-next-line: cast-local-type
@@ -203,11 +228,6 @@ M.debug_buffers = function()
   )
   print("pinned buffers", vim.inspect(pinned.get_pinned_bufs()))
   print("buffers", vim.inspect(bufs.get_buffers()))
-end
-
----@param buffer Buffer | NativeBuffer
-M.is_pinned = function(buffer)
-  return pinned.is_pinned(buffer.path or buffer.file)
 end
 
 --------- persistence ---------
