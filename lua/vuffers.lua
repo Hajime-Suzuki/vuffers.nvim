@@ -141,6 +141,13 @@ function M.close_unpinned_buffers()
   bufs.remove_unpinned_buffers()
 end
 
+---@param args { direction: 'next' | 'prev', count?: integer }
+function M.move_current_buffer_by_count(args)
+  logger.debug("move_buffer: start")
+  bufs.move_current_buffer_by_count(args)
+  logger.info("move_buffer: done")
+end
+
 -- might be deprecated in the future
 function M.go_to_active_pinned_buffer()
   logger.debug("go_to_active_pinned_buffer: start")

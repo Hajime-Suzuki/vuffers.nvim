@@ -403,14 +403,14 @@ describe("buffers >>", function()
     end)
   end)
 
-  describe("move_buffer >>", function()
+  describe("move_current_buffer_by_count >>", function()
     before_each(function()
       event_bus._delete_all_subscriptions()
       _bufs.set_buffers({})
       pinned_bufs.__reset_pinned_bufnrs()
     end)
 
-    it("should not change order if origin index is invalid", function()
+    it("should not change order if count is invalid", function()
       ---@type BufferListChangedPayload
       local _updated_bufs = {}
       local f = function(bufs)
@@ -421,74 +421,18 @@ describe("buffers >>", function()
       buffers.add_buffer(create_buffer({ file = "a/b/c/test.json", buf = 1 }))
       buffers.add_buffer(create_buffer({ file = "foo.lua", buf = 2 }))
       buffers.add_buffer(create_buffer({ file = "bar.lua", buf = 3 }))
-      buffers.add_buffer(create_buffer({ file = "test/something.ts", buf = 4 }))
-
-      local original_bufs = _bufs.get_buffers()
+      local target_buf = create_buffer({ file = "test/something.ts", buf = 4 })
+      buffers.add_buffer(target_buf)
 
       event_bus.subscribe(event_bus.event.BufferListChanged, f, { label = "test" })
+
+      -- AND currently buf 1 is active
+      buffers.set_active_buf(target_buf)
+
+      local original_bufs = vim.fn.deepcopy(_bufs.get_buffers())
 
       -- WHEN origin index is out of bounds
-      buffers.move_buffer({ origin_index = 5, target_index = 2 })
-
-      -- THEN no event is published
-      assert.are.same({}, _updated_bufs)
-
-      -- AND no buffer is moved
-      local bufs_after_move = _bufs.get_buffers()
-      assert.are.same(original_bufs, bufs_after_move)
-
-      -- TODO: AND sort order becomes "custom"
-    end)
-
-    it("should not change order if target index is invalid", function()
-      ---@type BufferListChangedPayload
-      local _updated_bufs = {}
-      local f = function(bufs)
-        _updated_bufs = bufs
-      end
-
-      -- GIVEN there are buffers
-      buffers.add_buffer(create_buffer({ file = "a/b/c/test.json", buf = 1 }))
-      buffers.add_buffer(create_buffer({ file = "foo.lua", buf = 2 }))
-      buffers.add_buffer(create_buffer({ file = "bar.lua", buf = 3 }))
-      buffers.add_buffer(create_buffer({ file = "test/something.ts", buf = 4 }))
-
-      local original_bufs = _bufs.get_buffers()
-
-      event_bus.subscribe(event_bus.event.BufferListChanged, f, { label = "test" })
-
-      -- WHEN target index is out of bounds
-      buffers.move_buffer({ origin_index = 1, target_index = 6 })
-
-      -- THEN no event is published
-      assert.are.same({}, _updated_bufs)
-
-      -- AND no buffer is moved
-      local bufs_after_move = _bufs.get_buffers()
-      assert.are.same(original_bufs, bufs_after_move)
-
-      -- TODO: AND sort order becomes "custom"
-    end)
-
-    it("should not change order if target index and origin index is the same", function()
-      ---@type BufferListChangedPayload
-      local _updated_bufs = {}
-      local f = function(bufs)
-        _updated_bufs = bufs
-      end
-
-      -- GIVEN there are buffers
-      buffers.add_buffer(create_buffer({ file = "a/b/c/test.json", buf = 1 }))
-      buffers.add_buffer(create_buffer({ file = "foo.lua", buf = 2 }))
-      buffers.add_buffer(create_buffer({ file = "bar.lua", buf = 3 }))
-      buffers.add_buffer(create_buffer({ file = "test/something.ts", buf = 4 }))
-
-      local original_bufs = _bufs.get_buffers()
-
-      event_bus.subscribe(event_bus.event.BufferListChanged, f, { label = "test" })
-
-      -- WHEN target index is the same as origin index
-      buffers.move_buffer({ origin_index = 1, target_index = 1 })
+      buffers.move_current_buffer_by_count({ direction = "next", count = 1 })
 
       -- THEN no event is published
       assert.are.same({}, _updated_bufs)
@@ -511,17 +455,21 @@ describe("buffers >>", function()
       buffers.add_buffer(create_buffer({ file = "a/b/c/test.json", buf = 1 }))
       buffers.add_buffer(create_buffer({ file = "foo.lua", buf = 2 }))
       buffers.add_buffer(create_buffer({ file = "bar.lua", buf = 3 }))
-      buffers.add_buffer(create_buffer({ file = "test/something.ts", buf = 4 }))
+      local target_buf = create_buffer({ file = "test/something.ts", buf = 4 })
+      buffers.add_buffer(target_buf)
 
       -- AND buf 1 and buf 2 are pinned
       buffers.pin_buffer(1)
       buffers.pin_buffer(2)
 
-      local original_bufs = _bufs.get_buffers()
+      -- AND currently buf 4 is active
+      buffers.set_active_buf(target_buf)
+
       event_bus.subscribe(event_bus.event.BufferListChanged, f, { label = "test" })
+      local original_bufs = vim.fn.deepcopy(_bufs.get_buffers())
 
       -- WHEN target index is pinned buffers area
-      buffers.move_buffer({ origin_index = 4, target_index = 2 })
+      buffers.move_current_buffer_by_count({ direction = "prev", count = 2 })
 
       -- THEN no event is published
       assert.are.same({}, _updated_bufs)
@@ -541,7 +489,8 @@ describe("buffers >>", function()
       end
 
       -- GIVEN there are buffers
-      buffers.add_buffer(create_buffer({ file = "a/b/c/test.json", buf = 1 }))
+      local target_buf = create_buffer({ file = "a/b/c/test.json", buf = 1 })
+      buffers.add_buffer(target_buf)
       buffers.add_buffer(create_buffer({ file = "foo.lua", buf = 2 }))
       buffers.add_buffer(create_buffer({ file = "bar.lua", buf = 3 }))
       buffers.add_buffer(create_buffer({ file = "test/something.ts", buf = 4 }))
@@ -550,11 +499,14 @@ describe("buffers >>", function()
       buffers.pin_buffer(1)
       buffers.pin_buffer(2)
 
-      local original_bufs = _bufs.get_buffers()
+      -- AND currently buf 1 is active
+      buffers.set_active_buf(target_buf)
       event_bus.subscribe(event_bus.event.BufferListChanged, f, { label = "test" })
 
-      -- WHEN target index is pinned buffers area
-      buffers.move_buffer({ origin_index = 1, target_index = 4 })
+      local original_bufs = vim.fn.deepcopy(_bufs.get_buffers())
+
+      -- WHEN target index is unpinned buffers area
+      buffers.move_current_buffer_by_count({ direction = "next", count = 2 })
 
       -- THEN no event is published
       assert.are.same({}, _updated_bufs)
@@ -566,7 +518,7 @@ describe("buffers >>", function()
       -- TODO: AND sort order becomes "custom"
     end)
 
-    it("should change order", function()
+    it("should change order by count when count is passed", function()
       ---@type BufferListChangedPayload
       local _updated_bufs = {}
       local f = function(bufs)
@@ -577,18 +529,54 @@ describe("buffers >>", function()
       buffers.add_buffer(create_buffer({ file = "a/b/c/test.json", buf = 1 }))
       buffers.add_buffer(create_buffer({ file = "foo.lua", buf = 2 }))
       buffers.add_buffer(create_buffer({ file = "bar.lua", buf = 3 }))
-      buffers.add_buffer(create_buffer({ file = "test/something.ts", buf = 4 }))
+      local target_buf = create_buffer({ file = "test/something.ts", buf = 4 })
+      buffers.add_buffer(target_buf)
 
       event_bus.subscribe(event_bus.event.BufferListChanged, f, { label = "test" })
 
-      -- WHEN move buffer 4 to the 2nd position
-      buffers.move_buffer({ origin_index = 4, target_index = 2 })
+      -- AND currently buf 1 is active
+      buffers.set_active_buf(target_buf)
+
+      -- WHEN move buffer 4 up by 2
+      buffers.move_current_buffer_by_count({ direction = "prev", count = 2 })
+
+      -- THEN buffer is in new order
+      local updated_order = list.map(_updated_bufs.buffers or {}, function(buf)
+        return buf.buf
+      end)
+      assert.are.same({ 1, 4, 2, 3 }, updated_order)
+
+      -- TODO: AND sort order becomes "custom"
+    end)
+
+    it("should change order by 1 when count is not passed", function()
+      ---@type BufferListChangedPayload
+      local _updated_bufs = {}
+      local f = function(bufs)
+        _updated_bufs = bufs
+      end
+
+      local target_buf = create_buffer({ file = "test/something.ts", buf = 4 })
+
+      -- GIVEN there are buffers
+      buffers.add_buffer(create_buffer({ file = "a/b/c/test.json", buf = 1 }))
+      buffers.add_buffer(create_buffer({ file = "foo.lua", buf = 2 }))
+      buffers.add_buffer(create_buffer({ file = "bar.lua", buf = 3 }))
+      buffers.add_buffer(target_buf)
+
+      event_bus.subscribe(event_bus.event.BufferListChanged, f, { label = "test" })
+
+      -- AND currently buf 1 is active
+      buffers.set_active_buf(target_buf)
+
+      -- WHEN move buffer 4 up
+      buffers.move_current_buffer_by_count({ direction = "prev" })
 
       -- THEN buffer is in the new order
       local updated_order = list.map(_updated_bufs.buffers or {}, function(buf)
         return buf.buf
       end)
-      assert.are.same({ 1, 4, 2, 3 }, updated_order)
+      assert.are.same({ 1, 2, 4, 3 }, updated_order)
 
       -- TODO: AND sort order becomes "custom"
     end)

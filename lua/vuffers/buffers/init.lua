@@ -201,9 +201,9 @@ end
 ------------------------------------
 --   CUSTOM ORDER             --
 ------------------------------------
-
+---
 ---@param args {origin_index: number, target_index: number}
-M.move_buffer = function(args)
+local _move_buffer = function(args)
   local target_buf = bufs.get_buffer_by_index(args.target_index)
   local origin_buf = bufs.get_buffer_by_index(args.origin_index)
 
@@ -225,6 +225,28 @@ M.move_buffer = function(args)
     local payload = event_payload.get_buffer_list_changed_event_payload()
     event_bus.publish_buffer_list_changed(payload)
   end
+end
+
+---@param args {direction: 'next' | 'prev', count?: integer}
+function M.move_current_buffer_by_count(args)
+  local current_buf_path = active.get_active_buf_path()
+  if not current_buf_path then
+    return logger.warn("move_current_buffer: buffer not found", args)
+  end
+
+  local _, origin_index = bufs.get_buffer_by_path(current_buf_path)
+
+  if not origin_index then
+    return logger.warn("move_current_buffer: buffer not found", args)
+  end
+
+  local count = args.count or vim.v.count
+  count = count == 0 and 1 or count
+  count = args.direction == "next" and count or -count
+
+  local target_index = origin_index + count
+
+  _move_buffer({ target_index = target_index, origin_index = origin_index })
 end
 
 ------------------------------------
