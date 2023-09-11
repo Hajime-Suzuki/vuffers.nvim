@@ -227,17 +227,33 @@ local _move_buffer = function(args)
   end
 end
 
----@param args {direction: 'next' | 'prev', count?: integer}
-function M.move_current_buffer_by_count(args)
+---@param args {index: number}
+function M.move_current_buffer_to_index(args)
   local current_buf_path = active.get_active_buf_path()
   if not current_buf_path then
-    return logger.warn("move_current_buffer: buffer not found", args)
+    return logger.warn("move_current_buffer_to_index: buffer not found", args)
   end
 
   local _, origin_index = bufs.get_buffer_by_path(current_buf_path)
 
   if not origin_index then
-    return logger.warn("move_current_buffer: buffer not found", args)
+    return logger.warn("move_current_buffer_to_index: buffer not found", args)
+  end
+
+  _move_buffer({ target_index = args.index, origin_index = origin_index })
+end
+
+---@param args {direction: 'next' | 'prev', count?: integer}
+function M.move_current_buffer_by_count(args)
+  local current_buf_path = active.get_active_buf_path()
+  if not current_buf_path then
+    return logger.warn("move_current_buffer_by_count: buffer not found", args)
+  end
+
+  local _, origin_index = bufs.get_buffer_by_path(current_buf_path)
+
+  if not origin_index then
+    return logger.warn("move_current_buffer_by_count: buffer not found", args)
   end
 
   local count = args.count or vim.v.count

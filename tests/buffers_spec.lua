@@ -426,7 +426,7 @@ describe("buffers >>", function()
 
       event_bus.subscribe(event_bus.event.BufferListChanged, f, { label = "test" })
 
-      -- AND currently buf 1 is active
+      -- AND currently buf 4 is active
       buffers.set_active_buf(target_buf)
 
       local original_bufs = vim.fn.deepcopy(_bufs.get_buffers())
@@ -534,7 +534,7 @@ describe("buffers >>", function()
 
       event_bus.subscribe(event_bus.event.BufferListChanged, f, { label = "test" })
 
-      -- AND currently buf 1 is active
+      -- AND currently buf 4 is active
       buffers.set_active_buf(target_buf)
 
       -- WHEN move buffer 4 up by 2
@@ -556,17 +556,16 @@ describe("buffers >>", function()
         _updated_bufs = bufs
       end
 
-      local target_buf = create_buffer({ file = "test/something.ts", buf = 4 })
-
       -- GIVEN there are buffers
       buffers.add_buffer(create_buffer({ file = "a/b/c/test.json", buf = 1 }))
       buffers.add_buffer(create_buffer({ file = "foo.lua", buf = 2 }))
       buffers.add_buffer(create_buffer({ file = "bar.lua", buf = 3 }))
+      local target_buf = create_buffer({ file = "test/something.ts", buf = 4 })
       buffers.add_buffer(target_buf)
 
       event_bus.subscribe(event_bus.event.BufferListChanged, f, { label = "test" })
 
-      -- AND currently buf 1 is active
+      -- AND currently buf 4 is active
       buffers.set_active_buf(target_buf)
 
       -- WHEN move buffer 4 up
@@ -577,6 +576,45 @@ describe("buffers >>", function()
         return buf.buf
       end)
       assert.are.same({ 1, 2, 4, 3 }, updated_order)
+
+      -- TODO: AND sort order becomes "custom"
+    end)
+  end)
+
+  describe("move_current_buffer_to_index >>", function()
+    before_each(function()
+      event_bus._delete_all_subscriptions()
+      _bufs.set_buffers({})
+      pinned_bufs.__reset_pinned_bufnrs()
+    end)
+
+    it("should change order by count when count is passed", function()
+      ---@type BufferListChangedPayload
+      local _updated_bufs = {}
+      local f = function(bufs)
+        _updated_bufs = bufs
+      end
+
+      -- GIVEN there are buffers
+      buffers.add_buffer(create_buffer({ file = "a/b/c/test.json", buf = 1 }))
+      buffers.add_buffer(create_buffer({ file = "foo.lua", buf = 2 }))
+      buffers.add_buffer(create_buffer({ file = "bar.lua", buf = 3 }))
+      local target_buf = create_buffer({ file = "test/something.ts", buf = 4 })
+      buffers.add_buffer(target_buf)
+
+      event_bus.subscribe(event_bus.event.BufferListChanged, f, { label = "test" })
+
+      -- AND currently buf 4 is active
+      buffers.set_active_buf(target_buf)
+
+      -- WHEN move buffer 4 to position 2
+      buffers.move_current_buffer_to_index({ index = 2 })
+
+      -- THEN buffer is in new order
+      local updated_order = list.map(_updated_bufs.buffers or {}, function(buf)
+        return buf.buf
+      end)
+      assert.are.same({ 1, 4, 2, 3 }, updated_order)
 
       -- TODO: AND sort order becomes "custom"
     end)
