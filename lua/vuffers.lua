@@ -143,9 +143,16 @@ end
 
 ---@param args { direction: 'next' | 'prev', count?: integer }
 function M.move_current_buffer_by_count(args)
-  logger.debug("move_buffer: start")
+  logger.debug("move_current_buffer_by_count: start")
   bufs.move_current_buffer_by_count(args)
-  logger.info("move_buffer: done")
+  logger.info("move_current_buffer_by_count: done")
+end
+
+---@param args? { index?: integer }
+function M.move_current_buffer_to_index(args)
+  logger.debug("move_current_buffer_to_index: start")
+  bufs.move_current_buffer_to_index(args)
+  logger.info("move_current_buffer_to_index: done")
 end
 
 -- might be deprecated in the future

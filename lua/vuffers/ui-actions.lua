@@ -77,4 +77,25 @@ function M.reset_custom_display_names()
   buffers.reset_custom_display_names()
 end
 
+---@param args {direction: 'next' | 'prev', count?: integer}
+function M.move_current_buffer_by_count(args)
+  local count = args.count or vim.v.count or 0
+  count = count == 0 and 1 or count
+
+  local pos = vim.api.nvim_win_get_cursor(0)
+  local row = pos[1]
+  local col = pos[2]
+  local buf = buffers.get_buffer_by_index(row)
+
+  if not buf then
+    return
+  end
+
+  local target_index = row + (args.direction == "next" and count or -count)
+
+  if buffers.move_buffer({ origin_index = row, target_index = target_index }) then
+    vim.api.nvim_win_set_cursor(0, { target_index, col })
+  end
+end
+
 return M

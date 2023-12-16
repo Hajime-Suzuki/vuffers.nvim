@@ -203,7 +203,7 @@ end
 ------------------------------------
 ---
 ---@param args {origin_index: number, target_index: number}
-local _move_buffer = function(args)
+M.move_buffer = function(args)
   local target_buf = bufs.get_buffer_by_index(args.target_index)
   local origin_buf = bufs.get_buffer_by_index(args.origin_index)
 
@@ -224,11 +224,17 @@ local _move_buffer = function(args)
   if bufs.move_buffer(args) then
     local payload = event_payload.get_buffer_list_changed_event_payload()
     event_bus.publish_buffer_list_changed(payload)
+    return true
   end
 end
 
----@param args {index: number}
+---@param args? {index?: number}
 function M.move_current_buffer_to_index(args)
+  local index = (args and args.index) or vim.v.count
+  if not index or index == 0 then
+    return
+  end
+
   local current_buf_path = active.get_active_buf_path()
   if not current_buf_path then
     return logger.warn("move_current_buffer_to_index: buffer not found", args)
@@ -240,7 +246,7 @@ function M.move_current_buffer_to_index(args)
     return logger.warn("move_current_buffer_to_index: buffer not found", args)
   end
 
-  _move_buffer({ target_index = args.index, origin_index = origin_index })
+  M.move_buffer({ target_index = index, origin_index = origin_index })
 end
 
 ---@param args {direction: 'next' | 'prev', count?: integer}
@@ -262,7 +268,7 @@ function M.move_current_buffer_by_count(args)
 
   local target_index = origin_index + count
 
-  _move_buffer({ target_index = target_index, origin_index = origin_index })
+  M.move_buffer({ target_index = target_index, origin_index = origin_index })
 end
 
 ------------------------------------
