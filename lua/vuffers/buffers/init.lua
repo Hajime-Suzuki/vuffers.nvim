@@ -224,6 +224,7 @@ M.move_buffer = function(args)
   if bufs.move_buffer(args) then
     local payload = event_payload.get_buffer_list_changed_event_payload()
     event_bus.publish_buffer_list_changed(payload)
+    config.set_sort({ type = "custom" })
     return true
   end
 end

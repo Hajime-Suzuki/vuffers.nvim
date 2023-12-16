@@ -406,5 +406,39 @@ describe("utils", function()
         assert.fail("failed")
       end
     end)
+
+    it("should not do anything if sort order is __CUSTOM", function()
+      pinned.__set_pinned_bufnrs({ "z/some", "c/d/main" })
+      ---@type Buffer[]
+      local bufs = {
+        {
+          buf = 4,
+          _filename = "some.test",
+          _unique_name = "a/some.test",
+          ext = "ts",
+          is_pinned = false,
+        },
+        {
+          buf = 6,
+          _filename = "some",
+          _unique_name = "c/d/main",
+          ext = "ts",
+          is_pinned = true,
+          path = "c/d/main",
+        },
+        {
+          buf = 2,
+          _filename = "foo",
+          _unique_name = "b/foo.ts",
+          ext = "ts",
+          is_pinned = false,
+        },
+      }
+
+      local res =
+        utils.sort_buffers(bufs, { type = constants.SORT_TYPE.__CUSTOM, direction = constants.SORT_DIRECTION.ASC })
+
+      assert.are.same(res, bufs)
+    end)
   end)
 end)
