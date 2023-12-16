@@ -22,7 +22,18 @@ local M = {}
 
 ---@class Keymaps
 ---@field use_default boolean
----@field view { open: string, delete: string, pin: string, unpin: string, rename:string, reset_custom_display_name: string, reset_custom_display_names: string }
+---@field view KeymapView
+
+--- @class KeymapView
+--- @field open string
+--- @field delete string
+--- @field pin string
+--- @field unpin string
+--- @field rename string
+--- @field reset_custom_display_name string
+--- @field reset_custom_display_names string
+--- @field move_up string
+--- @field move_down string
 
 ---@class Config
 ---@field debug DebugConfig
@@ -107,6 +118,8 @@ function M.setup(user_config)
         rename = "r",
         reset_custom_display_name = "R",
         reset_custom_display_names = "<leader>R",
+        move_up = "U",
+        move_down = "D",
       },
     },
     sort = {
