@@ -1,3 +1,6 @@
+local constants = require("vuffers.constants")
+local file = require("utils.file")
+
 local M = {}
 
 ---@class Exclude
@@ -86,6 +89,19 @@ end
 ---@param auto_resize boolean
 M.set_auto_resize = function(auto_resize)
   config.view.window.auto_resize = auto_resize
+end
+
+M.persist_config = function()
+  local filename = file.cwd_name() .. "_config"
+  local path = constants.VUFFERS_FILE_LOCATION .. "/" .. filename .. ".json"
+  local config_data = config.sort
+  local ok, err = pcall(function()
+    file.write_json_file(path, config_data)
+  end)
+
+  if not ok then
+    print("persist_config: ", err)
+  end
 end
 
 ---@param user_config Config

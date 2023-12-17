@@ -34,4 +34,6 @@ M.HIGHLIGHTS = {
   ACTIVE_PINNED_ICON = "VuffersActivePinnedIcon",
 }
 
+M.VUFFERS_FILE_LOCATION = vim.fn.stdpath("data") .. "/vuffers"
+
 return M
