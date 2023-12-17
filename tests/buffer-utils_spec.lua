@@ -17,6 +17,10 @@ local function shuffle(tbl)
 end
 
 describe("utils", function()
+  before_each(function()
+    pinned.__reset_pinned_bufnrs()
+  end)
+
   describe("get_file_name_by_level", function()
     it("get filename when level = 1", function()
       local file = str.split("a/b/c/d.test.ts", "/")
@@ -407,8 +411,7 @@ describe("utils", function()
       end
     end)
 
-    it("should not do anything if sort order is __CUSTOM", function()
-      pinned.__set_pinned_bufnrs({ "z/some", "c/d/main" })
+    it("should not do change order buffers if sort order is custom and there is no pinned buffers", function()
       ---@type Buffer[]
       local bufs = {
         {
@@ -416,14 +419,13 @@ describe("utils", function()
           _filename = "some.test",
           _unique_name = "a/some.test",
           ext = "ts",
-          is_pinned = false,
+          path = "a/some.test",
         },
         {
           buf = 6,
           _filename = "some",
           _unique_name = "c/d/main",
           ext = "ts",
-          is_pinned = true,
           path = "c/d/main",
         },
         {
@@ -431,14 +433,62 @@ describe("utils", function()
           _filename = "foo",
           _unique_name = "b/foo.ts",
           ext = "ts",
-          is_pinned = false,
+          path = "b/foo.ts",
         },
       }
 
       local res =
         utils.sort_buffers(bufs, { type = constants.SORT_TYPE.__CUSTOM, direction = constants.SORT_DIRECTION.ASC })
 
-      assert.are.same(res, bufs)
+      res = list.map(res, function(item)
+        return item.buf
+      end)
+
+      assert.are.same({ 4, 6, 2 }, res)
+    end)
+
+    it("should not do change order buffers if sort order is custom and there is no pinned buffers", function()
+      pinned.__set_pinned_bufnrs({ "test", "a/another.test" })
+      ---@type Buffer[]
+      local bufs = {
+        {
+          buf = 4,
+          _filename = "another",
+          _unique_name = "a/another.test",
+          ext = "ts",
+          path = "a/another.test",
+        },
+        {
+          buf = 6,
+          _filename = "some",
+          _unique_name = "c/d/main",
+          ext = "ts",
+          path = "c/d/main",
+        },
+        {
+          buf = 2,
+          _filename = "foo",
+          _unique_name = "b/foo.ts",
+          ext = "ts",
+          path = "b/foo.ts",
+        },
+        {
+          buf = 9,
+          _filename = "test",
+          _unique_name = "test",
+          ext = "ts",
+          path = "test",
+        },
+      }
+
+      local res =
+        utils.sort_buffers(bufs, { type = constants.SORT_TYPE.__CUSTOM, direction = constants.SORT_DIRECTION.ASC })
+
+      res = list.map(res, function(item)
+        return item.buf
+      end)
+
+      assert.are.same({ 4, 9, 6, 2 }, res)
     end)
   end)
 end)

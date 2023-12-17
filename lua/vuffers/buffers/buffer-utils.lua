@@ -140,7 +140,7 @@ end
 --- @param fx (fun(buffer: Buffer): string | number)[]
 --- @param directions SortDirection[]
 local function order_by(buffers, fx, directions)
-  if #buffers == 0 or #fx == 0 then
+  if not next(buffers) or not next(fx) then
     return buffers
   end
 
@@ -173,12 +173,25 @@ end
 --- @param buffers Buffer[]
 --- @param sort SortOrder
 function M.sort_buffers(buffers, sort)
-  if sort.type == constants.SORT_TYPE.__CUSTOM then
-    return buffers
-  end
-
   -- TODO: remove dependency
   local pinned = require("vuffers.buffers.pinned-buffers")
+
+  if sort.type == constants.SORT_TYPE.__CUSTOM then
+    local pinned_bufs = list.filter(buffers, function(buf)
+      return pinned.is_pinned(buf.path)
+    end)
+
+    local unpinned_bufs = list.filter(buffers, function(buf)
+      return not pinned.is_pinned(buf.path)
+    end)
+
+    return list.merge_unique(pinned_bufs or {}, unpinned_bufs or {}, {
+      id = function(buf)
+        return buf and buf.path
+      end,
+    })
+  end
+
   return order_by(buffers, {
     function(buf)
       return pinned.is_pinned(buf.path) and 1 or 0

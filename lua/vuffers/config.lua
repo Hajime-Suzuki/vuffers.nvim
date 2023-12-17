@@ -94,7 +94,10 @@ end
 M.persist_config = function()
   local filename = file.cwd_name() .. "_config"
   local path = constants.VUFFERS_FILE_LOCATION .. "/" .. filename .. ".json"
-  local config_data = config.sort
+  local config_data = {
+    sort = config.sort,
+  }
+
   local ok, err = pcall(function()
     file.write_json_file(path, config_data)
   end)
@@ -102,6 +105,21 @@ M.persist_config = function()
   if not ok then
     print("persist_config: ", err)
   end
+end
+
+M.load_saved_config = function()
+  local filename = file.cwd_name() .. "_config"
+  local path = constants.VUFFERS_FILE_LOCATION .. "/" .. filename .. ".json"
+  local ok, data = pcall(function()
+    return file.read_json_file(path)
+  end)
+
+  if not ok then
+    print("load_config: ", data)
+    return nil
+  end
+
+  config = vim.tbl_deep_extend("force", config, { sort = data.sort })
 end
 
 ---@param user_config Config
@@ -154,6 +172,7 @@ function M.setup(user_config)
   }
 
   config = vim.tbl_deep_extend("force", default, user_config or {})
+  M.load_saved_config()
 end
 
 return M

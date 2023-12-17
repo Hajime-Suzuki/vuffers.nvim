@@ -211,12 +211,14 @@ end
 ------------------------------------
 
 function M.on_session_loaded()
+  config.load_saved_config()
   bufs.restore_buffers()
   bufs.set_is_restored_from_session(true)
 end
 
 function M.debug_buffers()
   bufs.debug_buffers()
+  print(vim.inspect(config.get_config()))
 end
 
 ---@param level LogLevel
