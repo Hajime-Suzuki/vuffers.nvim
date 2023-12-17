@@ -120,7 +120,7 @@ function M.reset_custom_display_names()
     return buf._custom_name ~= nil
   end)
 
-  if not bufs_with_custom_name or not #bufs_with_custom_name then
+  if not bufs_with_custom_name or not next(bufs_with_custom_name) then
     return
   end
 

@@ -35,8 +35,7 @@ function M.persist_pinned_buffers()
   to_save = list.map(to_save or {}, function(buf)
     return { path = buf.path }
   end)
-
-  if not #to_save then
+  if not next(to_save) then
     return
   end
 
@@ -115,7 +114,7 @@ function M.restore_buffers_from_file()
     return
   end
 
-  if not #buffers then
+  if not next(buffers) then
     return
   end
 
