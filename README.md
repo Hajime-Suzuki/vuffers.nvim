@@ -68,6 +68,10 @@ https://github.com/Hajime-Suzuki/vuffers.nvim/assets/26042720/f7ed8bff-42f4-4d28
 
 Reorder
 
+https://github.com/Hajime-Suzuki/vuffers.nvim/assets/26042720/e3a042a6-a4a3-4d91-af2b-d67f81de1ea6
+
+
+
 <br>
 
 ## ❗ Requirements
