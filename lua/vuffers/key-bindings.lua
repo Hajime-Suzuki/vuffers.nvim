@@ -38,6 +38,8 @@ function M.setup(payload)
   vim.keymap.set("n", keymaps.view.move_down, function()
     actions.move_current_buffer_by_count({ direction = "next" })
   end, opts)
+
+  vim.keymap.set("n", keymaps.view.move_to, actions.move_buffer_to_index, opts)
 end
 
 return M

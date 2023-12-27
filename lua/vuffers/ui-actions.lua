@@ -98,4 +98,24 @@ function M.move_current_buffer_by_count(args)
   end
 end
 
+function M.move_buffer_to_index()
+  local target_index = vim.v.count
+  if not target_index or target_index == 0 then
+    return
+  end
+
+  local pos = vim.api.nvim_win_get_cursor(0)
+  local row = pos[1]
+  local col = pos[2]
+  local buf = buffers.get_buffer_by_index(row)
+
+  if not buf then
+    return
+  end
+
+  if buffers.move_buffer({ origin_index = row, target_index = target_index }) then
+    vim.api.nvim_win_set_cursor(0, { target_index, col })
+  end
+end
+
 return M

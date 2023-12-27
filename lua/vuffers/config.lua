@@ -37,6 +37,7 @@ local M = {}
 --- @field reset_custom_display_names string
 --- @field move_up string
 --- @field move_down string
+--- @field move_to string
 
 ---@class Config
 ---@field debug DebugConfig
@@ -154,6 +155,7 @@ function M.setup(user_config)
         reset_custom_display_names = "<leader>R",
         move_up = "U",
         move_down = "D",
+        move_to = "i",
       },
     },
     sort = {
