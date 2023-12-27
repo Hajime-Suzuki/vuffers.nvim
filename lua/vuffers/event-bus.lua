@@ -43,7 +43,7 @@ function M.publish(event, payload)
   logger.debug("receiving event: " .. event, { event = event, payload = payload })
 
   local handlers = _subscribers[event]
-  if not handlers or not #handlers then
+  if not handlers or not next(handlers) then
     logger.debug("no handler found", { event = event })
     return
   end

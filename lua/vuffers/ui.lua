@@ -226,7 +226,7 @@ function M.render_buffers(payload)
 
   local buffers = payload.buffers
 
-  if not #buffers then
+  if not next(buffers) then
     return
   end
 

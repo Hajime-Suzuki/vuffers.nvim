@@ -120,7 +120,7 @@ function M.reset_custom_display_names()
     return buf._custom_name ~= nil
   end)
 
-  if not bufs_with_custom_name or not #bufs_with_custom_name then
+  if not bufs_with_custom_name or not next(bufs_with_custom_name) then
     return
   end
 
@@ -189,6 +189,25 @@ function M.change_sort()
   _buf_list = utils.sort_buffers(_buf_list, config.get_sort())
 end
 
+---@param args {origin_index: number, target_index: number}
+function M.move_buffer(args)
+  local origin_buf = _buf_list[args.origin_index]
+  local target_buf = _buf_list[args.target_index]
+
+  if args.target_index == args.origin_index then
+    return logger.warn("move_buffer: target is the same as origin", args)
+  end
+
+  if not origin_buf or not target_buf then
+    return logger.warn("move_buffer: buffer not found", args)
+  end
+
+  table.remove(_buf_list, args.origin_index)
+  table.insert(_buf_list, args.target_index, origin_buf)
+
+  return true
+end
+
 ---@param new_level integer
 local function _change_additional_folder_depth(new_level)
   if new_level == _global_additional_folder_depth then
@@ -245,19 +264,16 @@ end
 function M.add_buffer_by_file_path(file_paths)
   local bufs = _get_loaded_bufs()
 
-  ---@type {[string]: { path: string, _custom_name:string }[]}
-  local path_map = list.group_by(file_paths, function(file_path)
-    return file_path.path
+  ---@type {[string]: {buf: Bufnr, name: string, path: string, filetype: string, _additional_folder_depth: integer}[]}
+  local buf_map = list.group_by(bufs, function(buf)
+    return buf.path
   end)
 
-  ---@type ({ buf: Bufnr, name: string, path: string, filetype: string, _additional_folder_depth: integer } | nil)[]
-  local bufs_to_add = list.map(bufs, function(buf)
-    if not utils.is_valid_buf(buf) then
-      return nil
-    end
+  local bufs_to_add = list.map(file_paths, function(file_path)
+    -- buffers are grouped by file path, so there should be only 1 item in the list
+    local buf = buf_map[file_path.path] and buf_map[file_path.path][1]
 
-    local data = path_map[buf.path]
-    if not data then
+    if not buf or not utils.is_valid_buf(buf) then
       return nil
     end
 
@@ -267,7 +283,7 @@ function M.add_buffer_by_file_path(file_paths)
       path = buf.path,
       filetype = buf.filetype,
       _additional_folder_depth = buf._additional_folder_depth,
-      _custom_name = data[1]._custom_name,
+      _custom_name = file_path._custom_name,
     }
   end)
   bufs_to_add = list.filter(bufs_to_add, function(buf)

@@ -30,6 +30,16 @@ function M.setup(payload)
   vim.keymap.set("n", keymaps.view.reset_custom_display_name, actions.reset_custom_display_name, opts)
 
   vim.keymap.set("n", keymaps.view.reset_custom_display_names, actions.reset_custom_display_names, opts)
+
+  vim.keymap.set("n", keymaps.view.move_up, function()
+    actions.move_current_buffer_by_count({ direction = "prev" })
+  end, opts)
+
+  vim.keymap.set("n", keymaps.view.move_down, function()
+    actions.move_current_buffer_by_count({ direction = "next" })
+  end, opts)
+
+  vim.keymap.set("n", keymaps.view.move_to, actions.move_buffer_to_index, opts)
 end
 
 return M

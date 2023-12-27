@@ -4,10 +4,9 @@ local str = require("utils.string")
 local list = require("utils.list")
 local bufs = require("vuffers.buffers.buffers")
 local pinned = require("vuffers.buffers.pinned-buffers")
+local constants = require("vuffers.constants")
 
 local M = {}
-
-local BUFFERS_FILE_LOCATION = vim.fn.stdpath("data") .. "/vuffers"
 
 local _is_restored_from_session = false
 M.is_restored_from_session = function()
@@ -21,9 +20,8 @@ end
 
 --------------pinned buffers ----------------
 local function _get_pinned_buffers_filename()
-  local cwd = vim.loop.cwd()
-  local filename = str.replace(cwd, "/", "_")
-  return BUFFERS_FILE_LOCATION .. "/" .. filename .. ".json"
+  local filename = file.cwd_name()
+  return constants.VUFFERS_FILE_LOCATION .. "/" .. filename .. ".json"
 end
 
 function M.persist_pinned_buffers()
@@ -35,8 +33,7 @@ function M.persist_pinned_buffers()
   to_save = list.map(to_save or {}, function(buf)
     return { path = buf.path }
   end)
-
-  if not #to_save then
+  if not next(to_save) then
     return
   end
 
@@ -78,9 +75,8 @@ end
 
 ---@return string
 local function _get_buffers_filename()
-  local cwd = vim.loop.cwd()
-  local filename = str.replace(cwd, "/", "_")
-  return BUFFERS_FILE_LOCATION .. "/" .. filename .. "_buffers" .. ".json"
+  local filename = file.cwd_name() .. "_buffers"
+  return constants.VUFFERS_FILE_LOCATION .. "/" .. filename .. ".json"
 end
 
 function M.persist_buffers()
@@ -115,7 +111,7 @@ function M.restore_buffers_from_file()
     return
   end
 
-  if not #buffers then
+  if not next(buffers) then
     return
   end
 

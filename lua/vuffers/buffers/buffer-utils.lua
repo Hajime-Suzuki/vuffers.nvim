@@ -17,7 +17,7 @@ function M._get_name_by_level(path_fragments, level)
   return table.concat(filenames, "/")
 end
 
---- @param buffers { level: string, path_fragments: string[]}[]
+--- @param buffers { buf: integer, level: string, path_fragments: string[]}[]
 local function _get_unique_folder_depth(buffers, output)
   local grouped_by_filename = list.group_by(buffers, function(item)
     return item.path_fragments[#item.path_fragments - item.level + 1]
@@ -29,7 +29,7 @@ local function _get_unique_folder_depth(buffers, output)
     local is_unique = #items == 1 -- if the group has only one item then it is unique
 
     if is_unique then
-      table.insert(output, items[1])
+      output[items[1].buf] = items[1]
       goto continue
     end
 
@@ -37,7 +37,7 @@ local function _get_unique_folder_depth(buffers, output)
       local parent = item.path_fragments[#item.path_fragments - item.level]
 
       if parent == nil then -- when there is no parent, use the item as it is
-        table.insert(output, item)
+        output[item.buf] = item
       else
         item.level = item.level + 1
         table.insert(next_items, item)
@@ -128,14 +128,19 @@ function M.get_formatted_buffers(buffers)
 
   --- getting the unique folder depths, which is used to calculate the unique names
   _get_unique_folder_depth(input, output)
-  return list.map(output, _format_buffer)
+
+  --- the output should be sorted in the original order
+  return list.map(input, function(item)
+    local target = output[item.buf]
+    return _format_buffer(target)
+  end)
 end
 
 --- @param buffers Buffer[]
 --- @param fx (fun(buffer: Buffer): string | number)[]
 --- @param directions SortDirection[]
 local function order_by(buffers, fx, directions)
-  if #buffers == 0 or #fx == 0 then
+  if not next(buffers) or not next(fx) then
     return buffers
   end
 
@@ -170,6 +175,23 @@ end
 function M.sort_buffers(buffers, sort)
   -- TODO: remove dependency
   local pinned = require("vuffers.buffers.pinned-buffers")
+
+  if sort.type == constants.SORT_TYPE.__CUSTOM then
+    local pinned_bufs = list.filter(buffers, function(buf)
+      return pinned.is_pinned(buf.path)
+    end)
+
+    local unpinned_bufs = list.filter(buffers, function(buf)
+      return not pinned.is_pinned(buf.path)
+    end)
+
+    return list.merge_unique(pinned_bufs or {}, unpinned_bufs or {}, {
+      id = function(buf)
+        return buf and buf.path
+      end,
+    })
+  end
+
   return order_by(buffers, {
     function(buf)
       return pinned.is_pinned(buf.path) and 1 or 0
