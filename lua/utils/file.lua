@@ -1,3 +1,5 @@
+local str = require("utils.string")
+
 local M = {}
 
 function _ensure_file(filename)
@@ -21,6 +23,11 @@ end
 function M.write_json_file(filename, data)
   _ensure_file(filename)
   vim.fn.writefile({ vim.fn.json_encode(data) }, filename)
+end
+
+function M.cwd_name()
+  local cwd = vim.loop.cwd()
+  return str.replace(cwd, "/", "_")
 end
 
 return M

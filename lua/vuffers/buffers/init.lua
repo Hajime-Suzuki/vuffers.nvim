@@ -106,6 +106,10 @@ M.set_active_buf = function(buf)
   event_bus.publish_active_buffer_changed(payload)
 end
 
+------------------------------------
+--   PINNED BUFS                --
+------------------------------------
+
 M.get_active_pinned_buf_path = pinned.get_active_pinned_buf_path
 
 ---@param index integer
@@ -189,6 +193,89 @@ end
 
 M.get_next_or_prev_pinned_buffer = pinned.get_next_or_prev_pinned_buffer
 
+---@param buffer Buffer | NativeBuffer
+M.is_pinned = function(buffer)
+  return pinned.is_pinned(buffer.path or buffer.file)
+end
+
+------------------------------------
+--   CUSTOM ORDER             --
+------------------------------------
+---
+---@param args {origin_index: number, target_index: number}
+M.move_buffer = function(args)
+  local target_buf = bufs.get_buffer_by_index(args.target_index)
+  local origin_buf = bufs.get_buffer_by_index(args.origin_index)
+
+  if not origin_buf or not target_buf then
+    return logger.warn("move_buffer: buffer not found", args)
+  end
+
+  if not pinned.is_pinned(origin_buf.path) and pinned.is_pinned(target_buf.path) then
+    logger.warn("move_buffer: can not move unpinned buffer to pinned buffers area", args)
+    return
+  end
+
+  if pinned.is_pinned(origin_buf.path) and not pinned.is_pinned(target_buf.path) then
+    logger.warn("move_buffer: can not move pinned buffer to unpinned buffers area", args)
+    return
+  end
+
+  if bufs.move_buffer(args) then
+    local payload = event_payload.get_buffer_list_changed_event_payload()
+    event_bus.publish_buffer_list_changed(payload)
+    config.set_sort({ type = "custom" })
+    return true
+  end
+end
+
+---@param args? {index?: number}
+function M.move_current_buffer_to_index(args)
+  local index = (args and args.index) or vim.v.count
+  if not index or index == 0 then
+    return
+  end
+
+  local current_buf_path = active.get_active_buf_path()
+  if not current_buf_path then
+    return logger.warn("move_current_buffer_to_index: buffer not found", args)
+  end
+
+  local _, origin_index = bufs.get_buffer_by_path(current_buf_path)
+
+  if not origin_index then
+    return logger.warn("move_current_buffer_to_index: buffer not found", args)
+  end
+
+  M.move_buffer({ target_index = index, origin_index = origin_index })
+end
+
+---@param args {direction: 'next' | 'prev', count?: integer}
+function M.move_current_buffer_by_count(args)
+  local current_buf_path = active.get_active_buf_path()
+  if not current_buf_path then
+    return logger.warn("move_current_buffer_by_count: buffer not found", args)
+  end
+
+  local _, origin_index = bufs.get_buffer_by_path(current_buf_path)
+
+  if not origin_index then
+    return logger.warn("move_current_buffer_by_count: buffer not found", args)
+  end
+
+  local count = args.count or vim.v.count
+  count = count == 0 and 1 or count
+  count = args.direction == "next" and count or -count
+
+  local target_index = origin_index + count
+
+  M.move_buffer({ target_index = target_index, origin_index = origin_index })
+end
+
+------------------------------------
+--   MISC                       --
+------------------------------------
+
 M.debug_buffers = function()
   local active_buf_path = active.get_active_buf_path()
   ---@diagnostic disable-next-line: cast-local-type
@@ -203,11 +290,6 @@ M.debug_buffers = function()
   )
   print("pinned buffers", vim.inspect(pinned.get_pinned_bufs()))
   print("buffers", vim.inspect(bufs.get_buffers()))
-end
-
----@param buffer Buffer | NativeBuffer
-M.is_pinned = function(buffer)
-  return pinned.is_pinned(buffer.path or buffer.file)
 end
 
 --------- persistence ---------

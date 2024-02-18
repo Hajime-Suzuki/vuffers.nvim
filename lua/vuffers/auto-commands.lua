@@ -4,6 +4,7 @@ local ui = require("vuffers.ui")
 local buffers = require("vuffers.buffers")
 local window = require("vuffers.window")
 local buf_utils = require("vuffers.buffers.buffer-utils")
+local config = require("vuffers.config")
 
 local M = {}
 
@@ -126,6 +127,7 @@ function M.create_auto_group()
       if buffers.is_restored_from_session() then
         buffers.persist_buffers()
       end
+      config.persist_config()
     end,
   })
 end
