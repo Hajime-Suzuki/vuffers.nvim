@@ -39,6 +39,8 @@ With this plugin, I aim to provide a solution that addresses these specific need
   - saved and restored per cwd
 - Rename buffer "display name" (not actual filename)
   - it is persisted if you use session
+- Reorder buffer
+  - the order is is persisted if you use session
 
 <br>
 
@@ -63,6 +65,12 @@ https://github.com/Hajime-Suzuki/vuffers.nvim/assets/26042720/3170217d-95ec-45dd
 Rename
 
 https://github.com/Hajime-Suzuki/vuffers.nvim/assets/26042720/f7ed8bff-42f4-4d28-8350-87291d2f55c5
+
+Reorder
+
+https://github.com/Hajime-Suzuki/vuffers.nvim/assets/26042720/e3a042a6-a4a3-4d91-af2b-d67f81de1ea6
+
+
 
 <br>
 
@@ -107,8 +115,14 @@ return {
         end,
       },
       keymaps = {
+        -- if false, no bindings will be provided at all
+        -- thus you will have to bind on your own
         use_default = true,
         -- key maps on the vuffers list
+        -- - may map multiple keys for the same action
+        --    open = { "<CR>", "<C-l>" }
+        -- - disable a specific binding using "false"
+        --    open = false
         view = {
           open = "<CR>",
           delete = "d",
@@ -117,6 +131,9 @@ return {
           rename = "r",
           reset_custom_display_name = "R",
           reset_custom_display_names = "<leader>R",
+          move_up = "U",
+          move_down = "D",
+          move_to = "i",
         },
       },
       sort = {
@@ -167,7 +184,7 @@ vim.api.nvim_create_autocmd("SessionLoadPost", {
 
 | function                            | param                                                         | description                                                                                                                                         |
 | ----------------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `open`                              |                                                               | open the vuffers window                                                                                                                             |
+| `open`                              | `{ win?: winid }`                                                              | open the vuffers window. If win is provided, re-uses the pre-existing window with winid = id                                     |
 | `close`                             |                                                               | close the vuffers window                                                                                                                            |
 | `toggle`                            |                                                               | toggle the vuffers window                                                                                                                           |
 | `is_open`                           |                                                               | return `true` if the vuffers window is open                                                                                                         |
@@ -194,15 +211,18 @@ vim.api.nvim_create_autocmd("SessionLoadPost", {
 
 UI actions are available only inside the vuffers window, and the target is the buffer under the cursor. See `keymaps.view` in the config.
 
-| function                     | description                                  |
-| ---------------------------- | -------------------------------------------- |
-| `open`                       | open the buffer                              |
-| `delete`                     | close the buffer                             |
-| `pin`                        |                                              |
-| `unpin`                      |                                              |
-| `rename`                     | rename the buffer, popup asks you a new name |
-| `reset_custom_display_name`  |                                              |
-| `reset_custom_display_names` | reset all display names                      |
+| function                     | description                                                                                                     |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `open`                       | open the buffer                                                                                                 |
+| `delete`                     | close the buffer                                                                                                |
+| `pin`                        |                                                                                                                 |
+| `unpin`                      |                                                                                                                 |
+| `rename`                     | rename the buffer, popup asks you a new name                                                                    |
+| `reset_custom_display_name`  |                                                                                                                 |
+| `reset_custom_display_names` | reset all display names                                                                                         |
+| `move_up`                    | move up the buffer by one (also support v count)                                                                |
+| `move_down`                  | move down the buffer by one (also support v count)                                                              |
+| `move_to`                    | move the buffer to the specified index. For example, `5i` moves the buffer under the cursor to the 5th position |
 
 <br>
 

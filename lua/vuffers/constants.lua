@@ -8,6 +8,7 @@ M.SORT_TYPE = {
   NONE = "none",
   FILENAME = "filename",
   UNIQUE_NAME = "unique-name",
+  __CUSTOM = "custom",
 }
 
 ---@enum SortDirection
@@ -32,5 +33,7 @@ M.HIGHLIGHTS = {
   PINNED_ICON = "VuffersPinnedIcon",
   ACTIVE_PINNED_ICON = "VuffersActivePinnedIcon",
 }
+
+M.VUFFERS_FILE_LOCATION = vim.fn.stdpath("data") .. "/vuffers"
 
 return M

@@ -30,22 +30,24 @@ function M.is_open()
   return window.is_open()
 end
 
-function M.toggle()
+---@param opts? {win: integer}
+function M.toggle(opts)
   if window.is_open() then
     M.close()
   else
-    M.open()
+    M.open(opts)
   end
 end
 
-function M.open()
+---@param opts? {win: integer}
+function M.open(opts)
   if window.is_open() then
     return
   end
 
   logger.debug("M.open: start")
 
-  window.open()
+  window.open(opts)
 
   logger.debug("M.open: end")
 end
@@ -141,6 +143,20 @@ function M.close_unpinned_buffers()
   bufs.remove_unpinned_buffers()
 end
 
+---@param args { direction: 'next' | 'prev', count?: integer }
+function M.move_current_buffer_by_count(args)
+  logger.debug("move_current_buffer_by_count: start")
+  bufs.move_current_buffer_by_count(args)
+  logger.info("move_current_buffer_by_count: done")
+end
+
+---@param args? { index?: integer }
+function M.move_current_buffer_to_index(args)
+  logger.debug("move_current_buffer_to_index: start")
+  bufs.move_current_buffer_to_index(args)
+  logger.info("move_current_buffer_to_index: done")
+end
+
 -- might be deprecated in the future
 function M.go_to_active_pinned_buffer()
   logger.debug("go_to_active_pinned_buffer: start")
@@ -197,12 +213,14 @@ end
 ------------------------------------
 
 function M.on_session_loaded()
+  config.load_saved_config()
   bufs.restore_buffers()
   bufs.set_is_restored_from_session(true)
 end
 
 function M.debug_buffers()
   bufs.debug_buffers()
+  print(vim.inspect(config.get_config()))
 end
 
 ---@param level LogLevel

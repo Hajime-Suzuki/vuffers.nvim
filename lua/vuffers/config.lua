@@ -1,3 +1,6 @@
+local constants = require("vuffers.constants")
+local file = require("utils.file")
+
 local M = {}
 
 ---@class Exclude
@@ -22,7 +25,19 @@ local M = {}
 
 ---@class Keymaps
 ---@field use_default boolean
----@field view { open: string, delete: string, pin: string, unpin: string, rename:string, reset_custom_display_name: string, reset_custom_display_names: string }
+---@field view KeymapView
+
+--- @class KeymapView
+--- @field open string | string[]
+--- @field delete string | string[]
+--- @field pin string | string[]
+--- @field unpin string | string[]
+--- @field rename string | string[]
+--- @field reset_custom_display_name string | string[]
+--- @field reset_custom_display_names string | string[]
+--- @field move_up string | string[]
+--- @field move_down string | string[]
+--- @field move_to string | string[]
 
 ---@class Config
 ---@field debug DebugConfig
@@ -77,6 +92,37 @@ M.set_auto_resize = function(auto_resize)
   config.view.window.auto_resize = auto_resize
 end
 
+M.persist_config = function()
+  local filename = file.cwd_name() .. "_config"
+  local path = constants.VUFFERS_FILE_LOCATION .. "/" .. filename .. ".json"
+  local config_data = {
+    sort = config.sort,
+  }
+
+  local ok, err = pcall(function()
+    file.write_json_file(path, config_data)
+  end)
+
+  if not ok then
+    print("persist_config: ", err)
+  end
+end
+
+M.load_saved_config = function()
+  local filename = file.cwd_name() .. "_config"
+  local path = constants.VUFFERS_FILE_LOCATION .. "/" .. filename .. ".json"
+  local ok, data = pcall(function()
+    return file.read_json_file(path)
+  end)
+
+  if not ok then
+    print("load_config: ", data)
+    return nil
+  end
+
+  config = vim.tbl_deep_extend("force", config, { sort = data.sort })
+end
+
 ---@param user_config Config
 function M.setup(user_config)
   ---@type Config
@@ -107,6 +153,9 @@ function M.setup(user_config)
         rename = "r",
         reset_custom_display_name = "R",
         reset_custom_display_names = "<leader>R",
+        move_up = "U",
+        move_down = "D",
+        move_to = "i",
       },
     },
     sort = {
@@ -125,6 +174,7 @@ function M.setup(user_config)
   }
 
   config = vim.tbl_deep_extend("force", default, user_config or {})
+  M.load_saved_config()
 end
 
 return M
