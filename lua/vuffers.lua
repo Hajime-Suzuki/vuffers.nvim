@@ -38,14 +38,14 @@ function M.toggle()
   end
 end
 
-function M.open()
+function M.open(opts)
   if window.is_open() then
     return
   end
 
   logger.debug("M.open: start")
 
-  window.open()
+  window.open(opts)
 
   logger.debug("M.open: end")
 end

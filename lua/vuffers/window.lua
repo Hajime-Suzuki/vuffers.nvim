@@ -110,7 +110,9 @@ function M.is_open()
   return window ~= nil
 end
 
-function M.open()
+function M.open(opts)
+	opts = opts or { }
+
   local view = _get_view()
 
   if view then
@@ -118,7 +120,7 @@ function M.open()
     return
   end
 
-  local winnr = _create_window()
+  local winnr = opts.win or _create_window()
   local bufnr = _create_buffer()
   _set_view({ winnr = winnr, bufnr = bufnr })
 
@@ -140,11 +142,11 @@ function M.close()
   _reset_view()
 end
 
-function M.toggle()
+function M.toggle(opts)
   if M.is_open() then
     M.close()
   else
-    M.open()
+    M.open(opts)
   end
 end
 
