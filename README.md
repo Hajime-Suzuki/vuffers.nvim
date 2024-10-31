@@ -115,8 +115,14 @@ return {
         end,
       },
       keymaps = {
+        -- if false, no bindings will be provided at all
+        -- thus you will have to bind on your own
         use_default = true,
         -- key maps on the vuffers list
+        -- - may map multiple keys for the same action
+        --    open = { "<CR>", "<C-l>" }
+        -- - disable a specific binding using "false"
+        --    open = false
         view = {
           open = "<CR>",
           delete = "d",
@@ -178,7 +184,7 @@ vim.api.nvim_create_autocmd("SessionLoadPost", {
 
 | function                            | param                                                         | description                                                                                                                                         |
 | ----------------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `open`                              |                                                               | open the vuffers window                                                                                                                             |
+| `open`                              | `{ win?: winid }`                                                              | open the vuffers window. If win is provided, re-uses the pre-existing window with winid = id                                     |
 | `close`                             |                                                               | close the vuffers window                                                                                                                            |
 | `toggle`                            |                                                               | toggle the vuffers window                                                                                                                           |
 | `is_open`                           |                                                               | return `true` if the vuffers window is open                                                                                                         |
