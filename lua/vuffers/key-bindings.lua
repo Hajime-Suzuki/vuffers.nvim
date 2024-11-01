@@ -17,6 +17,7 @@ local lup_actions = {
 
 local M = {}
 
+---@param payload VuffersWindowOpenedPayload
 function M.setup(payload)
   local bufnr = payload.buffer_number
   local keymaps = config.get_keymaps()

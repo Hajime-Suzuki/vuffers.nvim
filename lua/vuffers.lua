@@ -30,14 +30,16 @@ function M.is_open()
   return window.is_open()
 end
 
-function M.toggle()
+---@param opts? {win: integer}
+function M.toggle(opts)
   if window.is_open() then
     M.close()
   else
-    M.open()
+    M.open(opts)
   end
 end
 
+---@param opts? {win: integer}
 function M.open(opts)
   if window.is_open() then
     return

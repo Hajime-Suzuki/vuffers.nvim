@@ -110,6 +110,7 @@ function M.is_open()
   return window ~= nil
 end
 
+---@param opts? {win: integer}
 function M.open(opts)
 	opts = opts or { }
 
@@ -142,6 +143,7 @@ function M.close()
   _reset_view()
 end
 
+---@param opts? {win: integer}
 function M.toggle(opts)
   if M.is_open() then
     M.close()
