@@ -2,6 +2,19 @@ local logger = require("utils.logger")
 local actions = require("vuffers.ui-actions")
 local config = require("vuffers.config")
 
+local lup_actions = {
+	open												= actions.open_buffer,
+	delete											= actions.delete_buffer,
+	pin													=	actions.pin_buffer,
+	unpin												= actions.unpin_buffer,
+	rename											= actions.rename_buffer,
+	reset_custom_display_name		= actions.reset_custom_display_name,
+	reset_custom_display_names	= actions.reset_custom_display_name,
+	move_up											= function() actions.move_current_buffer_by_count({ direction = "prev" }) end,
+	move_down										= function() actions.move_current_buffer_by_count({ direction = "next" }) end,
+	move_to											= actions.move_buffer_to_index
+}
+
 local M = {}
 
 ---@param payload VuffersWindowOpenedPayload
@@ -16,30 +29,13 @@ function M.setup(payload)
   logger.debug("setting key bindings", keymaps)
 
   local opts = { noremap = true, silent = true, nowait = true, buffer = bufnr }
-
-  vim.keymap.set("n", keymaps.view.open, actions.open_buffer, opts)
-
-  vim.keymap.set("n", keymaps.view.delete, actions.delete_buffer, opts)
-
-  vim.keymap.set("n", keymaps.view.pin, actions.pin_buffer, opts)
-
-  vim.keymap.set("n", keymaps.view.unpin, actions.unpin_buffer, opts)
-
-  vim.keymap.set("n", keymaps.view.rename, actions.rename_buffer, opts)
-
-  vim.keymap.set("n", keymaps.view.reset_custom_display_name, actions.reset_custom_display_name, opts)
-
-  vim.keymap.set("n", keymaps.view.reset_custom_display_names, actions.reset_custom_display_names, opts)
-
-  vim.keymap.set("n", keymaps.view.move_up, function()
-    actions.move_current_buffer_by_count({ direction = "prev" })
-  end, opts)
-
-  vim.keymap.set("n", keymaps.view.move_down, function()
-    actions.move_current_buffer_by_count({ direction = "next" })
-  end, opts)
-
-  vim.keymap.set("n", keymaps.view.move_to, actions.move_buffer_to_index, opts)
+	vim.iter(keymaps.view)
+		:each(function(rhs, lhsgroup)
+			vim.iter({ lhsgroup or nil }):flatten()
+				:each(function(lhs)
+					vim.keymap.set("n", lhs, lup_actions[rhs], opts)
+				end)
+		end)
 end
 
 return M

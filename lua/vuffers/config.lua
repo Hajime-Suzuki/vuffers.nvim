@@ -28,16 +28,16 @@ local M = {}
 ---@field view KeymapView
 
 --- @class KeymapView
---- @field open string
---- @field delete string
---- @field pin string
---- @field unpin string
---- @field rename string
---- @field reset_custom_display_name string
---- @field reset_custom_display_names string
---- @field move_up string
---- @field move_down string
---- @field move_to string
+--- @field open string | string[]
+--- @field delete string | string[]
+--- @field pin string | string[]
+--- @field unpin string | string[]
+--- @field rename string | string[]
+--- @field reset_custom_display_name string | string[]
+--- @field reset_custom_display_names string | string[]
+--- @field move_up string | string[]
+--- @field move_down string | string[]
+--- @field move_to string | string[]
 
 ---@class Config
 ---@field debug DebugConfig

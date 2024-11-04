@@ -30,22 +30,24 @@ function M.is_open()
   return window.is_open()
 end
 
-function M.toggle()
+---@param opts? {win: integer}
+function M.toggle(opts)
   if window.is_open() then
     M.close()
   else
-    M.open()
+    M.open(opts)
   end
 end
 
-function M.open()
+---@param opts? {win: integer}
+function M.open(opts)
   if window.is_open() then
     return
   end
 
   logger.debug("M.open: start")
 
-  window.open()
+  window.open(opts)
 
   logger.debug("M.open: end")
 end
