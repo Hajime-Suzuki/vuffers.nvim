@@ -6,6 +6,7 @@ local logger = require("utils.logger")
 local constants = require("vuffers.constants")
 local config = require("vuffers.config")
 
+local ACTIVE_BUFFER_HIGHT_START = 1
 local M = {}
 
 local active_pinned_buffer_ns = vim.api.nvim_create_namespace("VuffersActivePinnedBuffer") -- namespace id
@@ -84,7 +85,7 @@ end
 ---@param line_number integer
 ---@return fun(highlight: Highlight)
 local function create_icon_highlighter(window_bufnr, line_number)
-  local last_end_col = 0
+  local last_end_col = -1
 
   ---@param highlight Highlight
   return function(highlight)
@@ -110,7 +111,14 @@ end
 local function _highlight_active_buffer(window_bufnr, line_number)
   local ok = pcall(function()
     vim.api.nvim_buf_clear_namespace(window_bufnr, active_buffer_ns, 0, -1)
-    vim.api.nvim_buf_add_highlight(window_bufnr, active_buffer_ns, constants.HIGHLIGHTS.ACTIVE, line_number, 0, -1)
+    vim.api.nvim_buf_add_highlight(
+      window_bufnr,
+      active_buffer_ns,
+      constants.HIGHLIGHTS.ACTIVE,
+      line_number,
+      ACTIVE_BUFFER_HIGHT_START,
+      -1
+    )
   end)
 
   if not ok then
