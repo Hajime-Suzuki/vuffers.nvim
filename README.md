@@ -76,7 +76,7 @@ https://github.com/Hajime-Suzuki/vuffers.nvim/assets/26042720/e3a042a6-a4a3-4d91
 
 ## ❗ Requirements
 
-- Neovim >= 0.8.0
+- Neovim >= 0.8.0 (>= 0.10.0 recommended)
 
 Older versions may work without a problem but not tested
 
