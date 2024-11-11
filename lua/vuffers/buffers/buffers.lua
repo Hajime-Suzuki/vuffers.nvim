@@ -20,6 +20,7 @@ end
 ---@field _default_folder_depth number
 ---@field _additional_folder_depth number //TODO: make it custom_name if possible
 ---@field _max_folder_depth number
+---@field _last_opened_time number
 
 ---@class NativeBuffer
 ---@field buf number
@@ -344,6 +345,14 @@ function M.get_buffer_by_path(path)
   end
 
   return _buf_list[index], index
+end
+
+---@param args {index: number, time: integer}
+function M.set_last_opened_time(args)
+  _buf_list[args.index]._last_opened_time = args.time
+  local buffers = utils.get_formatted_buffers(_buf_list)
+  buffers = utils.sort_buffers(buffers, config.get_sort())
+  _buf_list = buffers
 end
 
 return M

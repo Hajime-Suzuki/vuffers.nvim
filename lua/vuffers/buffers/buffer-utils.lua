@@ -79,7 +79,7 @@ local function _get_display_name(item, unique_name)
   return unique_name
 end
 
---- @param item { buf: integer, path: string, level: integer, path_fragments: string[], additional_folder_depth?: integer, custom_name?: string }
+--- @param item { buf: integer, path: string, level: integer, path_fragments: string[], additional_folder_depth?: integer, custom_name?: string, last_opened_time?: integer }
 --- @return Buffer
 local function _format_buffer(item)
   local unique_name = M._get_name_by_level(item.path_fragments, item.level)
@@ -101,12 +101,13 @@ local function _format_buffer(item)
     _default_folder_depth = item.level,
     _max_folder_depth = #item.path_fragments,
     _custom_name = item.custom_name,
+    _last_opened_time = item.last_opened_time,
   }
 
   return b
 end
 
---- @param buffers { buf:integer,  path: string, _additional_folder_depth?: integer, _custom_name?: string }[]
+--- @param buffers { buf:integer,  path: string, _additional_folder_depth?: integer, _custom_name?: string, _last_opened_time?: integer }[]
 --- @return Buffer[] buffers
 function M.get_formatted_buffers(buffers)
   local cwd = vim.loop.cwd()
@@ -123,6 +124,7 @@ function M.get_formatted_buffers(buffers)
       path_fragments = path_fragments,
       additional_folder_depth = buffer._additional_folder_depth,
       custom_name = buffer._custom_name,
+      last_opened_time = buffer._last_opened_time,
     }
   end)
 
@@ -190,6 +192,22 @@ function M.sort_buffers(buffers, sort)
         return buf and buf.path
       end,
     })
+  end
+
+  if sort.type == constants.SORT_TYPE.LAST_USED then
+    return order_by(buffers, {
+      function(buf)
+        -- pinned buffers should be on top. Adding buf number to make sure the order is always the same.
+        return pinned.is_pinned(buf.path) and 1 + buf.buf or 0
+      end,
+      function(buf)
+        return buf._last_opened_time or 0
+      end,
+      -- Sorted buffers that are not opened yet by buffer number
+      function(buf)
+        return buf.buf
+      end,
+    }, { constants.SORT_DIRECTION.DESC, sort.direction, constants.SORT_DIRECTION.ASC })
   end
 
   return order_by(buffers, {

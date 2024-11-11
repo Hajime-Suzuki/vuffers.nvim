@@ -8,6 +8,7 @@ M.SORT_TYPE = {
   NONE = "none",
   FILENAME = "filename",
   UNIQUE_NAME = "unique-name",
+  LAST_USED = "last-used",
   __CUSTOM = "custom",
 }
 
