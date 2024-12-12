@@ -138,7 +138,7 @@ function M.reset_custom_display_names()
   return true
 end
 
----@param args {bufnr?: number}
+---@param args {path?: string}
 function M.remove_buffer(args)
   if not args.path then
     return
