@@ -197,8 +197,11 @@ function M.sort_buffers(buffers, sort)
   if sort.type == constants.SORT_TYPE.LAST_USED then
     return order_by(buffers, {
       function(buf)
-        -- pinned buffers should be on top. Adding buf number to make sure the order is always the same.
-        return pinned.is_pinned(buf.path) and 1 + buf.buf or 0
+        if pinned.is_pinned(buf.path) then
+          -- pinned buffers should be on top. Adding buf number to make sure the order is always the same.
+          return (buf._last_opened_time or 0) + buf.buf
+        end
+        return 0
       end,
       function(buf)
         return buf._last_opened_time or 0
