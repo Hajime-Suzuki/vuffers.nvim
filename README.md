@@ -143,6 +143,7 @@ return {
       view = {
         modified_icon = "󰛿", -- when a buffer is modified, this icon will be shown
         pinned_icon = "󰐾",
+        show_file_extension = false,
         window = {
           auto_resize= false,
           width = 35,

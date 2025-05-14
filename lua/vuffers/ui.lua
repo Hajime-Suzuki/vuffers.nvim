@@ -19,16 +19,19 @@ if not is_devicon_ok then
 end
 
 ---@param buffer Buffer
+---@return string
+local function _get_buffer_name_with_extenstion(buffer)
+  return string.match(buffer.name, "^%..+$") and buffer.name or buffer.name .. "." .. buffer.ext
+end
+
+---@param buffer Buffer
 ---@return string, string -- icon, highlight name
 local function _get_icon(buffer)
-  local buffer_name_with_extension = string.match(buffer.name, "^%..+$") and buffer.name
-    or buffer.name .. "." .. buffer.ext
-
   if not is_devicon_ok or not devicon.has_loaded() then
     return "", ""
   end
 
-  local icon, color = devicon.get_icon(buffer_name_with_extension, buffer.ext, { default = true })
+  local icon, color = devicon.get_icon(_get_buffer_name_with_extenstion(buffer), buffer.ext, { default = true })
   return icon or " ", color or ""
 end
 
@@ -49,7 +52,9 @@ local function _generate_line(buffer)
   local pinned_icon = config.get_view_config().pinned_icon
   local pinned_icon_text = bufs.is_pinned(buffer) and pinned_icon .. " " or ""
   local icon_text = icon ~= "" and icon .. " " or "  "
-  local text = pinned_icon_text .. icon_text .. buffer.name
+  local filename_text = config.get_view_config().show_file_extension and _get_buffer_name_with_extenstion(buffer)
+    or buffer.name
+  local text = pinned_icon_text .. icon_text .. filename_text
 
   ---@type Highlight[]
   local highlights = {}
