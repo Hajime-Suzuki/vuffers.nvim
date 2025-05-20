@@ -86,13 +86,14 @@ local function _format_buffer(item)
   local unique_name_without_extension, extension = _split_filename_and_extension(unique_name)
 
   local display_name = _get_display_name(item, unique_name)
-  local display_name_without_extension = _split_filename_and_extension(display_name)
+  local name = config.get_view_config().show_file_extension and display_name
+    or _split_filename_and_extension(display_name)
   local filename_without_extension = _split_filename_and_extension(item.path_fragments[#item.path_fragments])
 
   ---@type Buffer
   local b = {
     buf = item.buf,
-    name = display_name_without_extension,
+    name = name,
     path = item.path,
     ext = extension or "",
     _unique_name = unique_name_without_extension,
