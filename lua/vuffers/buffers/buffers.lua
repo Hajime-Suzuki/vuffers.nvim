@@ -174,9 +174,6 @@ function M.remove_buffer(args)
 
   if next_active_buffer then
     active().set_active_buf(next_active_buffer)
-  else
-    logger.warn("remove_buffer: can not delete the last buffer", args)
-    return
   end
 
   table.remove(_buf_list, target_index)
