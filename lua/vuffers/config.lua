@@ -25,6 +25,7 @@ local M = {}
 ---@field window { auto_resize: boolean, width: number, focus_on_open: boolean }
 ---@field show_file_extension boolean
 ---@field create_buffer_text fun(buffer: Buffer): string
+---@field highlight_entire_active_line boolean
 
 ---@class Keymaps
 ---@field use_default boolean
@@ -173,6 +174,7 @@ function M.setup(user_config)
       create_buffer_text = function(buffer)
         return buffer.name
       end,
+      highlight_entire_active_line = false,
       window = {
         auto_resize = false,
         width = 35,

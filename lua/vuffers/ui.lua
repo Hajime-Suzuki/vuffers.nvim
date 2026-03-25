@@ -174,9 +174,19 @@ local function _highlight_active_buffer(window_bufnr, line_number)
   local ok = pcall(function()
     vim.api.nvim_buf_clear_namespace(window_bufnr, active_buffer_ns, 0, -1)
     local hl = active_highlights[line_number + 1]
-    local start = {line_number, hl.start_col}
-    local finish = {line_number, hl.end_col}
-    vim.hl.range(window_bufnr, hl.namespace, hl.color, start, finish)
+    if config.get_view_config().highlight_entire_active_line then
+      vim.api.nvim_buf_set_extmark(
+        window_bufnr,
+        hl.namespace,
+        line_number,
+        -1,
+        {line_hl_group = hl.color}
+      )
+    else
+      local start = {line_number, hl.start_col}
+      local finish = {line_number, hl.end_col}
+      vim.hl.range(window_bufnr, hl.namespace, hl.color, start, finish)
+    end
   end)
 
   if not ok then
@@ -199,6 +209,7 @@ local function _set_modified_icon(window_bufnr, line_number, bufnr, force)
   local ext_id = vim.api.nvim_buf_set_extmark(window_bufnr, icon_ns, line_number, -1, {
     virt_text = { { modified_icon, constants.HIGHLIGHTS.MODIFIED_ICON } },
     virt_text_pos = "eol",
+    hl_mode = "combine",
   })
 
   _ext[bufnr] = ext_id
