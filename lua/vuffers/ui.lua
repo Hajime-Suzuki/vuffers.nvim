@@ -15,7 +15,6 @@ local pinned_icon_ns = vim.api.nvim_create_namespace("VuffersPinnedBuffer") -- n
 local active_buffer_ns = vim.api.nvim_create_namespace("VuffersActiveFileNamespace") -- namespace id
 local icon_ns = vim.api.nvim_create_namespace("VufferIconNamespace") -- namespace id
 local index_ns = vim.api.nvim_create_namespace("VuffersIndex")
-local spacing_ns = vim.api.nvim_create_namespace("VuffersSpacing")
 
 if not is_devicon_ok then
   print("devicon not found")
@@ -55,12 +54,7 @@ local function _generate_line(idx)
 
   local padding_text = string.rep(" ", view_config.padding)
   left_text = left_text .. padding_text
-  table.insert(hls, {
-    color = constants.HIGHLIGHTS.WINDOW_BG,
-    start_col = 0,
-    end_col = view_config.padding,
-    namespace = spacing_ns,
-  })
+  local next_hl_col = view_config.padding
 
   local buffer_count = bufs.get_num_of_buffers()
   local idx_gutter_length = #tostring(buffer_count)
@@ -69,16 +63,11 @@ local function _generate_line(idx)
   left_text = left_text .. idx_text .. " "
   table.insert(hls, {
     color = constants.HIGHLIGHTS.INDEX,
-    start_col = hls[#hls].end_col,
-    end_col = hls[#hls].end_col + idx_gutter_length,
-    namespace = index_ns }
-  )
-  table.insert(hls, {
-    color = constants.HIGHLIGHTS.WINDOW_BG,
-    start_col = hls[#hls].end_col,
-    end_col = hls[#hls].end_col + 1,
-    namespace = spacing_ns,
+    start_col = next_hl_col,
+    end_col = next_hl_col + idx_gutter_length,
+    namespace = index_ns
   })
+  next_hl_col = hls[#hls].end_col + 1
 
   local buffer = bufs.get_buffer_by_index(idx)
   if bufs.is_pinned(buffer) then
@@ -86,16 +75,11 @@ local function _generate_line(idx)
     left_text = left_text .. view_config.pinned_icon .. " "
     table.insert(hls, {
       color = constants.HIGHLIGHTS.PINNED_ICON,
-      start_col = hls[#hls].end_col,
-      end_col = hls[#hls].end_col + string.len(pinned_icon),
+      start_col = next_hl_col,
+      end_col = next_hl_col + string.len(pinned_icon),
       namespace = pinned_icon_ns,
     })
-    table.insert(hls, {
-      color = constants.HIGHLIGHTS.WINDOW_BG,
-      start_col = hls[#hls].end_col,
-      end_col = hls[#hls].end_col + 1,
-      namespace = spacing_ns,
-    })
+    next_hl_col = hls[#hls].end_col + 1
   end
 
   local icon, icon_color = _get_icon(buffer)
@@ -103,24 +87,14 @@ local function _generate_line(idx)
     left_text = left_text .. icon .. " "
     table.insert(hls, {
       color = icon_color,
-      start_col = hls[#hls].end_col,
-      end_col = hls[#hls].end_col + string.len(icon),
+      start_col = next_hl_col,
+      end_col = next_hl_col + string.len(icon),
       namespace = icon_ns,
     })
-    table.insert(hls, {
-      color = constants.HIGHLIGHTS.WINDOW_BG,
-      start_col = hls[#hls].end_col,
-      end_col = hls[#hls].end_col + 1,
-      namespace = spacing_ns,
-    })
+    next_hl_col = hls[#hls].end_col + 1
   else
     left_text = left_text .. "  "
-    table.insert(hls, {
-      color = constants.HIGHLIGHTS.WINDOW_BG,
-      start_col = hls[#hls].end_col,
-      end_col = hls[#hls].end_col + 2,
-      namespace = spacing_ns,
-    })
+    next_hl_col = hls[#hls].end_col + 2
   end
 
   local right_text = ""
@@ -147,23 +121,17 @@ local function _generate_line(idx)
 
   local active_hl = {
     color = constants.HIGHLIGHTS.ACTIVE,
-    start_col = hls[#hls].end_col,
-    end_col = hls[#hls].end_col + string.len(buffer_text),
+    start_col = next_hl_col,
+    end_col = next_hl_col + string.len(buffer_text),
     namespace = active_buffer_ns,
   }
+  next_hl_col = active_hl.end_col + 1
 
-  local modified_icon_start = active_hl.end_col + 1
   table.insert(hls, {
     color = constants.HIGHLIGHTS.MODIFIED_ICON,
-    start_col = modified_icon_start,
-    end_col = modified_icon_start + string.len(view_config.modified_icon),
+    start_col = next_hl_col,
+    end_col = next_hl_col + string.len(view_config.modified_icon),
     namespace = icon_ns,
-  })
-  table.insert(hls, {
-    color = constants.HIGHLIGHTS.WINDOW_BG,
-    start_col = hls[#hls].end_col,
-    end_col = hls[#hls].end_col + view_config.padding,
-    namespace = spacing_ns,
   })
 
   return {
