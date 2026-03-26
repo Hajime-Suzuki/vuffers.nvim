@@ -197,20 +197,20 @@ end
 
 ---@param payload {index: integer}
 function M.highlight_active_buffer(payload)
-  local window_nr = window.get_buffer_number()
+  local vuffers_bufnr = window.get_buffer_number()
 
-  if not window.is_open() or not window_nr then
+  if not window.is_open() or not vuffers_bufnr then
     return
   end
 
-  _highlight_active_buffer(window_nr, payload.index - 1)
+  _highlight_active_buffer(vuffers_bufnr, payload.index - 1)
 end
 
 ---@param payload {current_index: integer, prev_index?: integer}
 function M.highlight_active_pinned_buffer(payload)
-  local window_nr = window.get_buffer_number()
+  local vuffers_bufnr = window.get_buffer_number()
 
-  if not window.is_open() or not window_nr then
+  if not window.is_open() or not vuffers_bufnr then
     return
   end
 
@@ -218,9 +218,9 @@ function M.highlight_active_pinned_buffer(payload)
   local view_config = config.get_view_config()
   local hl_start = view_config.padding + idx_gutter_length + 1
   if payload.prev_index then
-    vim.api.nvim_buf_clear_namespace(window_nr, active_pinned_buffer_ns, payload.prev_index - 1, payload.prev_index)
+    vim.api.nvim_buf_clear_namespace(vuffers_bufnr, active_pinned_buffer_ns, payload.prev_index - 1, payload.prev_index)
     vim.api.nvim_buf_add_highlight(
-      window_nr,
+      vuffers_bufnr,
       pinned_icon_ns,
       constants.HIGHLIGHTS.PINNED_ICON,
       payload.prev_index - 1,
@@ -229,9 +229,9 @@ function M.highlight_active_pinned_buffer(payload)
     )
   end
 
-  vim.api.nvim_buf_clear_namespace(window_nr, pinned_icon_ns, payload.current_index - 1, payload.current_index)
+  vim.api.nvim_buf_clear_namespace(vuffers_bufnr, pinned_icon_ns, payload.current_index - 1, payload.current_index)
   vim.api.nvim_buf_add_highlight(
-    window_nr,
+    vuffers_bufnr,
     active_pinned_buffer_ns,
     constants.HIGHLIGHTS.ACTIVE_PINNED_ICON,
     payload.current_index - 1,
@@ -242,8 +242,8 @@ end
 
 ---@param buffer NativeBuffer
 function M.update_modified_icon(buffer)
-  local window_nr = window.get_buffer_number()
-  if not window.is_open() or not window_nr then
+  local vuffers_bufnr = window.get_buffer_number()
+  if not window.is_open() or not vuffers_bufnr then
     return
   end
 
@@ -253,8 +253,8 @@ function M.update_modified_icon(buffer)
   end
 
   local new_line = _generate_line(index)
-  vim.api.nvim_buf_set_lines(window_nr, index - 1, index, false, {new_line.text})
-  apply_line_highlights(window_nr, index - 1, new_line.highlights)
+  vim.api.nvim_buf_set_lines(vuffers_bufnr, index - 1, index, false, {new_line.text})
+  apply_line_highlights(vuffers_bufnr, index - 1, new_line.highlights)
   active_highlights[index] = new_line.active_highlight
 
   local _, active_idx = bufs.get_active_buffer()
@@ -269,16 +269,16 @@ end
 
 ---@param payload BufferListChangedPayload
 function M.render_buffers(payload)
-  local window_nr = window.get_buffer_number()
+  local vuffers_bufnr = window.get_buffer_number()
 
-  if not window.is_open() or not window_nr then
+  if not window.is_open() or not vuffers_bufnr then
     return
   end
 
   local buffers = payload.buffers
 
   if not next(buffers) then
-    vim.api.nvim_buf_set_lines(window_nr, 0, -1, false, {})
+    vim.api.nvim_buf_set_lines(vuffers_bufnr, 0, -1, false, {})
     return
   end
 
@@ -288,7 +288,7 @@ function M.render_buffers(payload)
   end
 
   _render_lines(
-    window_nr,
+    vuffers_bufnr,
     list.map(lines, function(line)
       return line.text
     end)
@@ -297,7 +297,7 @@ function M.render_buffers(payload)
   active_highlights = {}
   for i, line in ipairs(lines) do
     logger.debug("highlights", line.highlights)
-    apply_line_highlights(window_nr, i - 1, line.highlights)
+    apply_line_highlights(vuffers_bufnr, i - 1, line.highlights)
     table.insert(active_highlights, line.active_highlight)
   end
 
