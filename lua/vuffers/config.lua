@@ -52,6 +52,7 @@ local M = {}
 ---@field sort SortOrder
 ---@field view View
 ---@field keymaps Keymaps
+---@field wrap boolean
 local config = {}
 
 M.get_config = function()
@@ -133,6 +134,7 @@ end
 function M.setup(user_config)
   ---@type Config
   local default = {
+    wrap = false,
     debug = {
       enabled = true,
       level = "error", -- "error" | "warn" | "info" | "debug" | "trace"

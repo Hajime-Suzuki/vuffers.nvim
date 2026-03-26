@@ -3,6 +3,7 @@ local logger = require("utils.logger")
 local buffers = require("vuffers.buffers")
 local pinned = require("vuffers.buffers.pinned-buffers")
 local window = require("vuffers.window")
+local config = require("vuffers.config")
 
 local M = {}
 
@@ -47,7 +48,12 @@ function M.next_or_prev_buffer(args)
 
   local num_of_buffers = buffers.get_num_of_buffers()
   local target_index = active_index + count
-  target_index = target_index < 1 and 1 or (target_index > num_of_buffers and num_of_buffers or target_index)
+  local base_config = config.get_config()
+  if base_config.wrap then
+    target_index = ((target_index - 1) % num_of_buffers) + 1
+  else
+    target_index = math.min(num_of_buffers, math.max(target_index, 1))
+  end
 
   logger.debug("ui:go_to_buffer_by_count: target index: " .. target_index)
 

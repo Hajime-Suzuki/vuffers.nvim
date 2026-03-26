@@ -268,6 +268,11 @@ function M.move_current_buffer_by_count(args)
   count = args.direction == "next" and count or -count
 
   local target_index = origin_index + count
+  local base_config = config.get_config()
+  if base_config.wrap then
+    local buf_count = bufs.get_num_of_buffers()
+    target_index = ((target_index - 1) % buf_count) + 1
+  end
 
   M.move_buffer({ target_index = target_index, origin_index = origin_index })
 end

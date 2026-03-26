@@ -1,6 +1,7 @@
 local logger = require("utils.logger")
 local list = require("utils.list")
 local str = require("utils.string")
+local config = require("vuffers.config")
 
 local bufs = function()
   return require("vuffers.buffers.buffers")
@@ -153,8 +154,16 @@ function M.get_next_or_prev_pinned_buffer(type)
     return
   end
 
-  local target_buf_index = currently_pinned_buf_index + (type == "next" and 1 or -1)
-  return pinned_buffers[target_buf_index]
+  local target_index = currently_pinned_buf_index + (type == "next" and 1 or -1)
+  local pinned_buf_count = #pinned_buffers
+  local base_config = config.get_config()
+  if base_config.wrap then
+    target_index = ((target_index - 1) % pinned_buf_count) + 1
+  else
+    target_index = math.min(pinned_buf_count, math.max(target_index, 1))
+  end
+
+  return pinned_buffers[target_index]
 end
 
 return M
