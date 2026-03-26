@@ -26,6 +26,8 @@ local M = {}
 ---@field show_file_extension boolean
 ---@field create_buffer_text fun(buffer: Buffer): string
 ---@field highlight_entire_active_line boolean
+---@field trim_buffer_text boolean
+---@field trim_icon string
 
 ---@class Keymaps
 ---@field use_default boolean
@@ -174,6 +176,8 @@ function M.setup(user_config)
       create_buffer_text = function(buffer)
         return buffer.name
       end,
+      trim_buffer_text = false,
+      trim_icon = "",
       highlight_entire_active_line = false,
       window = {
         auto_resize = false,
