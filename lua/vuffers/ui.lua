@@ -217,26 +217,29 @@ function M.highlight_active_pinned_buffer(payload)
   local idx_gutter_length = #tostring(bufs.get_num_of_buffers())
   local view_config = config.get_view_config()
   local hl_start = view_config.padding + idx_gutter_length + 1
+  local hl_end = hl_start + string.len(view_config.pinned_icon)
   if payload.prev_index then
     vim.api.nvim_buf_clear_namespace(vuffers_bufnr, active_pinned_buffer_ns, payload.prev_index - 1, payload.prev_index)
-    vim.api.nvim_buf_add_highlight(
+    local start = {payload.prev_index - 1, hl_start}
+    local finish = {payload.prev_index - 1, hl_end}
+    vim.hl.range(
       vuffers_bufnr,
       pinned_icon_ns,
       constants.HIGHLIGHTS.PINNED_ICON,
-      payload.prev_index - 1,
-      hl_start,
-      string.len(view_config.pinned_icon)
+      start,
+      finish
     )
   end
 
   vim.api.nvim_buf_clear_namespace(vuffers_bufnr, pinned_icon_ns, payload.current_index - 1, payload.current_index)
-  vim.api.nvim_buf_add_highlight(
+  local start = {payload.current_index - 1, hl_start}
+  local finish = {payload.current_index - 1, hl_end}
+  vim.hl.range(
     vuffers_bufnr,
     active_pinned_buffer_ns,
     constants.HIGHLIGHTS.ACTIVE_PINNED_ICON,
-    payload.current_index - 1,
-    hl_start,
-    string.len(view_config.pinned_icon)
+    start,
+    finish
   )
 end
 
