@@ -65,7 +65,7 @@ local function _generate_line(idx)
     color = constants.HIGHLIGHTS.INDEX,
     start_col = next_hl_col,
     end_col = next_hl_col + idx_gutter_length,
-    namespace = index_ns
+    namespace = index_ns,
   })
   next_hl_col = hls[#hls].end_col + 1
 
@@ -158,8 +158,8 @@ end
 ---@param highlights Highlight
 local function apply_line_highlights(window_bufnr, line_number, highlights)
   for _, hl in ipairs(highlights) do
-    local start = {line_number, hl.start_col}
-    local finish = {line_number, hl.end_col}
+    local start = { line_number, hl.start_col }
+    local finish = { line_number, hl.end_col }
     local ok = pcall(function()
       vim.hl.range(window_bufnr, hl.namespace, hl.color, start, finish)
     end)
@@ -176,16 +176,10 @@ local function _highlight_active_buffer(window_bufnr, line_number)
     vim.api.nvim_buf_clear_namespace(window_bufnr, active_buffer_ns, 0, -1)
     local hl = active_highlights[line_number + 1]
     if config.get_view_config().highlight_entire_active_line then
-      vim.api.nvim_buf_set_extmark(
-        window_bufnr,
-        hl.namespace,
-        line_number,
-        -1,
-        {line_hl_group = hl.color}
-      )
+      vim.api.nvim_buf_set_extmark(window_bufnr, hl.namespace, line_number, -1, { line_hl_group = hl.color })
     else
-      local start = {line_number, hl.start_col}
-      local finish = {line_number, hl.end_col}
+      local start = { line_number, hl.start_col }
+      local finish = { line_number, hl.end_col }
       vim.hl.range(window_bufnr, hl.namespace, hl.color, start, finish)
     end
   end)
@@ -220,27 +214,15 @@ function M.highlight_active_pinned_buffer(payload)
   local hl_end = hl_start + string.len(view_config.pinned_icon)
   if payload.prev_index then
     vim.api.nvim_buf_clear_namespace(vuffers_bufnr, active_pinned_buffer_ns, payload.prev_index - 1, payload.prev_index)
-    local start = {payload.prev_index - 1, hl_start}
-    local finish = {payload.prev_index - 1, hl_end}
-    vim.hl.range(
-      vuffers_bufnr,
-      pinned_icon_ns,
-      constants.HIGHLIGHTS.PINNED_ICON,
-      start,
-      finish
-    )
+    local start = { payload.prev_index - 1, hl_start }
+    local finish = { payload.prev_index - 1, hl_end }
+    vim.hl.range(vuffers_bufnr, pinned_icon_ns, constants.HIGHLIGHTS.PINNED_ICON, start, finish)
   end
 
   vim.api.nvim_buf_clear_namespace(vuffers_bufnr, pinned_icon_ns, payload.current_index - 1, payload.current_index)
-  local start = {payload.current_index - 1, hl_start}
-  local finish = {payload.current_index - 1, hl_end}
-  vim.hl.range(
-    vuffers_bufnr,
-    active_pinned_buffer_ns,
-    constants.HIGHLIGHTS.ACTIVE_PINNED_ICON,
-    start,
-    finish
-  )
+  local start = { payload.current_index - 1, hl_start }
+  local finish = { payload.current_index - 1, hl_end }
+  vim.hl.range(vuffers_bufnr, active_pinned_buffer_ns, constants.HIGHLIGHTS.ACTIVE_PINNED_ICON, start, finish)
 end
 
 ---@param buffer NativeBuffer
@@ -256,17 +238,17 @@ function M.update_modified_icon(buffer)
   end
 
   local new_line = _generate_line(index)
-  vim.api.nvim_buf_set_lines(vuffers_bufnr, index - 1, index, false, {new_line.text})
+  vim.api.nvim_buf_set_lines(vuffers_bufnr, index - 1, index, false, { new_line.text })
   apply_line_highlights(vuffers_bufnr, index - 1, new_line.highlights)
   active_highlights[index] = new_line.active_highlight
 
   local _, active_idx = bufs.get_active_buffer()
   if active_idx ~= nil and index == active_idx then
-    M.highlight_active_buffer({index = active_idx})
+    M.highlight_active_buffer({ index = active_idx })
   end
   local _, active_pinned_idx = pinned.get_active_pinned_buffer()
   if active_pinned_idx ~= nil and index == active_pinned_idx then
-    M.highlight_active_pinned_buffer({current_index = active_pinned_idx})
+    M.highlight_active_pinned_buffer({ current_index = active_pinned_idx })
   end
 end
 
@@ -286,7 +268,7 @@ function M.render_buffers(payload)
   end
 
   local lines = {}
-  for idx=1,bufs.get_num_of_buffers() do
+  for idx = 1, bufs.get_num_of_buffers() do
     table.insert(lines, _generate_line(idx))
   end
 

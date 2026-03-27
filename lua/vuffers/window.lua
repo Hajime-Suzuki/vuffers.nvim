@@ -112,7 +112,7 @@ end
 
 ---@param opts? {win: integer}
 function M.open(opts)
-	opts = opts or { }
+  opts = opts or {}
 
   local view = _get_view()
 
