@@ -8,6 +8,7 @@ local utils = require("vuffers.buffers.buffer-utils")
 local list = require("utils.list")
 local config = require("vuffers.config")
 local persist = require("vuffers.buffers.persist")
+local constants = require("vuffers.constants")
 
 local M = {}
 
@@ -102,8 +103,21 @@ end
 ---@param buf Buffer | NativeBuffer
 M.set_active_buf = function(buf)
   active.set_active_buf({ path = buf.path or buf.file })
-  local payload = event_payload.get_active_buf_changed_event_payload()
-  event_bus.publish_active_buffer_changed(payload)
+
+  local _, index = M.get_active_buffer()
+  if not index then
+    return
+  end
+
+  bufs.set_last_opened_time({ index = index, time = vim.loop.now() })
+
+  if config.get_sort().type == constants.SORT_TYPE.LAST_USED then
+    local payload = event_payload.get_buffer_list_changed_event_payload()
+    event_bus.publish_buffer_list_changed(payload)
+  else
+    local payload = event_payload.get_active_buf_changed_event_payload()
+    event_bus.publish_active_buffer_changed(payload)
+  end
 end
 
 ------------------------------------
