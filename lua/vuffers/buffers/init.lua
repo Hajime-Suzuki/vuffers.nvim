@@ -11,6 +11,11 @@ local persist = require("vuffers.buffers.persist")
 
 local M = {}
 
+M.setup = function()
+  M.reset_buffers()
+  M.restore_pinned_buffers()
+end
+
 ---@param buffer NativeBuffer
 M.add_buffer = function(buffer)
   if bufs.add_buffer(buffer) then
