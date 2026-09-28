@@ -17,7 +17,7 @@ function M.setup(opts)
   highlights.setup()
   subscriptions.setup()
   auto_commands.create_auto_group()
-  bufs.restore_pinned_buffers()
+  bufs.setup()
   logger.debug("setup end")
 end
 
